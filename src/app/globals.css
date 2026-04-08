@@ -4,39 +4,39 @@
 
 @layer base {
   :root {
-    --background: 204 38% 97%;
-    --foreground: 206 45% 12%;
+    --background: 215 30% 7%;
+    --foreground: 210 18% 94%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 206 45% 12%;
+    --card: 214 22% 11%;
+    --card-foreground: 210 18% 94%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 206 45% 12%;
+    --popover: 214 22% 11%;
+    --popover-foreground: 210 18% 94%;
 
-    --primary: 192 82% 31%;
-    --primary-foreground: 204 38% 97%;
+    --primary: 193 92% 47%;
+    --primary-foreground: 215 30% 7%;
 
-    --secondary: 199 39% 92%;
-    --secondary-foreground: 206 45% 16%;
+    --secondary: 214 18% 16%;
+    --secondary-foreground: 210 18% 92%;
 
-    --muted: 198 35% 94%;
-    --muted-foreground: 203 20% 35%;
+    --muted: 214 16% 14%;
+    --muted-foreground: 210 10% 70%;
 
-    --accent: 38 95% 56%;
-    --accent-foreground: 206 45% 12%;
+    --accent: 37 85% 58%;
+    --accent-foreground: 215 30% 7%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 198 24% 84%;
-    --input: 198 24% 84%;
-    --ring: 192 82% 31%;
+    --border: 214 15% 25%;
+    --input: 214 15% 25%;
+    --ring: 193 92% 47%;
 
     --radius: 0.85rem;
 
-    --surface-ocean: linear-gradient(135deg, hsl(199 58% 92%) 0%, hsl(192 48% 86%) 50%, hsl(188 44% 83%) 100%);
-    --surface-deep: linear-gradient(140deg, hsl(205 62% 19%) 0%, hsl(196 58% 22%) 48%, hsl(188 47% 26%) 100%);
-    --hero-overlay: linear-gradient(160deg, hsl(204 60% 16% / 0.8) 0%, hsl(192 80% 18% / 0.65) 60%, hsl(188 80% 22% / 0.55) 100%);
+    --surface-ocean: linear-gradient(135deg, hsl(214 28% 13%) 0%, hsl(205 30% 16%) 50%, hsl(197 34% 19%) 100%);
+    --surface-deep: linear-gradient(140deg, hsl(219 36% 6%) 0%, hsl(211 40% 9%) 48%, hsl(198 44% 12%) 100%);
+    --hero-overlay: linear-gradient(160deg, hsl(220 40% 4% / 0.86) 0%, hsl(208 48% 8% / 0.72) 60%, hsl(195 52% 12% / 0.62) 100%);
   }
 
   * {
@@ -54,7 +54,7 @@
   }
 
   .surface-panel {
-    @apply rounded-2xl border border-border/70 bg-card/90 shadow-sm;
+    @apply rounded-2xl border border-border/80 bg-card/90 shadow-[0_20px_50px_-28px_rgba(0,0,0,0.8)];
   }
 
   .section-space {

@@ -30,7 +30,7 @@ export const services: Service[] = [
   {
     slug: "boat-detailing",
     name: "Boat Detailing",
-    shortDescription: "Full exterior detailing to restore gloss and finish.",
+    shortDescription: "Full exterior detailing that restores showroom gloss on premium vessels.",
     longDescription:
       "A complete top-to-bottom detailing package focused on oxidation removal, stain treatment, and finish restoration for fiberglass and painted marine surfaces.",
     basePriceFrom: 349,
@@ -39,7 +39,7 @@ export const services: Service[] = [
   {
     slug: "gelcoat-restoration",
     name: "Gelcoat Restoration",
-    shortDescription: "Cut and polish system for faded or chalky gelcoat.",
+    shortDescription: "Multi-stage cut and polish for heavily weathered gelcoat.",
     longDescription:
       "Multi-stage correction service designed to revive aged gelcoat, remove heavy oxidation, and recover clarity before long-term protection is applied.",
     basePriceFrom: 499,
@@ -48,7 +48,7 @@ export const services: Service[] = [
   {
     slug: "ceramic-coating",
     name: "Ceramic Coating",
-    shortDescription: "Hydrophobic ceramic protection for marine surfaces.",
+    shortDescription: "Marine ceramic protection for deep gloss and easier upkeep.",
     longDescription:
       "Marine-grade ceramic coating that improves gloss, reduces wash effort, and provides season-long UV and environmental protection.",
     basePriceFrom: 799,
@@ -57,7 +57,7 @@ export const services: Service[] = [
   {
     slug: "interior-detailing",
     name: "Interior Detailing",
-    shortDescription: "Cabin, helm, vinyl, and upholstery deep cleaning.",
+    shortDescription: "Cabin, helm, vinyl, and upholstery correction for a clean luxury interior.",
     longDescription:
       "Interior reset service including vinyl treatment, carpet extraction, compartment wipe-down, and mold-prone area targeting for cleaner storage.",
     basePriceFrom: 279,
@@ -66,7 +66,7 @@ export const services: Service[] = [
   {
     slug: "wash-and-wax",
     name: "Wash and Wax",
-    shortDescription: "Maintenance clean with protective marine wax.",
+    shortDescription: "Scheduled wash and wax maintenance for peak season presentation.",
     longDescription:
       "Scheduled maintenance package for routine washdowns, salt and grime removal, and premium wax application for ongoing shine between full details.",
     basePriceFrom: 219,
@@ -79,19 +79,19 @@ export const locations: Location[] = [
     slug: "georgian-bay",
     name: "Georgian Bay",
     region: "Ontario",
-    shortDescription: "Dockside and marina detailing across Georgian Bay.",
+    shortDescription: "High-end dockside detailing for marinas and private slips across Georgian Bay.",
   },
   {
     slug: "muskoka",
     name: "Muskoka",
     region: "Ontario",
-    shortDescription: "Premium mobile marine detailing for Muskoka boaters.",
+    shortDescription: "Premium mobile detailing for Muskoka boat owners and seasonal estates.",
   },
   {
     slug: "lake-simcoe",
     name: "Lake Simcoe",
     region: "Ontario",
-    shortDescription: "Seasonal detailing and protection around Lake Simcoe.",
+    shortDescription: "Seasonal detailing and ceramic protection throughout Lake Simcoe.",
   },
   {
     slug: "midland",

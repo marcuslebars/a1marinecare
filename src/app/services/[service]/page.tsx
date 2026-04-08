@@ -57,30 +57,30 @@ export default async function ServicePage({ params }: ServicePageParams) {
       <SchemaScript schema={schema} />
       <section className="section-space bg-surface-ocean">
         <div className="page-shell">
-          <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Service</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Premium Service</p>
           <h1 className="mt-2 text-4xl font-semibold">{service.name}</h1>
           <p className="mt-4 max-w-3xl text-base text-muted-foreground">{service.longDescription}</p>
           <div className="mt-6 flex flex-wrap gap-4 text-sm">
             <span className="rounded-full border border-border bg-card px-3 py-1">From ${service.basePriceFrom} CAD</span>
             <span className="rounded-full border border-border bg-card px-3 py-1">Estimated {service.duration}</span>
             <Link href="/quote" className="rounded-full bg-primary px-4 py-1 text-primary-foreground">
-              Start quote
+              Request premium quote
             </Link>
           </div>
         </div>
       </section>
 
       <InternalLinkGrid
-        title="Service locations"
+        title="Available in your marina area"
         items={locations.map((location) => ({
           href: `/${service.slug}/${location.slug}`,
           title: `${service.name} in ${location.name}`,
-          description: `${service.shortDescription} Mobile service in ${location.name}.`,
+          description: `${service.shortDescription} Trusted mobile service in ${location.name}.`,
         }))}
       />
 
       <InternalLinkGrid
-        title="Related services"
+        title="Popular companion services"
         items={services
           .filter((item) => item.slug !== service.slug)
           .map((item) => ({

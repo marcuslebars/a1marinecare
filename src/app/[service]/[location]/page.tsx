@@ -65,29 +65,29 @@ export default async function CombinedSeoPage({ params }: CombinedPageParams) {
       <SchemaScript schema={schema} />
       <section className="section-space bg-surface-ocean">
         <div className="page-shell">
-          <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Service Location</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Local Premium Care</p>
           <h1 className="mt-2 text-4xl font-semibold">
             {service.name} in {location.name}
           </h1>
           <p className="mt-4 max-w-3xl text-base text-muted-foreground">
-            {service.longDescription} This landing page is optimized for local search intent in {location.name}, {location.region}.
+            {service.longDescription} Expect meticulous dockside workmanship, premium marine products, and consistent high-end results in {location.name}, {location.region}.
           </p>
           <div className="mt-6 flex flex-wrap gap-4 text-sm">
             <Link href="/quote" className="rounded-full bg-primary px-4 py-1 text-primary-foreground">
-              Request quote
+              Request premium quote
             </Link>
             <Link href={`/services/${service.slug}`} className="rounded-full border border-border bg-card px-4 py-1">
-              Service overview
+              View service details
             </Link>
             <Link href={`/locations/${location.slug}`} className="rounded-full border border-border bg-card px-4 py-1">
-              Location overview
+              View location coverage
             </Link>
           </div>
         </div>
       </section>
 
       <InternalLinkGrid
-        title="Other services in this location"
+        title="More services in this location"
         items={services
           .filter((item) => item.slug !== service.slug)
           .map((item) => ({
@@ -98,7 +98,7 @@ export default async function CombinedSeoPage({ params }: CombinedPageParams) {
       />
 
       <InternalLinkGrid
-        title={`Other locations for ${service.name}`}
+        title={`More locations for ${service.name}`}
         items={locations
           .filter((item) => item.slug !== location.slug)
           .map((item) => ({

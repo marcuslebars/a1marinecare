@@ -8,57 +8,57 @@ export default function HomePage() {
   return (
     <>
       <Hero
-        title="Production marine detailing platform for Ontario service areas"
-        description="A1 Marine Care combines SEO landing pages, quote workflows, and online booking into one scalable Next.js platform built for multi-location growth."
+        title="Premium Boat Detailing in Georgian Bay"
+        description="Trusted by owners of high-value vessels across Georgian Bay, Muskoka, and Lake Simcoe for deep gloss restoration, ceramic protection, and meticulous dockside care."
         primaryHref="/quote"
-        primaryLabel="Start Quote"
+        primaryLabel="Request Premium Quote"
         secondaryHref="/booking"
-        secondaryLabel="Book Service"
+        secondaryLabel="Reserve Your Date"
       />
 
       <StatStrip
         stats={[
-          { label: "Active Service Lines", value: String(services.length) },
-          { label: "Primary Locations", value: String(locations.length) },
-          { label: "Quote Steps", value: "6" },
-          { label: "Booking Steps", value: "4" },
+          { label: "Boats Detailed", value: "500+" },
+          { label: "Years On Water", value: "15+" },
+          { label: "Core Service Regions", value: "3" },
+          { label: "Average Rating", value: "5.0" },
         ]}
       />
 
       <section className="section-space">
         <div className="page-shell grid gap-4 md:grid-cols-3">
           <SectionCard
-            title="SEO at scale"
-            description="Dynamic service, location, and service-location pages with metadata and schema markup."
+            title="Before and After Results"
+            description="We correct oxidation, waterline staining, and dull gelcoat to restore a rich, reflective finish."
             points={[
-              "Reusable route templates",
-              "Server-rendered metadata",
-              "Internal linking mesh",
+              "Heavy oxidation removal",
+              "Multi-stage machine polishing",
+              "Mirror-depth final gloss",
             ]}
           />
           <SectionCard
-            title="Quote application"
-            description="Multi-step quote flow with modular components and state persistence across steps."
+            title="Trusted by Boat Owners"
+            description="Owners choose us when they want reliable communication, careful handling, and consistent premium outcomes."
             points={[
-              "Structured lead payload",
-              "Validation and review step",
-              "API endpoint integration",
+              "5-star local reviews",
+              "Transparent estimates",
+              "Fully mobile dockside service",
             ]}
           />
           <SectionCard
-            title="Booking system"
-            description="Calendar and time slot booking with confirmation and backend submission hooks."
+            title="Built for High-Value Vessels"
+            description="From day boats to luxury cruisers, we tailor service plans for finish type, usage, and marina conditions."
             points={[
-              "Service and location aware",
-              "Summary before confirmation",
-              "Supabase-ready data layer",
+              "Marine-safe premium products",
+              "Ceramic and seasonal protection",
+              "Meticulous interior and exterior care",
             ]}
           />
         </div>
       </section>
 
       <InternalLinkGrid
-        title="Explore services"
+        title="Before and after worthy services"
         items={services.map((service) => ({
           href: `/services/${service.slug}`,
           title: service.name,
@@ -67,7 +67,7 @@ export default function HomePage() {
       />
 
       <InternalLinkGrid
-        title="Explore service locations"
+        title="Proudly serving local marinas"
         items={locations.map((location) => ({
           href: `/locations/${location.slug}`,
           title: location.name,

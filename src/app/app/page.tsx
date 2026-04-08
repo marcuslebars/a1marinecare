@@ -5,8 +5,8 @@ import { isDashboardAuthenticated } from "@/lib/auth";
 import { absoluteUrl, buildDescription, buildTitle } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: buildTitle("Internal App"),
-  description: buildDescription("Protected entry point for the future internal dashboard, job tracking, and CRM replacement."),
+  title: buildTitle("Client Care"),
+  description: buildDescription("Private client care access for active marine detailing customers."),
   alternates: {
     canonical: absoluteUrl("/app"),
   },
@@ -24,18 +24,18 @@ export default async function InternalAppPage() {
       <div className="page-shell max-w-3xl">
         <div className="surface-panel p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Protected Route</p>
-          <h1 className="mt-2 text-3xl font-semibold">Internal platform scaffold</h1>
+          <h1 className="mt-2 text-3xl font-semibold">Private client care</h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            This route is reserved for the future internal dashboard, job workflow tracker, and CRM replacement modules.
+            This private area is reserved for active clients and service follow-up.
           </p>
 
           {authenticated ? (
             <p className="mt-6 rounded-xl border border-primary/30 bg-secondary p-4 text-sm text-primary">
-              Dashboard session detected. Internal modules can be mounted here.
+              Session confirmed. Your private client area is available.
             </p>
           ) : (
             <p className="mt-6 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-              Access denied. No internal session cookie is set.
+              Access restricted. No client session was detected.
             </p>
           )}
 

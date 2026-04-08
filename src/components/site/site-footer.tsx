@@ -9,7 +9,7 @@ export function SiteFooter() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.1em] text-primary">A1 Marine Care</p>
           <p className="mt-3 text-sm text-muted-foreground">
-            Mobile marine detailing, coating, and restoration services across Ontario waterfront communities.
+            Premium mobile boat detailing for owners who expect flawless finish, long-term protection, and white-glove dockside service.
           </p>
         </div>
 
@@ -40,21 +40,21 @@ export function SiteFooter() {
         </div>
 
         <div>
-          <p className="text-sm font-semibold">Platform</p>
+          <p className="text-sm font-semibold">Book With Us</p>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>
               <Link href="/quote" className="transition-colors hover:text-primary">
-                Quote Application
+                Request a Quote
               </Link>
             </li>
             <li>
               <Link href="/booking" className="transition-colors hover:text-primary">
-                Booking System
+                Reserve a Service Date
               </Link>
             </li>
             <li>
               <Link href="/app" className="transition-colors hover:text-primary">
-                Internal App
+                Client Care
               </Link>
             </li>
           </ul>

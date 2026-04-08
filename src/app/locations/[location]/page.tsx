@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: LocationPageParams): Promise<
     return {};
   }
 
-  const title = buildTitle(`Marine detailing in ${location.name}`);
+  const title = buildTitle(`Premium boat detailing in ${location.name}`);
   const description = buildDescription(location.shortDescription);
 
   return {
@@ -52,24 +52,24 @@ export default async function LocationPage({ params }: LocationPageParams) {
     <>
       <section className="section-space bg-surface-ocean">
         <div className="page-shell">
-          <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Location</p>
-          <h1 className="mt-2 text-4xl font-semibold">Boat detailing in {location.name}</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Service Region</p>
+          <h1 className="mt-2 text-4xl font-semibold">Premium boat detailing in {location.name}</h1>
           <p className="mt-4 max-w-3xl text-base text-muted-foreground">
-            {location.shortDescription} We provide dockside and marina-ready detailing programs for seasonal and year-round vessel care.
+            {location.shortDescription} We deliver high-end dockside detailing for owners who want stronger gloss, cleaner surfaces, and dependable seasonal protection.
           </p>
           <div className="mt-6 flex flex-wrap gap-4 text-sm">
             <Link href="/quote" className="rounded-full bg-primary px-4 py-1 text-primary-foreground">
-              Request quote
+              Request premium quote
             </Link>
             <Link href="/booking" className="rounded-full border border-border bg-card px-4 py-1">
-              Book appointment
+              Reserve service date
             </Link>
           </div>
         </div>
       </section>
 
       <InternalLinkGrid
-        title={`Services available in ${location.name}`}
+        title={`Premium services in ${location.name}`}
         items={services.map((service) => ({
           href: `/${service.slug}/${location.slug}`,
           title: `${service.name} in ${location.name}`,
@@ -78,7 +78,7 @@ export default async function LocationPage({ params }: LocationPageParams) {
       />
 
       <InternalLinkGrid
-        title="Nearby coverage pages"
+        title="Nearby service regions"
         items={locations
           .filter((item) => item.slug !== location.slug)
           .map((item) => ({
