@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Anchor } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const navLinks = [
   { label: "Services", href: "/services/boat-detailing" },
@@ -17,11 +18,8 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-strong">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link to="/" className="flex items-center gap-2 group">
-          <Anchor className="h-6 w-6 text-primary transition-transform group-hover:rotate-12" />
-          <span className="text-lg font-bold tracking-tight text-foreground">
-            A1 <span className="text-gradient-cyan">Marine Care</span>
-          </span>
+        <Link to="/" className="flex items-center">
+          <img src={logo} alt="A1 Marine Care" className="h-8" />
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Anchor, Phone, Mail, MapPin } from "lucide-react";
+import { Phone, Mail, MapPin } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const services = [
   { label: "Boat Detailing", href: "/services/boat-detailing" },
@@ -22,9 +23,8 @@ const Footer = () => (
     <div className="container mx-auto px-4 py-16">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Anchor className="h-5 w-5 text-primary" />
-            <span className="font-bold text-foreground">A1 <span className="text-gradient-cyan">Marine Care</span></span>
+          <div className="flex items-center">
+            <img src={logo} alt="A1 Marine Care" className="h-8" />
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Premium marine detailing services across Ontario's finest waterways.
