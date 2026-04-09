@@ -110,6 +110,3 @@ export default async function CombinedSeoPage({ params }: CombinedPageParams) {
     </>
   );
 }
-
-export const dynamicParams = false;
-export const dynamic = "force-static";

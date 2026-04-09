@@ -31,23 +31,23 @@ export function Hero({
         sizes="100vw"
       />
       <div className="absolute inset-0 bg-hero-overlay" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/45 to-black/30" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/20" />
       <div className="absolute -left-24 top-8 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
       <div className="absolute -right-20 bottom-6 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
-      <div className="page-shell relative py-24 md:py-32">
+      <div className="page-shell relative py-24 md:py-36">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">A1 Marine Care</p>
-        <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-tight md:text-6xl">{title}</h1>
-        <p className="mt-6 max-w-2xl text-base text-cyan-50/90 md:text-lg">{description}</p>
+        <h1 className="text-hero-glow mt-4 max-w-5xl text-5xl font-black leading-[0.95] md:text-7xl">{title}</h1>
+        <p className="text-hero-glow mt-7 max-w-2xl text-base text-cyan-50/95 md:text-xl">{description}</p>
         <div className="mt-7 flex flex-wrap gap-3 text-xs uppercase tracking-[0.12em] text-cyan-100/90">
           <span className="rounded-full border border-white/25 bg-white/5 px-3 py-1">Mobile Dockside Service</span>
           <span className="rounded-full border border-white/25 bg-white/5 px-3 py-1">Fully Insured Team</span>
           <span className="rounded-full border border-white/25 bg-white/5 px-3 py-1">Georgian Bay • Muskoka • Lake Simcoe</span>
         </div>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Button variant="secondary" asChild>
+        <div className="mt-10 flex flex-wrap gap-4">
+          <Button size="lg" className="h-12 px-10 text-base font-semibold shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_20px_45px_-20px_rgba(56,208,255,0.7)]" variant="secondary" asChild>
             <Link href={primaryHref}>{primaryLabel}</Link>
           </Button>
-          <Button variant="outline" className="border-white/40 bg-white/5 text-white hover:bg-white/10" asChild>
+          <Button size="lg" variant="outline" className="h-12 border-white/60 bg-black/30 px-10 text-base font-semibold text-white hover:bg-white/10" asChild>
             <Link href={secondaryHref}>{secondaryLabel}</Link>
           </Button>
         </div>
