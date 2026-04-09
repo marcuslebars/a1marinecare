@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   description: defaultDescription,
   metadataBase: new URL(company.url),
   icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
   openGraph: {
     title: defaultTitle,

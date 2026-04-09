@@ -11,7 +11,7 @@ export function SiteFooter() {
         <div>
           <Link href="/" className="inline-flex items-center">
             <Image
-              src="/images/logos/a1-marine-care-logo-white.png"
+              src="/images/logos/logo.png"
               alt="A1 Marine Care"
               width={400}
               height={100}

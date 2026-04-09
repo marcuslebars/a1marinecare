@@ -20,7 +20,7 @@ export function SiteHeader() {
       <div className="page-shell flex h-16 items-center justify-between gap-4">
         <Link href="/" className="inline-flex items-center">
           <Image
-            src="/images/logos/a1-marine-care-logo-white.png"
+            src="/images/logos/logo.png"
             alt="A1 Marine Care"
             width={400}
             height={100}
