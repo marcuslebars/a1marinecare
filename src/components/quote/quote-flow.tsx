@@ -42,6 +42,7 @@ import OptionToggle from "@/components/quote/OptionToggle";
 import StickyPricePanel from "@/components/quote/StickyPricePanel";
 import AnimatedPrice from "@/components/quote/AnimatedPrice";
 import LearnMoreModal from "@/components/quote/LearnMoreModal";
+import { LocationCombobox } from "@/components/quote/LocationCombobox";
 
 const EXTERIOR_TIERS = [
   { value: "refresh", label: "Refresh", multiplier: "1.0x", description: "Quick maintenance clean for well-kept boats" },
@@ -98,6 +99,8 @@ export function QuoteFlow() {
   const [boatDetails, setBoatDetails] = useState<{ length: number; type: string; location: string }>({
     length: 0, type: "", location: "",
   });
+  const [customLocation, setCustomLocation] = useState("");
+  const [marinaDetails, setMarinaDetails] = useState("");
   const [contactInfo, setContactInfo] = useState<{ fullName: string; email: string; phone: string }>({
     fullName: "", email: "", phone: "",
   });
@@ -259,9 +262,17 @@ export function QuoteFlow() {
     setIsSubmitting(true);
     setSubmissionMessage("");
 
+    const locationDisplay = boatDetails.location === "other"
+      ? customLocation || "Other"
+      : locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location;
+
+    const locationWithMarina = marinaDetails
+      ? `${locationDisplay} - ${marinaDetails}`
+      : locationDisplay;
+
     const notesPayload = [
       contactInfo.phone,
-      `Location: ${locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location}`,
+      `Location: ${locationWithMarina}`,
       `Services: ${perServiceSubtotals.map((s) => s.name).join(", ") || "None"}`,
       estimate?.breakdown?.length ? `Breakdown: ${estimate.breakdown.join(" | ")}` : "",
     ]
@@ -282,7 +293,7 @@ export function QuoteFlow() {
           contactEmail: contactInfo.email.trim(),
           contactPhone: contactInfo.phone.trim(),
           notes: notesPayload,
-          locationSlug: boatDetails.location,
+          locationSlug: boatDetails.location === "other" ? "other" : boatDetails.location,
           estimatedTotal: Math.round((estimate?.subtotal || 0) * 100),
           requiresManualReview: estimate?.requiresManualReview || false,
           reviewReasons: estimate?.reviewReasons || [],
@@ -299,7 +310,7 @@ export function QuoteFlow() {
         customerPhone: contactInfo.phone,
         boatLength: String(boatDetails.length),
         boatType: boatTypeLabels[boatDetails.type] ?? boatDetails.type,
-        serviceLocation: locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location,
+        serviceLocation: locationWithMarina,
         services: JSON.stringify(bookingSelectedServices),
         estimatedTotal: (estimate?.subtotal || 0).toFixed(2),
       });
@@ -314,6 +325,13 @@ export function QuoteFlow() {
   const handleDownloadPDF = async () => {
     setIsDownloadingPDF(true);
     try {
+      const locationDisplay = boatDetails.location === "other"
+        ? customLocation || "Other"
+        : locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location;
+      const locationWithMarina = marinaDetails
+        ? `${locationDisplay} - ${marinaDetails}`
+        : locationDisplay;
+
       const response = await fetch("/api/quotes/pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -323,7 +341,7 @@ export function QuoteFlow() {
           customerPhone: contactInfo.phone,
           boatLength: boatDetails.length,
           boatType: boatTypeLabels[boatDetails.type] ?? boatDetails.type,
-          serviceLocation: locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location,
+          serviceLocation: locationWithMarina,
           services,
           estimatedTotal: Math.round((estimate?.subtotal || 0) * 100),
           breakdown: estimate?.breakdown || [],
@@ -411,20 +429,18 @@ export function QuoteFlow() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 sm:col-span-3 lg:col-span-1">
                     <Label className="text-muted-foreground text-sm flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5" /> Service Location
                     </Label>
-                    <Select value={boatDetails.location} onValueChange={(v) => setBoatDetails({ ...boatDetails, location: v })}>
-                      <SelectTrigger className="h-11 rounded-xl">
-                        <SelectValue placeholder="Choose location" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {locations.map((location) => (
-                          <SelectItem key={location.slug} value={location.slug}>{location.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <LocationCombobox
+                      value={boatDetails.location}
+                      onChange={(v) => setBoatDetails({ ...boatDetails, location: v })}
+                      customLocation={customLocation}
+                      onCustomLocationChange={setCustomLocation}
+                      marinaDetails={marinaDetails}
+                      onMarinaDetailsChange={setMarinaDetails}
+                    />
                   </div>
                 </div>
               </section>
@@ -641,7 +657,12 @@ export function QuoteFlow() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Location</p>
-                      <p className="font-medium text-foreground">{locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location}</p>
+                      <p className="font-medium text-foreground">
+                        {boatDetails.location === "other"
+                          ? customLocation || "Other"
+                          : locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location}
+                        {marinaDetails && <span className="text-muted-foreground text-xs block">{marinaDetails}</span>}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Contact</p>

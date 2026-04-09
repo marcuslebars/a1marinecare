@@ -82,10 +82,58 @@ export const locations: Location[] = [
     shortDescription: "High-end dockside detailing for marinas and private slips across Georgian Bay.",
   },
   {
+    slug: "midland",
+    name: "Midland",
+    region: "Ontario",
+    shortDescription: "Fast-response marine care services in Midland marinas.",
+  },
+  {
+    slug: "penetanguishene",
+    name: "Penetanguishene",
+    region: "Ontario",
+    shortDescription: "Dockside boat care services in Penetanguishene harbour.",
+  },
+  {
+    slug: "parry-sound",
+    name: "Parry Sound",
+    region: "Ontario",
+    shortDescription: "Premium marine detailing services throughout Parry Sound.",
+  },
+  {
+    slug: "honey-harbour",
+    name: "Honey Harbour",
+    region: "Ontario",
+    shortDescription: "Mobile boat detailing for Honey Harbour and surrounding waterways.",
+  },
+  {
+    slug: "port-severn",
+    name: "Port Severn",
+    region: "Ontario",
+    shortDescription: "Boat care services for Port Severn and the Trent-Severn Waterway.",
+  },
+  {
     slug: "muskoka",
     name: "Muskoka",
     region: "Ontario",
     shortDescription: "Premium mobile detailing for Muskoka boat owners and seasonal estates.",
+  },
+  {
+    slug: "bracebridge",
+    name: "Bracebridge",
+    region: "Ontario",
+    shortDescription: "Boat detailing and protection services in Bracebridge.",
+  },
+  {
+    slug: "gravenhurst",
+    name: "Gravenhurst",
+    region: "Ontario",
+    shortDescription: "Mobile marine care services for Gravenhurst and Muskoka Lakes.",
+  },
+  {
+    slug: "port-carling",
+    name: "Port Carling",
+    region: "Ontario",
+    shortDescription: "Dockside boat services for the Port Carling area and locks.",
   },
   {
     slug: "lake-simcoe",
@@ -94,16 +142,22 @@ export const locations: Location[] = [
     shortDescription: "Seasonal detailing and ceramic protection throughout Lake Simcoe.",
   },
   {
-    slug: "midland",
-    name: "Midland",
-    region: "Ontario",
-    shortDescription: "Fast-response marine care services in Midland marinas.",
-  },
-  {
     slug: "barrie",
     name: "Barrie",
     region: "Ontario",
     shortDescription: "Boat detailing and coating services in Barrie.",
+  },
+  {
+    slug: "orillia",
+    name: "Orillia",
+    region: "Ontario",
+    shortDescription: "Marine care services for Orillia and Lake Couchiching.",
+  },
+  {
+    slug: "innisfil",
+    name: "Innisfil",
+    region: "Ontario",
+    shortDescription: "Boat detailing services for Innisfil and the southern Lake Simcoe region.",
   },
 ];
 
