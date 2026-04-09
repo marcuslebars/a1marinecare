@@ -1,14 +1,14 @@
 "use client";
 
-import Link from "next/link";
+// Style system: contemporary coastal modernism with dark harbor surfaces, restrained cyan accents, and premium dockside branding.
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
-import { mainNavigation } from "@/content/navigation";
-import { company } from "@/content/site";
 import { Button } from "@/components/ui/button";
+import { mainNavigation } from "@/content/navigation";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
@@ -17,10 +17,16 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
-      <div className="page-shell flex h-16 items-center justify-between">
-        <Link href="/" className="inline-flex items-center gap-3 text-sm font-bold uppercase tracking-[0.12em] text-primary">
-          <Image src="/images/logos/logo.png" alt="A1 Marine Care logo" width={36} height={36} className="h-9 w-9 object-contain" />
-          <span className="hidden sm:inline">{company.name}</span>
+      <div className="page-shell flex h-16 items-center justify-between gap-4">
+        <Link href="/" className="inline-flex items-center">
+          <Image
+            src="/images/logos/a1-marine-care-logo-white.png"
+            alt="A1 Marine Care"
+            width={400}
+            height={100}
+            priority
+            className="h-9 w-auto object-contain sm:h-10"
+          />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

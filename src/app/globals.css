@@ -4,39 +4,39 @@
 
 @layer base {
   :root {
-    --background: 220 34% 4%;
+    --background: 215 30% 7%;
     --foreground: 210 18% 94%;
 
-    --card: 219 22% 9%;
+    --card: 214 22% 11%;
     --card-foreground: 210 18% 94%;
 
-    --popover: 219 22% 9%;
+    --popover: 214 22% 11%;
     --popover-foreground: 210 18% 94%;
 
-    --primary: 193 92% 47%;
+    --primary: 180 100% 50%;
     --primary-foreground: 215 30% 7%;
 
-    --secondary: 218 18% 13%;
+    --secondary: 214 18% 16%;
     --secondary-foreground: 210 18% 92%;
 
-    --muted: 218 15% 11%;
-    --muted-foreground: 210 9% 74%;
+    --muted: 214 16% 14%;
+    --muted-foreground: 210 10% 70%;
 
-    --accent: 37 85% 58%;
+    --accent: 180 100% 50%;
     --accent-foreground: 215 30% 7%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 218 18% 20%;
-    --input: 218 18% 20%;
-    --ring: 193 92% 47%;
+    --border: 214 15% 25%;
+    --input: 214 15% 25%;
+    --ring: 180 100% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.85rem;
 
-    --surface-ocean: linear-gradient(135deg, hsl(220 28% 8%) 0%, hsl(210 30% 11%) 52%, hsl(198 34% 14%) 100%);
-    --surface-deep: linear-gradient(140deg, hsl(222 42% 3%) 0%, hsl(212 44% 6%) 48%, hsl(198 48% 10%) 100%);
-    --hero-overlay: linear-gradient(160deg, hsl(222 48% 2% / 0.92) 0%, hsl(212 50% 4% / 0.82) 56%, hsl(198 52% 9% / 0.72) 100%);
+    --surface-ocean: linear-gradient(135deg, hsl(214 28% 13%) 0%, hsl(205 30% 16%) 50%, hsl(197 34% 19%) 100%);
+    --surface-deep: linear-gradient(140deg, hsl(219 36% 6%) 0%, hsl(211 40% 9%) 48%, hsl(198 44% 12%) 100%);
+    --hero-overlay: linear-gradient(160deg, hsl(220 40% 4% / 0.86) 0%, hsl(208 48% 8% / 0.72) 60%, hsl(195 52% 12% / 0.62) 100%);
   }
 
   * {
@@ -54,7 +54,7 @@
   }
 
   .surface-panel {
-    @apply rounded-lg border border-border bg-card shadow-[0_24px_60px_-34px_rgba(0,0,0,0.95)];
+    @apply rounded-2xl border border-border/80 bg-card/90 shadow-[0_20px_50px_-28px_rgba(0,0,0,0.8)];
   }
 
   .section-space {
@@ -73,9 +73,5 @@
 
   .bg-hero-overlay {
     background: var(--hero-overlay);
-  }
-
-  .text-hero-glow {
-    text-shadow: 0 6px 24px rgba(0, 0, 0, 0.75);
   }
 }
