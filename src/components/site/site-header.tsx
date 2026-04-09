@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -17,8 +18,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
       <div className="page-shell flex h-16 items-center justify-between">
-        <Link href="/" className="text-sm font-bold uppercase tracking-[0.12em] text-primary">
-          {company.name}
+        <Link href="/" className="inline-flex items-center gap-3 text-sm font-bold uppercase tracking-[0.12em] text-primary">
+          <Image src="/images/logos/logo.png" alt="A1 Marine Care logo" width={36} height={36} className="h-9 w-9 object-contain" />
+          <span className="hidden sm:inline">{company.name}</span>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
