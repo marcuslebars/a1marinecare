@@ -1,25 +1,6 @@
 "use client";
 
-/**
- * Design philosophy: Contemporary coastal modernism with concierge-style guidance.
- * File role: Native A1 Marine Care /quote experience that integrates the richer A1 Quote configurator into the site.
- * Visual rules: Asymmetrical layout, layered dark marine surfaces, refined typography, and calm step-by-step service discovery.
- */
-
-import {
-  Anchor,
-  ArrowRight,
-  Check,
-  ChevronDown,
-  Loader2,
-  MapPin,
-  Phone,
-  ShipWheel,
-  Sparkles,
-  User,
-  Waves,
-} from "lucide-react";
-import { type ReactNode, useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { locations } from "@/content/site";
 import {
   calculateBottomPainting,
@@ -53,525 +33,238 @@ import {
   type VinylConfig,
   type WetSandingConfig,
 } from "@/lib/quote-pricing";
+import { Anchor, ArrowLeft, ArrowRight, Loader2, Mail, MapPin, Phone, Ruler, Ship, User, Waves } from "lucide-react";
 
-type QuoteServiceKey =
-  | "gelcoat"
-  | "exterior"
-  | "interior"
-  | "ceramic"
-  | "graphene"
-  | "wetSanding"
-  | "bottomPainting"
-  | "vinyl";
+import ProgressBar from "@/components/quote/ProgressBar";
+import ServiceCard, { type ServiceKey } from "@/components/quote/ServiceCard";
+import TierSelector from "@/components/quote/TierSelector";
+import OptionToggle from "@/components/quote/OptionToggle";
+import StickyPricePanel from "@/components/quote/StickyPricePanel";
+import AnimatedPrice from "@/components/quote/AnimatedPrice";
+import LearnMoreModal from "@/components/quote/LearnMoreModal";
 
-type ContactState = {
-  fullName: string;
-  email: string;
-  phone: string;
-  notes: string;
+const EXTERIOR_TIERS = [
+  { value: "refresh", label: "Refresh", multiplier: "1.0x", description: "Quick maintenance clean for well-kept boats" },
+  { value: "standard", label: "Standard", multiplier: "1.2x", description: "Full wash, clay bar, and hand polish with sealant" },
+  { value: "deep", label: "Deep Clean", multiplier: "1.4x", description: "Heavy decontamination and multi-stage polish" },
+  { value: "restoration", label: "Restoration", multiplier: "1.6x", description: "Complete exterior revival for neglected surfaces" },
+];
+
+const INTERIOR_TIERS = [
+  { value: "refresh", label: "Refresh", multiplier: "1.0x", description: "Light vacuum, wipe-down, and surface sanitisation" },
+  { value: "standard", label: "Standard", multiplier: "1.25x", description: "Full vacuum, upholstery cleaning, and treatment" },
+  { value: "deep", label: "Deep Clean", multiplier: "1.5x", description: "Intensive deep cleaning of all surfaces and fabrics" },
+  { value: "restoration", label: "Restoration", multiplier: "1.75x", description: "Complete interior restoration for heavy soiling" },
+];
+
+const SERVICE_META: Record<ServiceKey, { title: string; description: string }> = {
+  gelcoat: { title: "Gelcoat Restoration", description: "Restore gloss and remove oxidation from fiberglass surfaces." },
+  exterior: { title: "Exterior Detailing", description: "Professional exterior cleaning, polishing, and protection." },
+  interior: { title: "Interior Detailing", description: "Thorough interior cleaning tailored to your boat and condition." },
+  ceramic: { title: "Ceramic Coating", description: "Long-lasting hydrophobic barrier against UV, salt, and contaminants." },
+  graphene: { title: "Graphene Nano Coating", description: "Next-gen graphene coating with superior hardness and heat resistance." },
+  wetSanding: { title: "Wet Sanding & Correction", description: "Precision wet sanding to remove deep scratches and imperfections." },
+  bottomPainting: { title: "Bottom Painting", description: "Antifouling bottom paint to protect against marine growth." },
+  vinyl: { title: "Vinyl Removal & Installation", description: "Professional vinyl graphics removal, installation, or both." },
 };
 
-type SubmissionState = "idle" | "submitting" | "success" | "error";
-
-const HERO_IMAGE =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663121655920/cRD95DYdiDkLkVDTrTxai8/a1-quote-hero-harbor-dawn-XQuWxbEnpFvAuuFRzgPDvQ.webp";
-const DETAIL_IMAGE =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663121655920/cRD95DYdiDkLkVDTrTxai8/a1-quote-form-ambient-detail-JRAkAdQRY847Gi69aomjRY.webp";
-const TEXTURE_IMAGE =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663121655920/cRD95DYdiDkLkVDTrTxai8/a1-quote-texture-chart-AqEMQWMjqevELwgo9opxsJ.webp";
-
-const BOAT_TYPES = [
-  { value: "bowrider", label: "Open Bow / Bowrider" },
+const BOAT_TYPE_OPTIONS = [
+  { value: "bowrider", label: "Bowrider" },
   { value: "cuddy", label: "Cuddy Cabin" },
-  { value: "cruiser", label: "Cruiser (Single Cabin)" },
+  { value: "cruiser", label: "Cruiser" },
   { value: "express", label: "Express Cruiser" },
   { value: "yacht", label: "Yacht / Multi-Cabin" },
   { value: "sailboat", label: "Sailboat" },
   { value: "pontoon", label: "Pontoon" },
   { value: "other", label: "Other" },
-] as const;
-
-const EXTERIOR_TIERS = [
-  {
-    value: "refresh",
-    label: "Refresh",
-    description: "Maintenance clean for vessels already in strong seasonal condition.",
-  },
-  {
-    value: "standard",
-    label: "Standard",
-    description: "Full wash, decontamination, hand polish, and protection.",
-  },
-  {
-    value: "deep",
-    label: "Deep Clean",
-    description: "More aggressive correction for neglected or oxidized surfaces.",
-  },
-  {
-    value: "restoration",
-    label: "Restoration",
-    description: "Heavy exterior revival for surfaces requiring significant correction.",
-  },
-] as const;
-
-const INTERIOR_TIERS = [
-  {
-    value: "refresh",
-    label: "Refresh",
-    description: "Routine reset for cabins that need light cleaning and refinement.",
-  },
-  {
-    value: "standard",
-    label: "Standard",
-    description: "A balanced interior service for vinyl, compartments, and upholstery.",
-  },
-  {
-    value: "deep",
-    label: "Deep Clean",
-    description: "Higher-touch interior cleaning for build-up, staining, and marine use wear.",
-  },
-  {
-    value: "restoration",
-    label: "Restoration",
-    description: "Manual-review interior restoration for complex cabin recovery work.",
-  },
-] as const;
-
-const SERVICE_CATALOG: Array<{
-  key: QuoteServiceKey;
-  title: string;
-  slug: string;
-  summary: string;
-  learnMore: string[];
-}> = [
-  {
-    key: "gelcoat",
-    title: "Gelcoat Restoration",
-    slug: "gelcoat-restoration",
-    summary: "Restore clarity, depth, and gloss on weathered fiberglass surfaces.",
-    learnMore: [
-      "Choose hull-only, topsides-only, bowrider, or full-boat coverage.",
-      "Optional radar arch, hard top, heavy oxidation treatment, and spot wet sanding can be added.",
-      "Pricing is calculated per foot with coverage-specific rates.",
-    ],
-  },
-  {
-    key: "exterior",
-    title: "Exterior Detailing",
-    slug: "boat-detailing",
-    summary: "Multi-tier exterior detailing with optional teak, canvas, and accessory care.",
-    learnMore: [
-      "Four service tiers help match the quote to the vessel’s condition.",
-      "Add-ons can include teak cleaning, canvas cleaning, fender cleaning, and exterior ozone treatment.",
-      "This is the closest match to a full seasonal detailing package.",
-    ],
-  },
-  {
-    key: "interior",
-    title: "Interior Detailing",
-    slug: "interior-detailing",
-    summary: "Cabin-focused detailing tailored to boat type, size, and condition.",
-    learnMore: [
-      "Interior pricing adjusts by vessel category and selected tier.",
-      "Some larger or restoration-level interior projects are flagged for manual review.",
-      "Add-ons cover mold remediation, galley, head, bedding, pet hair, and ozone treatment.",
-    ],
-  },
-  {
-    key: "ceramic",
-    title: "Ceramic Coating",
-    slug: "ceramic-coating",
-    summary: "Marine ceramic protection with options for extra layers and specialty surfaces.",
-    learnMore: [
-      "Base ceramic pricing is calculated per foot.",
-      "A second layer increases longevity and gloss depth.",
-      "Optional teak and interior ceramic add-ons can be included.",
-    ],
-  },
-  {
-    key: "graphene",
-    title: "Graphene Nano Coating",
-    slug: "graphene-nano-coating",
-    summary: "Premium graphene protection for clients seeking a harder-wearing finish.",
-    learnMore: [
-      "Graphene is quoted separately from ceramic at a higher per-foot rate.",
-      "An additional layer and teak graphene treatment can be included.",
-      "Often selected after correction or detailing services.",
-    ],
-  },
-  {
-    key: "wetSanding",
-    title: "Wet Sanding & Correction",
-    slug: "wet-sanding-correction",
-    summary: "Precision correction for deeper scratches, oxidation, and surface defects.",
-    learnMore: [
-      "This service is priced per foot with optional deep scratch repair.",
-      "Individual spot wet sanding areas can be added where needed.",
-      "Ideal for vessels that need more than a polish-only solution.",
-    ],
-  },
-  {
-    key: "bottomPainting",
-    title: "Bottom Painting",
-    slug: "bottom-painting",
-    summary: "Antifouling protection with optional prep and additional coating work.",
-    learnMore: [
-      "Pricing starts per foot and can increase for second coats and old paint removal.",
-      "Heavy marine growth removal is available as an add-on.",
-      "Blister repair requests are flagged for manual review.",
-    ],
-  },
-  {
-    key: "vinyl",
-    title: "Vinyl Removal & Installation",
-    slug: "vinyl-services",
-    summary: "Graphics removal, installation, or full replacement for branded vessels.",
-    learnMore: [
-      "Select removal only, install only, or both.",
-      "Custom design work can be added to the estimate.",
-      "Pricing is based on vessel length and requested scope.",
-    ],
-  },
 ];
 
-const LOCATION_BLURBS = [
-  "Dockside service across Georgian Bay, Muskoka, Lake Simcoe, Midland, and Barrie.",
-  "Live estimate logic from the original A1 quote application, now native to the main site.",
-  "Use this page to scope services before reserving your preferred service window.",
-];
+const boatTypeLabels: Record<string, string> = {
+  bowrider: "Open Bow / Bowrider", cuddy: "Cuddy Cabin", cruiser: "Cruiser (Single Cabin)",
+  express: "Express Cruiser", yacht: "Yacht / Multi-Cabin", sailboat: "Sailboat", pontoon: "Pontoon", other: "Other",
+};
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency: "CAD",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function ToggleChip({
-  checked,
-  label,
-  onClick,
-}: {
-  checked: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-all ${
-        checked
-          ? "border-cyan-300/70 bg-cyan-300/12 text-cyan-50"
-          : "border-white/12 bg-white/[0.03] text-slate-200 hover:border-cyan-200/40 hover:bg-white/[0.06]"
-      }`}
-    >
-      <span
-        className={`h-2.5 w-2.5 rounded-full ${checked ? "bg-cyan-300" : "bg-slate-500"}`}
-      />
-      {label}
-    </button>
-  );
-}
-
-function TierOption({
-  active,
-  title,
-  description,
-  onClick,
-}: {
-  active: boolean;
-  title: string;
-  description: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-2xl border p-4 text-left transition-all ${
-        active
-          ? "border-cyan-300/70 bg-cyan-300/12 shadow-[0_0_0_1px_rgba(165,243,252,0.24)]"
-          : "border-white/12 bg-white/[0.03] hover:border-cyan-200/35 hover:bg-white/[0.05]"
-      }`}
-    >
-      <p className="text-sm font-semibold text-white">{title}</p>
-      <p className="mt-2 text-sm leading-relaxed text-slate-300">{description}</p>
-    </button>
-  );
-}
-
-function DetailSection({
-  title,
-  kicker,
-  children,
-}: {
-  title: string;
-  kicker: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="surface-panel relative overflow-hidden border-white/10 bg-slate-950/75 p-6 md:p-8">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.14]"
-        style={{
-          backgroundImage: `url(${TEXTURE_IMAGE})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-      <div className="relative">
-        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-cyan-200/75">{kicker}</p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">{title}</h2>
-        <div className="mt-6">{children}</div>
-      </div>
-    </section>
-  );
-}
+const STEPS = ["Boat Details", "Contact", "Services", "Review"];
 
 export function QuoteFlow() {
-  const [boatLength, setBoatLength] = useState<number>(0);
-  const [boatType, setBoatType] = useState<string>("");
-  const [locationSlug, setLocationSlug] = useState<string>(locations[0]?.slug ?? "");
-  const [contact, setContact] = useState<ContactState>({
-    fullName: "",
-    email: "",
-    phone: "",
-    notes: "",
-  });
-  const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
-  const [submissionMessage, setSubmissionMessage] = useState<string>("");
-  const [expandedService, setExpandedService] = useState<QuoteServiceKey | null>("gelcoat");
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState("");
+  const [learnMoreOpen, setLearnMoreOpen] = useState(false);
+  const [learnMoreService, setLearnMoreService] = useState<ServiceKey | null>(null);
+  const openLearnMore = (service: ServiceKey) => { setLearnMoreService(service); setLearnMoreOpen(true); };
 
-  const [selectedServices, setSelectedServices] = useState<Record<QuoteServiceKey, boolean>>({
-    gelcoat: false,
-    exterior: false,
-    interior: false,
-    ceramic: false,
-    graphene: false,
-    wetSanding: false,
-    bottomPainting: false,
-    vinyl: false,
+  const [boatDetails, setBoatDetails] = useState<{ length: number; type: string; location: string }>({
+    length: 0, type: "", location: "",
+  });
+  const [contactInfo, setContactInfo] = useState<{ fullName: string; email: string; phone: string }>({
+    fullName: "", email: "", phone: "",
+  });
+  const [selectedServices, setSelectedServices] = useState<{
+    gelcoat: boolean; exterior: boolean; interior: boolean; ceramic: boolean;
+    graphene: boolean; wetSanding: boolean; bottomPainting: boolean; vinyl: boolean;
+  }>({
+    gelcoat: false, exterior: false, interior: false, ceramic: false,
+    graphene: false, wetSanding: false, bottomPainting: false, vinyl: false,
   });
 
   const [gelcoatConfig, setGelcoatConfig] = useState<GelcoatConfig>({
-    area: "hull",
-    radarArch: false,
-    hardTop: false,
-    spotWetSanding: 0,
-    heavyOxidation: false,
+    area: "hull", radarArch: false, hardTop: false, spotWetSanding: 0, heavyOxidation: false,
   });
   const [exteriorConfig, setExteriorConfig] = useState<ExteriorConfig>({
-    tier: "refresh",
-    teakCleaning: false,
-    canvasCleaning: false,
-    fenderCleaning: false,
-    exteriorOzone: false,
+    tier: "refresh", teakCleaning: false, canvasCleaning: false, fenderCleaning: false, exteriorOzone: false,
   });
   const [interiorConfig, setInteriorConfig] = useState<InteriorConfig>({
-    tier: "refresh",
-    moldRemediation: false,
-    mattressShampoo: false,
-    headDeepClean: false,
-    galleyDeepClean: false,
-    petHairRemoval: false,
-    ozoneInterior: false,
+    tier: "refresh", moldRemediation: false, mattressShampoo: false, headDeepClean: false,
+    galleyDeepClean: false, petHairRemoval: false, ozoneInterior: false, photos: [], photoConfirmation: false,
   });
   const [ceramicConfig, setCeramicConfig] = useState<CeramicConfig>({
-    secondLayer: false,
-    teakCeramic: false,
-    interiorCeramic: false,
+    secondLayer: false, teakCeramic: false, interiorCeramic: false,
   });
   const [grapheneConfig, setGrapheneConfig] = useState<GrapheneConfig>({
-    secondLayer: false,
-    teakGraphene: false,
+    secondLayer: false, teakGraphene: false,
   });
   const [wetSandingConfig, setWetSandingConfig] = useState<WetSandingConfig>({
-    deepScratchRepair: false,
-    spotWetSanding: 0,
+    deepScratchRepair: false, spotWetSanding: 0,
   });
   const [bottomPaintingConfig, setBottomPaintingConfig] = useState<BottomPaintingConfig>({
-    secondCoat: false,
-    oldPaintRemoval: false,
-    heavyGrowthRemoval: false,
-    blisterRepair: false,
+    secondCoat: false, oldPaintRemoval: false, heavyGrowthRemoval: false, blisterRepair: false,
   });
   const [vinylConfig, setVinylConfig] = useState<VinylConfig>({
-    service: "removal",
-    customDesign: false,
+    service: "removal", customDesign: false,
   });
 
-  const serviceSelections = useMemo<ServiceSelections>(() => {
-    const nextSelections: ServiceSelections = {};
+  const services: ServiceSelections = {};
+  if (selectedServices.gelcoat) services.gelcoat = gelcoatConfig;
+  if (selectedServices.exterior) services.exterior = exteriorConfig;
+  if (selectedServices.interior) services.interior = interiorConfig;
+  if (selectedServices.ceramic) services.ceramic = ceramicConfig;
+  if (selectedServices.graphene) services.graphene = grapheneConfig;
+  if (selectedServices.wetSanding) services.wetSanding = wetSandingConfig;
+  if (selectedServices.bottomPainting) services.bottomPainting = bottomPaintingConfig;
+  if (selectedServices.vinyl) services.vinyl = vinylConfig;
 
-    if (selectedServices.gelcoat) nextSelections.gelcoat = gelcoatConfig;
-    if (selectedServices.exterior) nextSelections.exterior = exteriorConfig;
-    if (selectedServices.interior) nextSelections.interior = interiorConfig;
-    if (selectedServices.ceramic) nextSelections.ceramic = ceramicConfig;
-    if (selectedServices.graphene) nextSelections.graphene = grapheneConfig;
-    if (selectedServices.wetSanding) nextSelections.wetSanding = wetSandingConfig;
-    if (selectedServices.bottomPainting) nextSelections.bottomPainting = bottomPaintingConfig;
-    if (selectedServices.vinyl) nextSelections.vinyl = vinylConfig;
+  const estimate = boatDetails.length > 0 ? calculateTotal(boatDetails.length, boatDetails.type, services) : null;
 
-    return nextSelections;
-  }, [
-    bottomPaintingConfig,
-    ceramicConfig,
-    exteriorConfig,
-    gelcoatConfig,
-    grapheneConfig,
-    interiorConfig,
-    selectedServices,
-    vinylConfig,
-    wetSandingConfig,
-  ]);
+  const hasSelectedServices = Object.values(selectedServices).some((v) => v);
+  const hasRequiredFields =
+    boatDetails.length > 0 && boatDetails.type && contactInfo.fullName && contactInfo.email && contactInfo.phone;
+  const canBookNow = hasSelectedServices && hasRequiredFields && estimate && estimate.subtotal > 0;
 
-  const estimate = useMemo(() => {
-    if (!boatLength || !boatType) return null;
-    return calculateTotal(boatLength, boatType, serviceSelections);
-  }, [boatLength, boatType, serviceSelections]);
-
-  const lineItems = useMemo(() => {
-    if (!boatLength) return [] as Array<{ label: string; amount: number }>;
-
-    const items: Array<{ label: string; amount: number }> = [];
-
-    if (selectedServices.gelcoat) items.push({ label: "Gelcoat Restoration", amount: calculateGelcoat(boatLength, gelcoatConfig).subtotal });
-    if (selectedServices.exterior) items.push({ label: "Exterior Detailing", amount: calculateExterior(boatLength, exteriorConfig).subtotal });
-    if (selectedServices.interior) items.push({ label: "Interior Detailing", amount: calculateInterior(boatLength, boatType, interiorConfig).subtotal });
-    if (selectedServices.ceramic) items.push({ label: "Ceramic Coating", amount: calculateCeramic(boatLength, ceramicConfig).subtotal });
-    if (selectedServices.graphene) items.push({ label: "Graphene Nano Coating", amount: calculateGraphene(boatLength, grapheneConfig).subtotal });
-    if (selectedServices.wetSanding) items.push({ label: "Wet Sanding & Correction", amount: calculateWetSanding(boatLength, wetSandingConfig).subtotal });
-    if (selectedServices.bottomPainting) items.push({ label: "Bottom Painting", amount: calculateBottomPainting(boatLength, bottomPaintingConfig).subtotal });
-    if (selectedServices.vinyl) items.push({ label: "Vinyl Services", amount: calculateVinyl(boatLength, vinylConfig).subtotal });
-
+  const perServiceSubtotals = useMemo(() => {
+    if (!boatDetails.length) return [];
+    const items: { name: string; price: number }[] = [];
+    if (selectedServices.gelcoat) {
+      const r = calculateGelcoat(boatDetails.length, gelcoatConfig);
+      items.push({ name: "Gelcoat Restoration", price: r.subtotal });
+    }
+    if (selectedServices.exterior) {
+      const r = calculateExterior(boatDetails.length, exteriorConfig);
+      items.push({ name: "Exterior Detailing", price: r.subtotal });
+    }
+    if (selectedServices.interior) {
+      const r = calculateInterior(boatDetails.length, boatDetails.type, interiorConfig);
+      items.push({ name: "Interior Detailing", price: r.subtotal });
+    }
+    if (selectedServices.ceramic) {
+      const r = calculateCeramic(boatDetails.length, ceramicConfig);
+      items.push({ name: "Ceramic Coating", price: r.subtotal });
+    }
+    if (selectedServices.graphene) {
+      const r = calculateGraphene(boatDetails.length, grapheneConfig);
+      items.push({ name: "Graphene Nano Coating", price: r.subtotal });
+    }
+    if (selectedServices.wetSanding) {
+      const r = calculateWetSanding(boatDetails.length, wetSandingConfig);
+      items.push({ name: "Wet Sanding & Correction", price: r.subtotal });
+    }
+    if (selectedServices.bottomPainting) {
+      const r = calculateBottomPainting(boatDetails.length, bottomPaintingConfig);
+      items.push({ name: "Bottom Painting", price: r.subtotal });
+    }
+    if (selectedServices.vinyl) {
+      const r = calculateVinyl(boatDetails.length, vinylConfig);
+      items.push({ name: "Vinyl Services", price: r.subtotal });
+    }
     return items;
-  }, [
-    boatLength,
-    boatType,
-    bottomPaintingConfig,
-    ceramicConfig,
-    exteriorConfig,
-    gelcoatConfig,
-    grapheneConfig,
-    interiorConfig,
-    selectedServices,
-    vinylConfig,
-    wetSandingConfig,
-  ]);
+  }, [boatDetails.length, boatDetails.type, selectedServices, gelcoatConfig, exteriorConfig, interiorConfig, ceramicConfig, grapheneConfig, wetSandingConfig, bottomPaintingConfig, vinylConfig]);
 
-  const activeServices = useMemo(
-    () => SERVICE_CATALOG.filter((service) => selectedServices[service.key]),
-    [selectedServices],
+  const bookingSelectedServices = useMemo(
+    () =>
+      perServiceSubtotals.filter((item) => item.price > 0).map((item, i) => ({
+        id: i + 1,
+        name: item.name,
+        price: Math.round(item.price * 100),
+      })),
+    [perServiceSubtotals]
   );
 
-  const addonSummary = useMemo(() => {
-    const summary: string[] = [];
-
-    if (selectedServices.gelcoat) {
-      summary.push(`Gelcoat area: ${gelcoatConfig.area}`);
-      if (gelcoatConfig.radarArch) summary.push("Gelcoat add-on: radar arch");
-      if (gelcoatConfig.hardTop) summary.push("Gelcoat add-on: hard top");
-      if (gelcoatConfig.heavyOxidation) summary.push("Gelcoat add-on: heavy oxidation");
-      if (gelcoatConfig.spotWetSanding > 0) summary.push(`Gelcoat spot wet sanding areas: ${gelcoatConfig.spotWetSanding}`);
+  const lineItems = useMemo(() => {
+    if (!estimate) return [];
+    const items: { label: string; amount: number }[] = [];
+    let currentService = "";
+    let serviceTotal = 0;
+    for (const line of estimate.breakdown) {
+      if (line.startsWith("---")) {
+        if (currentService && serviceTotal > 0) {
+          items.push({ label: currentService, amount: serviceTotal });
+        }
+        currentService = line.replace(/^-+s*/, "").replace(/s*-+$/, "").trim();
+        serviceTotal = 0;
+      } else {
+        const match = line.match(/\$([0-9,]+(?:\.\d{2})?)\s*$/);
+        if (match) {
+          serviceTotal += parseFloat(match[1].replace(/,/g, ""));
+        }
+        const rangeMatch = line.match(/\$([0-9,]+)\s*[–-]\s*\$([0-9,]+)/);
+        if (rangeMatch && !match) {
+          const low = parseFloat(rangeMatch[1].replace(/,/g, ""));
+          const high = parseFloat(rangeMatch[2].replace(/,/g, ""));
+          serviceTotal += (low + high) / 2;
+        }
+      }
     }
-
-    if (selectedServices.exterior) {
-      summary.push(`Exterior tier: ${exteriorConfig.tier}`);
-      if (exteriorConfig.teakCleaning) summary.push("Exterior add-on: teak cleaning");
-      if (exteriorConfig.canvasCleaning) summary.push("Exterior add-on: canvas cleaning");
-      if (exteriorConfig.fenderCleaning) summary.push("Exterior add-on: fender cleaning");
-      if (exteriorConfig.exteriorOzone) summary.push("Exterior add-on: ozone treatment");
+    if (currentService && serviceTotal > 0) {
+      items.push({ label: currentService, amount: serviceTotal });
     }
-
-    if (selectedServices.interior) {
-      summary.push(`Interior tier: ${interiorConfig.tier}`);
-      if (interiorConfig.moldRemediation) summary.push("Interior add-on: mold remediation");
-      if (interiorConfig.mattressShampoo) summary.push("Interior add-on: mattress shampoo");
-      if (interiorConfig.headDeepClean) summary.push("Interior add-on: head deep clean");
-      if (interiorConfig.galleyDeepClean) summary.push("Interior add-on: galley deep clean");
-      if (interiorConfig.petHairRemoval) summary.push("Interior add-on: pet hair removal");
-      if (interiorConfig.ozoneInterior) summary.push("Interior add-on: ozone treatment");
+    if (items.length === 0 && estimate.subtotal > 0) {
+      items.push({ label: "Selected Services", amount: estimate.subtotal });
     }
+    return items;
+  }, [estimate]);
 
-    if (selectedServices.ceramic) {
-      if (ceramicConfig.secondLayer) summary.push("Ceramic add-on: second layer");
-      if (ceramicConfig.teakCeramic) summary.push("Ceramic add-on: teak protection");
-      if (ceramicConfig.interiorCeramic) summary.push("Ceramic add-on: interior protection");
+  const toggleService = (key: ServiceKey) =>
+    setSelectedServices((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const canGoNext = () => {
+    if (currentStep === 0) return boatDetails.length > 0 && boatDetails.type !== "";
+    if (currentStep === 1) return contactInfo.fullName !== "" && contactInfo.email !== "" && contactInfo.phone !== "";
+    if (currentStep === 2) return hasSelectedServices;
+    return true;
+  };
+
+  const handleNext = () => {
+    if (canGoNext() && currentStep < STEPS.length - 1) {
+      setCurrentStep((s) => s + 1);
     }
+  };
 
-    if (selectedServices.graphene) {
-      if (grapheneConfig.secondLayer) summary.push("Graphene add-on: second layer");
-      if (grapheneConfig.teakGraphene) summary.push("Graphene add-on: teak protection");
-    }
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep((s) => s - 1);
+  };
 
-    if (selectedServices.wetSanding) {
-      if (wetSandingConfig.deepScratchRepair) summary.push("Wet sanding add-on: deep scratch repair");
-      if (wetSandingConfig.spotWetSanding > 0) summary.push(`Wet sanding spot areas: ${wetSandingConfig.spotWetSanding}`);
-    }
-
-    if (selectedServices.bottomPainting) {
-      if (bottomPaintingConfig.secondCoat) summary.push("Bottom painting add-on: second coat");
-      if (bottomPaintingConfig.oldPaintRemoval) summary.push("Bottom painting add-on: old paint removal");
-      if (bottomPaintingConfig.heavyGrowthRemoval) summary.push("Bottom painting add-on: heavy growth removal");
-      if (bottomPaintingConfig.blisterRepair) summary.push("Bottom painting note: blister repair requested");
-    }
-
-    if (selectedServices.vinyl) {
-      summary.push(`Vinyl scope: ${vinylConfig.service}`);
-      if (vinylConfig.customDesign) summary.push("Vinyl add-on: custom design");
-    }
-
-    return summary;
-  }, [
-    bottomPaintingConfig,
-    ceramicConfig,
-    exteriorConfig,
-    gelcoatConfig,
-    grapheneConfig,
-    interiorConfig,
-    selectedServices,
-    vinylConfig,
-    wetSandingConfig,
-  ]);
-
-  const canSubmit =
-    boatLength > 0 &&
-    boatType.length > 0 &&
-    locationSlug.length > 0 &&
-    activeServices.length > 0 &&
-    contact.fullName.trim().length > 1 &&
-    contact.email.trim().length > 3 &&
-    contact.phone.trim().length > 6;
-
-  const selectedBoatTypeLabel = BOAT_TYPES.find((type) => type.value === boatType)?.label ?? boatType;
-  const selectedLocation = locations.find((location) => location.slug === locationSlug);
-
-  const requestSummary = useMemo(() => {
-    const sections = [
-      `Estimator summary`,
-      `Boat length: ${boatLength || "Not provided"} ft`,
-      `Boat type: ${selectedBoatTypeLabel || "Not provided"}`,
-      `Location: ${selectedLocation?.name ?? locationSlug}`,
-      `Selected services: ${activeServices.map((service) => service.title).join(", ") || "None"}`,
-      `Options: ${addonSummary.join("; ") || "None"}`,
-      `Estimated subtotal: ${estimate ? formatCurrency(estimate.subtotal) : "Not available"}`,
-      estimate?.requiresManualReview
-        ? `Manual review reasons: ${estimate.reviewReasons.join("; ")}`
-        : `Manual review reasons: none`,
-    ];
-
-    return sections.join("\n");
-  }, [activeServices, addonSummary, boatLength, estimate, locationSlug, selectedBoatTypeLabel, selectedLocation?.name]);
-
-  async function handleSubmit() {
-    if (!canSubmit) return;
-
-    setSubmissionState("submitting");
+  const handleSubmit = async () => {
+    if (!canBookNow) return;
+    setIsSubmitting(true);
     setSubmissionMessage("");
 
-    const notesPayload = [contact.notes.trim(), requestSummary, estimate?.breakdown?.length ? `Breakdown: ${estimate.breakdown.join(" | ")}` : ""]
+    const notesPayload = [
+      contactInfo.phone,
+      `Location: ${locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location}`,
+      `Services: ${perServiceSubtotals.map((s) => s.name).join(", ") || "None"}`,
+      estimate?.breakdown?.length ? `Breakdown: ${estimate.breakdown.join(" | ")}` : "",
+    ]
       .filter(Boolean)
       .join("\n\n")
       .slice(0, 4900);
@@ -581,758 +274,495 @@ export function QuoteFlow() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          boatLength: String(boatLength),
-          boatType: selectedBoatTypeLabel,
-          services: activeServices.map((service) => service.slug),
-          addons: addonSummary,
-          contactName: contact.fullName.trim(),
-          contactEmail: contact.email.trim(),
-          contactPhone: contact.phone.trim(),
+          boatLength: String(boatDetails.length),
+          boatType: boatTypeLabels[boatDetails.type] ?? boatDetails.type,
+          services: perServiceSubtotals.map((s) => s.name),
+          addons: [],
+          contactName: contactInfo.fullName.trim(),
+          contactEmail: contactInfo.email.trim(),
+          contactPhone: contactInfo.phone.trim(),
           notes: notesPayload,
-          locationSlug,
+          locationSlug: boatDetails.location,
+          estimatedTotal: Math.round((estimate?.subtotal || 0) * 100),
+          requiresManualReview: estimate?.requiresManualReview || false,
+          reviewReasons: estimate?.reviewReasons || [],
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Unable to create quote request.");
-      }
-
+      if (!response.ok) throw new Error("Unable to create quote request.");
       const payload = await response.json();
-      setSubmissionState("success");
-      setSubmissionMessage(
-        `Your quote request has been submitted${payload?.id ? ` with reference ${payload.id}` : ""}. You can continue to booking when ready.`,
-      );
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (error) {
-      setSubmissionState("error");
-      setSubmissionMessage(error instanceof Error ? error.message : "Unable to create quote request.");
-    }
-  }
 
-  function toggleService(key: QuoteServiceKey) {
-    setSelectedServices((previous) => {
-      const nextState = !previous[key];
-      if (nextState) setExpandedService(key);
-      return { ...previous, [key]: nextState };
-    });
-  }
+      const bookingParams = new URLSearchParams({
+        quoteId: payload.id?.toString() ?? "",
+        customerName: contactInfo.fullName,
+        customerEmail: contactInfo.email,
+        customerPhone: contactInfo.phone,
+        boatLength: String(boatDetails.length),
+        boatType: boatTypeLabels[boatDetails.type] ?? boatDetails.type,
+        serviceLocation: locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location,
+        services: JSON.stringify(bookingSelectedServices),
+        estimatedTotal: (estimate?.subtotal || 0).toFixed(2),
+      });
+
+      window.location.href = `https://booking.a1marinecare.ca/booking?${bookingParams.toString()}`;
+    } catch (error) {
+      setSubmissionMessage(error instanceof Error ? error.message : "Unable to create quote request.");
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsDownloadingPDF(true);
+    try {
+      const response = await fetch("/api/quotes/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: contactInfo.fullName,
+          customerEmail: contactInfo.email,
+          customerPhone: contactInfo.phone,
+          boatLength: boatDetails.length,
+          boatType: boatTypeLabels[boatDetails.type] ?? boatDetails.type,
+          serviceLocation: locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location,
+          services,
+          estimatedTotal: Math.round((estimate?.subtotal || 0) * 100),
+          breakdown: estimate?.breakdown || [],
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to generate PDF");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `A1-Quote-${contactInfo.fullName.replace(/\s+/g, "-")}-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Failed to download PDF:", error);
+    } finally {
+      setIsDownloadingPDF(false);
+    }
+  };
 
   return (
-    <section className="relative overflow-hidden bg-[hsl(216,34%,6%)] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(148,163,184,0.12),transparent_30%)]" />
+    <section className="relative overflow-hidden bg-background text-foreground">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--primary)/0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(148,163,184,0.12),transparent_30%)]" />
 
-      <div className="relative border-b border-white/10">
-        <div className="page-shell py-10 md:py-14">
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch">
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/70 p-8 shadow-[0_24px_90px_-36px_rgba(0,0,0,0.9)] md:p-10">
-              <div
-                className="absolute inset-0 opacity-45"
-                style={{
-                  backgroundImage: `linear-gradient(140deg, rgba(2,6,23,0.88), rgba(8,47,73,0.45)), url(${HERO_IMAGE})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              />
-              <div className="relative max-w-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-200/90">A1 Service. A1 Results.</p>
-                <h1 className="mt-5 text-4xl font-semibold tracking-tight text-white md:text-6xl">
-                  Configure Your Service Package.
-                </h1>
-                <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-200 md:text-lg">
-                  Premium boat care with transparent pricing. Customize your services and get an instant estimate without leaving
-                  <span className="font-medium text-cyan-100"> a1marinecare.ca</span>.
-                </p>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <a href="#quote-builder">
-                    <Button variant="hero" size="lg">
-                      Start your quote
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </a>
-                  <a href="/booking">
-                    <Button variant="heroOutline" size="lg">
-                      Reserve a service date
-                    </Button>
-                  </a>
-                </div>
-                <div className="mt-10 grid gap-3 text-sm text-slate-100/90 sm:grid-cols-3">
-                  {LOCATION_BLURBS.map((item) => (
-                    <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 backdrop-blur-sm">
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              <div className="surface-panel border-white/10 bg-slate-950/75 p-5">
-                <div className="flex items-center gap-3 text-cyan-200">
-                  <ShipWheel className="h-5 w-5" />
-                  <p className="text-sm font-semibold uppercase tracking-[0.22em]">Vessel profile</p>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                  Start with your boat size, vessel type, and preferred service area so the estimator uses the right base logic.
-                </p>
-              </div>
-              <div className="surface-panel border-white/10 bg-slate-950/75 p-5">
-                <div className="flex items-center gap-3 text-cyan-200">
-                  <Sparkles className="h-5 w-5" />
-                  <p className="text-sm font-semibold uppercase tracking-[0.22em]">Service scope</p>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                  Layer detailing, coatings, correction, and specialty work into one coordinated estimate.
-                </p>
-              </div>
-              <div className="surface-panel border-white/10 bg-slate-950/75 p-5">
-                <div className="flex items-center gap-3 text-cyan-200">
-                  <Anchor className="h-5 w-5" />
-                  <p className="text-sm font-semibold uppercase tracking-[0.22em]">Next step</p>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                  Submit your request and move directly into a booking conversation when the scope looks right.
-                </p>
-              </div>
-            </div>
+      <div className="relative page-shell py-12 md:py-16">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+            <Waves className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">A1 Service. A1 Results.</span>
           </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+            Configure Your Service Package
+          </h1>
+          <p className="mt-2 text-muted-foreground max-w-xl mx-auto">
+            Premium boat care with transparent pricing. Customize your services and get an instant estimate.
+          </p>
         </div>
-      </div>
 
-      <div id="quote-builder" className="page-shell relative py-14 md:py-20">
-        {submissionState === "success" ? (
-          <div className="mb-8 rounded-[1.5rem] border border-emerald-400/30 bg-emerald-400/10 px-5 py-4 text-emerald-50">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-start gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0" />
-                <div>
-                  <p className="font-semibold">Quote request received.</p>
-                  <p className="text-sm text-emerald-50/85">{submissionMessage}</p>
-                </div>
-              </div>
-              <a href="/booking">
-                <Button variant="secondary">Continue to booking</Button>
-              </a>
-            </div>
-          </div>
-        ) : null}
+        <div className="mb-8 max-w-2xl mx-auto">
+          <ProgressBar currentStep={currentStep} />
+        </div>
 
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_420px] xl:items-start">
-          <div className="space-y-6">
-            <DetailSection title="Tell us about your boat" kicker="Step 1 · Vessel intake">
-              <div className="grid gap-5 md:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="boat-length" className="text-slate-100">
-                    Boat length (ft)
-                  </Label>
-                  <Input
-                    id="boat-length"
-                    type="number"
-                    min={1}
-                    value={boatLength || ""}
-                    onChange={(event) => setBoatLength(Number(event.target.value))}
-                    placeholder="e.g. 32"
-                    className="border-white/10 bg-white/[0.04] text-white placeholder:text-slate-400"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-100">Boat type</Label>
-                  <Select value={boatType} onValueChange={setBoatType}>
-                    <SelectTrigger className="border-white/10 bg-white/[0.04] text-white">
-                      <SelectValue placeholder="Select vessel type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BOAT_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-100">Service area</Label>
-                  <Select value={locationSlug} onValueChange={setLocationSlug}>
-                    <SelectTrigger className="border-white/10 bg-white/[0.04] text-white">
-                      <SelectValue placeholder="Choose location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {locations.map((location) => (
-                        <SelectItem key={location.slug} value={location.slug}>
-                          {location.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="mt-5 grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                  <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/70">Selected type</p>
-                  <p className="mt-2 text-sm text-slate-200">{selectedBoatTypeLabel || "Awaiting vessel type"}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                  <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/70">Operating region</p>
-                  <p className="mt-2 text-sm text-slate-200">{selectedLocation?.name ?? "Awaiting location"}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                  <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/70">Estimate mode</p>
-                  <p className="mt-2 text-sm text-slate-200">Live configurator with manual-review flags for complex scopes</p>
-                </div>
-              </div>
-            </DetailSection>
+        <div className="grid gap-8 lg:grid-cols-[1fr_340px] lg:items-start">
+          <div className="space-y-8 pb-24 lg:pb-0">
 
-            <DetailSection title="Build your service scope" kicker="Step 2 · Premium service selection">
-              <div className="space-y-4">
-                {SERVICE_CATALOG.map((service) => {
-                  const isSelected = selectedServices[service.key];
-                  const isExpanded = expandedService === service.key;
+            {/* ── STEP 0: BOAT DETAILS ── */}
+            {currentStep === 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Anchor className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Boat Details</h2>
+                    <p className="text-xs text-muted-foreground">Tell us about your vessel</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm flex items-center gap-2">
+                      <Ruler className="w-3.5 h-3.5" /> Boat Length (ft)
+                    </Label>
+                    <Input
+                      type="number"
+                      placeholder="30"
+                      value={boatDetails.length || ""}
+                      onChange={(e) => setBoatDetails({ ...boatDetails, length: parseInt(e.target.value) || 0 })}
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm flex items-center gap-2">
+                      <Ship className="w-3.5 h-3.5" /> Boat Type
+                    </Label>
+                    <Select value={boatDetails.type} onValueChange={(v) => setBoatDetails({ ...boatDetails, type: v })}>
+                      <SelectTrigger className="h-11 rounded-xl">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BOAT_TYPE_OPTIONS.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5" /> Service Location
+                    </Label>
+                    <Select value={boatDetails.location} onValueChange={(v) => setBoatDetails({ ...boatDetails, location: v })}>
+                      <SelectTrigger className="h-11 rounded-xl">
+                        <SelectValue placeholder="Choose location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations.map((location) => (
+                          <SelectItem key={location.slug} value={location.slug}>{location.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </section>
+            )}
 
-                  return (
-                    <div
-                      key={service.key}
-                      className={`overflow-hidden rounded-[1.6rem] border transition-all ${
-                        isSelected
-                          ? "border-cyan-300/35 bg-cyan-400/[0.06] shadow-[0_14px_50px_-30px_rgba(34,211,238,0.45)]"
-                          : "border-white/10 bg-white/[0.03]"
-                      }`}
-                    >
-                      <div className="flex flex-col gap-4 p-5 md:flex-row md:items-start md:justify-between md:p-6">
-                        <div className="max-w-2xl">
-                          <div className="flex flex-wrap items-center gap-3">
-                            <h3 className="text-xl font-semibold text-white">{service.title}</h3>
-                            {isSelected ? (
-                              <span className="rounded-full border border-cyan-300/40 bg-cyan-300/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-100">
-                                Included
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="mt-2 text-sm leading-relaxed text-slate-300">{service.summary}</p>
-                          <button
-                            type="button"
-                            onClick={() => setExpandedService(isExpanded ? null : service.key)}
-                            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-cyan-200 transition-colors hover:text-cyan-100"
-                          >
-                            {isExpanded ? "Hide service notes" : "View service notes"}
-                            <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                          </button>
-                        </div>
-                        <Button
-                          variant={isSelected ? "secondary" : "heroOutline"}
-                          onClick={() => toggleService(service.key)}
-                          className="min-w-[156px]"
-                        >
-                          {isSelected ? "Remove service" : "Add service"}
-                        </Button>
+            {/* ── STEP 1: CONTACT INFO ── */}
+            {currentStep === 1 && (
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Contact Information</h2>
+                    <p className="text-xs text-muted-foreground">How can we reach you?</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm flex items-center gap-2">
+                      <User className="w-3.5 h-3.5" /> Full Name
+                    </Label>
+                    <Input
+                      placeholder="Jane Smith"
+                      value={contactInfo.fullName}
+                      onChange={(e) => setContactInfo({ ...contactInfo, fullName: e.target.value })}
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm flex items-center gap-2">
+                      <Mail className="w-3.5 h-3.5" /> Email
+                    </Label>
+                    <Input
+                      type="email"
+                      placeholder="jane@example.com"
+                      value={contactInfo.email}
+                      onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5" /> Phone
+                    </Label>
+                    <Input
+                      type="tel"
+                      placeholder="(705) 996-1010"
+                      value={contactInfo.phone}
+                      onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* ── STEP 2: SERVICES ── */}
+            {currentStep === 2 && (
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Waves className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Choose Your Services</h2>
+                    <p className="text-xs text-muted-foreground">Select and configure the services you need</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <ServiceCard id="gelcoat" title={SERVICE_META.gelcoat.title} description={SERVICE_META.gelcoat.description} selected={selectedServices.gelcoat} onToggle={() => toggleService("gelcoat")} onLearnMore={() => openLearnMore("gelcoat")}>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-muted-foreground text-sm">Coverage Area</Label>
+                        <Select value={gelcoatConfig.area} onValueChange={(v: any) => setGelcoatConfig({ ...gelcoatConfig, area: v })}>
+                          <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="hull">Hull (Below Rub Rail)</SelectItem>
+                            <SelectItem value="topsides">Topsides</SelectItem>
+                            <SelectItem value="bowrider">Bowrider Special (Low Gelcoat Only)</SelectItem>
+                            <SelectItem value="fullboat">Full Boat (Hull + Topsides)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-
-                      {isExpanded ? (
-                        <div className="border-t border-white/10 px-5 pb-5 pt-0 md:px-6 md:pb-6">
-                          <ul className="mt-4 space-y-2 text-sm leading-relaxed text-slate-300">
-                            {service.learnMore.map((item) => (
-                              <li key={item} className="flex gap-3">
-                                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300" />
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-
-                      {isSelected ? (
-                        <div className="border-t border-white/10 px-5 py-5 md:px-6 md:py-6">
-                          {service.key === "gelcoat" ? (
-                            <div className="space-y-5">
-                              <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                  <Label className="text-slate-100">Coverage area</Label>
-                                  <Select
-                                    value={gelcoatConfig.area}
-                                    onValueChange={(value) => setGelcoatConfig((current) => ({ ...current, area: value as GelcoatConfig["area"] }))}
-                                  >
-                                    <SelectTrigger className="border-white/10 bg-white/[0.04] text-white">
-                                      <SelectValue placeholder="Choose coverage" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="hull">Hull only</SelectItem>
-                                      <SelectItem value="topsides">Topsides only</SelectItem>
-                                      <SelectItem value="bowrider">Bowrider special</SelectItem>
-                                      <SelectItem value="fullboat">Full boat</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="gelcoat-areas" className="text-slate-100">
-                                    Spot wet sanding areas
-                                  </Label>
-                                  <Input
-                                    id="gelcoat-areas"
-                                    type="number"
-                                    min={0}
-                                    value={gelcoatConfig.spotWetSanding}
-                                    onChange={(event) =>
-                                      setGelcoatConfig((current) => ({
-                                        ...current,
-                                        spotWetSanding: Math.max(0, Number(event.target.value)),
-                                      }))
-                                    }
-                                    className="border-white/10 bg-white/[0.04] text-white"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <ToggleChip
-                                  checked={gelcoatConfig.radarArch}
-                                  label="Radar arch"
-                                  onClick={() => setGelcoatConfig((current) => ({ ...current, radarArch: !current.radarArch }))}
-                                />
-                                <ToggleChip
-                                  checked={gelcoatConfig.hardTop}
-                                  label="Hard top"
-                                  onClick={() => setGelcoatConfig((current) => ({ ...current, hardTop: !current.hardTop }))}
-                                />
-                                <ToggleChip
-                                  checked={gelcoatConfig.heavyOxidation}
-                                  label="Heavy oxidation"
-                                  onClick={() =>
-                                    setGelcoatConfig((current) => ({ ...current, heavyOxidation: !current.heavyOxidation }))
-                                  }
-                                />
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {service.key === "exterior" ? (
-                            <div className="space-y-5">
-                              <div className="grid gap-3 md:grid-cols-2">
-                                {EXTERIOR_TIERS.map((tier) => (
-                                  <TierOption
-                                    key={tier.value}
-                                    active={exteriorConfig.tier === tier.value}
-                                    title={tier.label}
-                                    description={tier.description}
-                                    onClick={() => setExteriorConfig((current) => ({ ...current, tier: tier.value }))}
-                                  />
-                                ))}
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <ToggleChip
-                                  checked={exteriorConfig.teakCleaning}
-                                  label="Teak cleaning"
-                                  onClick={() => setExteriorConfig((current) => ({ ...current, teakCleaning: !current.teakCleaning }))}
-                                />
-                                <ToggleChip
-                                  checked={exteriorConfig.canvasCleaning}
-                                  label="Canvas cleaning"
-                                  onClick={() => setExteriorConfig((current) => ({ ...current, canvasCleaning: !current.canvasCleaning }))}
-                                />
-                                <ToggleChip
-                                  checked={exteriorConfig.fenderCleaning}
-                                  label="Fender cleaning"
-                                  onClick={() => setExteriorConfig((current) => ({ ...current, fenderCleaning: !current.fenderCleaning }))}
-                                />
-                                <ToggleChip
-                                  checked={exteriorConfig.exteriorOzone}
-                                  label="Exterior ozone"
-                                  onClick={() => setExteriorConfig((current) => ({ ...current, exteriorOzone: !current.exteriorOzone }))}
-                                />
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {service.key === "interior" ? (
-                            <div className="space-y-5">
-                              <div className="grid gap-3 md:grid-cols-2">
-                                {INTERIOR_TIERS.map((tier) => (
-                                  <TierOption
-                                    key={tier.value}
-                                    active={interiorConfig.tier === tier.value}
-                                    title={tier.label}
-                                    description={tier.description}
-                                    onClick={() => setInteriorConfig((current) => ({ ...current, tier: tier.value }))}
-                                  />
-                                ))}
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <ToggleChip
-                                  checked={interiorConfig.moldRemediation}
-                                  label="Mold remediation"
-                                  onClick={() => setInteriorConfig((current) => ({ ...current, moldRemediation: !current.moldRemediation }))}
-                                />
-                                <ToggleChip
-                                  checked={interiorConfig.mattressShampoo}
-                                  label="Mattress shampoo"
-                                  onClick={() => setInteriorConfig((current) => ({ ...current, mattressShampoo: !current.mattressShampoo }))}
-                                />
-                                <ToggleChip
-                                  checked={interiorConfig.headDeepClean}
-                                  label="Head deep clean"
-                                  onClick={() => setInteriorConfig((current) => ({ ...current, headDeepClean: !current.headDeepClean }))}
-                                />
-                                <ToggleChip
-                                  checked={interiorConfig.galleyDeepClean}
-                                  label="Galley deep clean"
-                                  onClick={() => setInteriorConfig((current) => ({ ...current, galleyDeepClean: !current.galleyDeepClean }))}
-                                />
-                                <ToggleChip
-                                  checked={interiorConfig.petHairRemoval}
-                                  label="Pet hair removal"
-                                  onClick={() => setInteriorConfig((current) => ({ ...current, petHairRemoval: !current.petHairRemoval }))}
-                                />
-                                <ToggleChip
-                                  checked={interiorConfig.ozoneInterior}
-                                  label="Ozone treatment"
-                                  onClick={() => setInteriorConfig((current) => ({ ...current, ozoneInterior: !current.ozoneInterior }))}
-                                />
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {service.key === "ceramic" ? (
-                            <div className="flex flex-wrap gap-2">
-                              <ToggleChip
-                                checked={ceramicConfig.secondLayer}
-                                label="Second layer"
-                                onClick={() => setCeramicConfig((current) => ({ ...current, secondLayer: !current.secondLayer }))}
-                              />
-                              <ToggleChip
-                                checked={ceramicConfig.teakCeramic}
-                                label="Teak ceramic"
-                                onClick={() => setCeramicConfig((current) => ({ ...current, teakCeramic: !current.teakCeramic }))}
-                              />
-                              <ToggleChip
-                                checked={ceramicConfig.interiorCeramic}
-                                label="Interior ceramic"
-                                onClick={() =>
-                                  setCeramicConfig((current) => ({ ...current, interiorCeramic: !current.interiorCeramic }))
-                                }
-                              />
-                            </div>
-                          ) : null}
-
-                          {service.key === "graphene" ? (
-                            <div className="flex flex-wrap gap-2">
-                              <ToggleChip
-                                checked={grapheneConfig.secondLayer}
-                                label="Second layer"
-                                onClick={() => setGrapheneConfig((current) => ({ ...current, secondLayer: !current.secondLayer }))}
-                              />
-                              <ToggleChip
-                                checked={grapheneConfig.teakGraphene}
-                                label="Teak graphene"
-                                onClick={() => setGrapheneConfig((current) => ({ ...current, teakGraphene: !current.teakGraphene }))}
-                              />
-                            </div>
-                          ) : null}
-
-                          {service.key === "wetSanding" ? (
-                            <div className="space-y-5">
-                              <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                  <Label htmlFor="wet-sanding-areas" className="text-slate-100">
-                                    Spot sanding areas
-                                  </Label>
-                                  <Input
-                                    id="wet-sanding-areas"
-                                    type="number"
-                                    min={0}
-                                    value={wetSandingConfig.spotWetSanding}
-                                    onChange={(event) =>
-                                      setWetSandingConfig((current) => ({
-                                        ...current,
-                                        spotWetSanding: Math.max(0, Number(event.target.value)),
-                                      }))
-                                    }
-                                    className="border-white/10 bg-white/[0.04] text-white"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <ToggleChip
-                                  checked={wetSandingConfig.deepScratchRepair}
-                                  label="Deep scratch repair"
-                                  onClick={() =>
-                                    setWetSandingConfig((current) => ({
-                                      ...current,
-                                      deepScratchRepair: !current.deepScratchRepair,
-                                    }))
-                                  }
-                                />
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {service.key === "bottomPainting" ? (
-                            <div className="flex flex-wrap gap-2">
-                              <ToggleChip
-                                checked={bottomPaintingConfig.secondCoat}
-                                label="Second coat"
-                                onClick={() =>
-                                  setBottomPaintingConfig((current) => ({ ...current, secondCoat: !current.secondCoat }))
-                                }
-                              />
-                              <ToggleChip
-                                checked={bottomPaintingConfig.oldPaintRemoval}
-                                label="Old paint removal"
-                                onClick={() =>
-                                  setBottomPaintingConfig((current) => ({
-                                    ...current,
-                                    oldPaintRemoval: !current.oldPaintRemoval,
-                                  }))
-                                }
-                              />
-                              <ToggleChip
-                                checked={bottomPaintingConfig.heavyGrowthRemoval}
-                                label="Heavy growth removal"
-                                onClick={() =>
-                                  setBottomPaintingConfig((current) => ({
-                                    ...current,
-                                    heavyGrowthRemoval: !current.heavyGrowthRemoval,
-                                  }))
-                                }
-                              />
-                              <ToggleChip
-                                checked={bottomPaintingConfig.blisterRepair}
-                                label="Blister repair"
-                                onClick={() =>
-                                  setBottomPaintingConfig((current) => ({
-                                    ...current,
-                                    blisterRepair: !current.blisterRepair,
-                                  }))
-                                }
-                              />
-                            </div>
-                          ) : null}
-
-                          {service.key === "vinyl" ? (
-                            <div className="space-y-5">
-                              <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                  <Label className="text-slate-100">Vinyl scope</Label>
-                                  <Select
-                                    value={vinylConfig.service}
-                                    onValueChange={(value) =>
-                                      setVinylConfig((current) => ({ ...current, service: value as VinylConfig["service"] }))
-                                    }
-                                  >
-                                    <SelectTrigger className="border-white/10 bg-white/[0.04] text-white">
-                                      <SelectValue placeholder="Choose scope" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="removal">Removal only</SelectItem>
-                                      <SelectItem value="install">Install only</SelectItem>
-                                      <SelectItem value="both">Removal + install</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <ToggleChip
-                                  checked={vinylConfig.customDesign}
-                                  label="Custom design"
-                                  onClick={() => setVinylConfig((current) => ({ ...current, customDesign: !current.customDesign }))}
-                                />
-                              </div>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : null}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <OptionToggle id="radarArch" label="Radar Arch (+$175)" checked={gelcoatConfig.radarArch} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, radarArch: c })} />
+                        <OptionToggle id="hardTop" label="Hard Top (+$475)" checked={gelcoatConfig.hardTop} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, hardTop: c })} />
+                        <OptionToggle id="heavyOxidation" label="Heavy Oxidation (+20%)" checked={gelcoatConfig.heavyOxidation} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, heavyOxidation: c })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-muted-foreground text-sm">Spot Wet Sanding Areas</Label>
+                        <Input type="number" min="0" placeholder="0" value={gelcoatConfig.spotWetSanding || ""} onChange={(e) => setGelcoatConfig({ ...gelcoatConfig, spotWetSanding: parseInt(e.target.value) || 0 })} className="h-10 rounded-xl w-32" />
+                        <p className="text-xs text-muted-foreground/80">$125 per area</p>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </DetailSection>
+                  </ServiceCard>
 
-            <DetailSection title="Contact and request notes" kicker="Step 3 · Confirm your request">
-              <div className="grid gap-5 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="contact-name" className="text-slate-100">
-                    Full name
-                  </Label>
-                  <Input
-                    id="contact-name"
-                    value={contact.fullName}
-                    onChange={(event) => setContact((current) => ({ ...current, fullName: event.target.value }))}
-                    className="border-white/10 bg-white/[0.04] text-white placeholder:text-slate-400"
-                    placeholder="Your full name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contact-phone" className="text-slate-100">
-                    Phone number
-                  </Label>
-                  <Input
-                    id="contact-phone"
-                    value={contact.phone}
-                    onChange={(event) => setContact((current) => ({ ...current, phone: event.target.value }))}
-                    className="border-white/10 bg-white/[0.04] text-white placeholder:text-slate-400"
-                    placeholder="Best number to reach you"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="contact-email" className="text-slate-100">
-                    Email address
-                  </Label>
-                  <Input
-                    id="contact-email"
-                    type="email"
-                    value={contact.email}
-                    onChange={(event) => setContact((current) => ({ ...current, email: event.target.value }))}
-                    className="border-white/10 bg-white/[0.04] text-white placeholder:text-slate-400"
-                    placeholder="Where should we send your quote follow-up?"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="quote-notes" className="text-slate-100">
-                    Condition notes
-                  </Label>
-                  <Textarea
-                    id="quote-notes"
-                    value={contact.notes}
-                    onChange={(event) => setContact((current) => ({ ...current, notes: event.target.value }))}
-                    className="min-h-32 border-white/10 bg-white/[0.04] text-white placeholder:text-slate-400"
-                    placeholder="Tell us about oxidation, stains, mooring conditions, storage, timeline, or anything else that will help us review the request."
-                  />
-                </div>
-              </div>
-
-              {submissionState === "error" ? (
-                <div className="mt-5 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-                  {submissionMessage || "Unable to create quote request. Please review the form and try again."}
-                </div>
-              ) : null}
-            </DetailSection>
-          </div>
-
-          <aside className="xl:sticky xl:top-24">
-            <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/85 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.9)] backdrop-blur-sm">
-              <div
-                className="relative h-48 border-b border-white/10"
-                style={{
-                  backgroundImage: `linear-gradient(160deg, rgba(2,6,23,0.35), rgba(2,6,23,0.75)), url(${DETAIL_IMAGE})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              >
-                <div className="absolute inset-x-0 bottom-0 p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/85">Live estimate</p>
-                  <h3 className="mt-2 text-3xl font-semibold text-white">
-                    {estimate ? formatCurrency(estimate.subtotal) : "$0"}
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-200/90">Updated as you configure services and add-ons.</p>
-                </div>
-              </div>
-
-              <div className="space-y-6 p-6">
-                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex items-center gap-2 text-cyan-200">
-                      <Waves className="h-4 w-4" />
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em]">Length</p>
+                  <ServiceCard id="exterior" title={SERVICE_META.exterior.title} description={SERVICE_META.exterior.description} selected={selectedServices.exterior} onToggle={() => toggleService("exterior")} onLearnMore={() => openLearnMore("exterior")}>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-muted-foreground text-sm mb-3 block">Service Tier</Label>
+                        <TierSelector tiers={EXTERIOR_TIERS} selected={exteriorConfig.tier} onSelect={(v) => setExteriorConfig({ ...exteriorConfig, tier: v as any })} />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <OptionToggle id="teakCleaning" label="Teak Cleaning (+$225)" checked={exteriorConfig.teakCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, teakCleaning: c })} />
+                        <OptionToggle id="canvasCleaning" label="Canvas Cleaning (+$150)" checked={exteriorConfig.canvasCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, canvasCleaning: c })} />
+                        <OptionToggle id="fenderCleaning" label="Fender Cleaning (+$60)" checked={exteriorConfig.fenderCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, fenderCleaning: c })} />
+                        <OptionToggle id="exteriorOzone" label="Exterior Ozone (+$100)" checked={exteriorConfig.exteriorOzone} onChange={(c) => setExteriorConfig({ ...exteriorConfig, exteriorOzone: c })} />
+                      </div>
                     </div>
-                    <p className="mt-2 text-sm text-slate-200">{boatLength ? `${boatLength} ft` : "Awaiting input"}</p>
+                  </ServiceCard>
+
+                  <ServiceCard id="interior" title={SERVICE_META.interior.title} description={SERVICE_META.interior.description} selected={selectedServices.interior} onToggle={() => toggleService("interior")} onLearnMore={() => openLearnMore("interior")}>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-muted-foreground text-sm mb-3 block">Service Tier</Label>
+                        <TierSelector tiers={INTERIOR_TIERS} selected={interiorConfig.tier} onSelect={(v) => setInteriorConfig({ ...interiorConfig, tier: v as any })} />
+                      </div>
+                      <div className="rounded-xl bg-primary/4 border border-primary/20 p-3.5">
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-semibold text-foreground">Photos may be requested after booking.</span>{" "}
+                          Once you reserve your preferred service date, our team may follow up and request 3–10 interior photos so we can confirm the scope and prepare properly.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <OptionToggle id="moldRemediation" label="Mold & Mildew Remediation (+$295)" checked={interiorConfig.moldRemediation} onChange={(c) => setInteriorConfig({ ...interiorConfig, moldRemediation: c })} />
+                        <OptionToggle id="petHairRemoval" label="Heavy Pet Hair Removal (+$150)" checked={interiorConfig.petHairRemoval} onChange={(c) => setInteriorConfig({ ...interiorConfig, petHairRemoval: c })} />
+                        {["cuddy", "cruiser", "express", "yacht"].includes(boatDetails.type) && (
+                          <OptionToggle id="mattressShampoo" label="Mattress / Cushion Shampoo (+$175)" checked={interiorConfig.mattressShampoo} onChange={(c) => setInteriorConfig({ ...interiorConfig, mattressShampoo: c })} />
+                        )}
+                        <OptionToggle id="headDeepClean" label="Head (Bathroom) Deep Clean (+$125)" checked={interiorConfig.headDeepClean} onChange={(c) => setInteriorConfig({ ...interiorConfig, headDeepClean: c })} />
+                        <OptionToggle id="galleyDeepClean" label="Galley Deep Clean (+$175)" checked={interiorConfig.galleyDeepClean} onChange={(c) => setInteriorConfig({ ...interiorConfig, galleyDeepClean: c })} />
+                        {(interiorConfig.tier === "deep" || interiorConfig.tier === "restoration") && (
+                          <OptionToggle id="ozoneInterior" label="Ozone Odor Treatment (+$195)" checked={interiorConfig.ozoneInterior} onChange={(c) => setInteriorConfig({ ...interiorConfig, ozoneInterior: c })} />
+                        )}
+                      </div>
+                    </div>
+                  </ServiceCard>
+
+                  <ServiceCard id="ceramic" title={SERVICE_META.ceramic.title} description={SERVICE_META.ceramic.description} selected={selectedServices.ceramic} onToggle={() => toggleService("ceramic")} onLearnMore={() => openLearnMore("ceramic")}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <OptionToggle id="secondLayerCeramic" label="Second Layer (+$8/ft)" checked={ceramicConfig.secondLayer} onChange={(c) => setCeramicConfig({ ...ceramicConfig, secondLayer: c })} />
+                      <OptionToggle id="teakCeramic" label="Teak Ceramic (+$300)" checked={ceramicConfig.teakCeramic} onChange={(c) => setCeramicConfig({ ...ceramicConfig, teakCeramic: c })} />
+                      <OptionToggle id="interiorCeramic" label="Interior Ceramic (+$150)" checked={ceramicConfig.interiorCeramic} onChange={(c) => setCeramicConfig({ ...ceramicConfig, interiorCeramic: c })} />
+                    </div>
+                  </ServiceCard>
+
+                  <ServiceCard id="graphene" title={SERVICE_META.graphene.title} description={SERVICE_META.graphene.description} selected={selectedServices.graphene} onToggle={() => toggleService("graphene")} onLearnMore={() => openLearnMore("graphene")}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <OptionToggle id="secondLayerGraphene" label="Second Layer (+$10/ft)" checked={grapheneConfig.secondLayer} onChange={(c) => setGrapheneConfig({ ...grapheneConfig, secondLayer: c })} />
+                      <OptionToggle id="teakGraphene" label="Teak Graphene (+$350)" checked={grapheneConfig.teakGraphene} onChange={(c) => setGrapheneConfig({ ...grapheneConfig, teakGraphene: c })} />
+                    </div>
+                  </ServiceCard>
+
+                  <ServiceCard id="wetSanding" title={SERVICE_META.wetSanding.title} description={SERVICE_META.wetSanding.description} selected={selectedServices.wetSanding} onToggle={() => toggleService("wetSanding")} onLearnMore={() => openLearnMore("wetSanding")}>
+                    <div className="space-y-3">
+                      <OptionToggle id="deepScratchRepair" label="Deep Scratch Repair (+$275)" checked={wetSandingConfig.deepScratchRepair} onChange={(c) => setWetSandingConfig({ ...wetSandingConfig, deepScratchRepair: c })} />
+                      <div className="space-y-2">
+                        <Label className="text-muted-foreground text-sm">Spot Wet Sanding Areas</Label>
+                        <Input type="number" min="0" placeholder="0" value={wetSandingConfig.spotWetSanding || ""} onChange={(e) => setWetSandingConfig({ ...wetSandingConfig, spotWetSanding: parseInt(e.target.value) || 0 })} className="h-10 rounded-xl w-32" />
+                        <p className="text-xs text-muted-foreground/80">$125 per area</p>
+                      </div>
+                    </div>
+                  </ServiceCard>
+
+                  <ServiceCard id="bottomPainting" title={SERVICE_META.bottomPainting.title} description={SERVICE_META.bottomPainting.description} selected={selectedServices.bottomPainting} onToggle={() => toggleService("bottomPainting")} onLearnMore={() => openLearnMore("bottomPainting")}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <OptionToggle id="secondCoat" label="2nd Coat (+$12/ft)" checked={bottomPaintingConfig.secondCoat} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, secondCoat: c })} />
+                      <OptionToggle id="oldPaintRemoval" label="Old Paint Removal (+$18/ft)" checked={bottomPaintingConfig.oldPaintRemoval} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, oldPaintRemoval: c })} />
+                      <OptionToggle id="heavyGrowthRemoval" label="Heavy Growth Removal (+$250)" checked={bottomPaintingConfig.heavyGrowthRemoval} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, heavyGrowthRemoval: c })} />
+                      <OptionToggle id="blisterRepair" label="Blister Repair (Manual Review)" checked={bottomPaintingConfig.blisterRepair} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, blisterRepair: c })} />
+                    </div>
+                  </ServiceCard>
+
+                  <ServiceCard id="vinyl" title={SERVICE_META.vinyl.title} description={SERVICE_META.vinyl.description} selected={selectedServices.vinyl} onToggle={() => toggleService("vinyl")} onLearnMore={() => openLearnMore("vinyl")}>
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-muted-foreground text-sm">Service Type</Label>
+                        <Select value={vinylConfig.service} onValueChange={(v: any) => setVinylConfig({ ...vinylConfig, service: v })}>
+                          <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="removal">Removal Only</SelectItem>
+                            <SelectItem value="install">Installation Only</SelectItem>
+                            <SelectItem value="both">Removal + Installation</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <OptionToggle id="customDesign" label="Custom Design (+$125)" checked={vinylConfig.customDesign} onChange={(c) => setVinylConfig({ ...vinylConfig, customDesign: c })} />
+                    </div>
+                  </ServiceCard>
+                </div>
+              </section>
+            )}
+
+            {/* ── STEP 3: REVIEW ── */}
+            {currentStep === 3 && (
+              <section className="space-y-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Waves className="w-4 h-4 text-primary" />
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex items-center gap-2 text-cyan-200">
-                      <MapPin className="h-4 w-4" />
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em]">Location</p>
-                    </div>
-                    <p className="mt-2 text-sm text-slate-200">{selectedLocation?.name ?? "Awaiting input"}</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex items-center gap-2 text-cyan-200">
-                      <User className="h-4 w-4" />
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em]">Contact</p>
-                    </div>
-                    <p className="mt-2 text-sm text-slate-200">{contact.fullName || "Awaiting input"}</p>
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Review & Book</h2>
+                    <p className="text-xs text-muted-foreground">Confirm your details and reserve your service date</p>
                   </div>
                 </div>
 
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">Included services</p>
-                  <div className="mt-4 space-y-3">
-                    {lineItems.length > 0 ? (
-                      lineItems.map((item) => (
-                        <div key={item.label} className="flex items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                          <div>
-                            <p className="text-sm font-medium text-white">{item.label}</p>
-                            <p className="text-xs text-slate-400">Native A1 quote logic applied</p>
-                          </div>
-                          <p className="text-sm font-semibold text-cyan-100">{item.amount > 0 ? formatCurrency(item.amount) : "Manual review"}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="rounded-2xl border border-dashed border-white/12 px-4 py-5 text-sm text-slate-400">
-                        Add one or more services to see the estimate come together.
+                <div className="rounded-2xl border border-border surface-panel p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Vessel</p>
+                      <p className="font-medium text-foreground">{boatDetails.length}ft {boatTypeLabels[boatDetails.type] ?? boatDetails.type}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Location</p>
+                      <p className="font-medium text-foreground">{locations.find((l) => l.slug === boatDetails.location)?.name ?? boatDetails.location}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Contact</p>
+                      <p className="font-medium text-foreground">{contactInfo.fullName}</p>
+                      <p className="text-muted-foreground text-xs">{contactInfo.email}</p>
+                      <p className="text-muted-foreground text-xs">{contactInfo.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Services Selected</p>
+                      <p className="font-medium text-foreground">{perServiceSubtotals.length > 0 ? `${perServiceSubtotals.length} service(s)` : "None"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {estimate && estimate.subtotal > 0 && (
+                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-4">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-widest text-primary/70">Your Estimate</p>
+                      <AnimatedPrice value={estimate.subtotal} className="text-3xl font-bold text-foreground mt-1 block" />
+                    </div>
+
+                    {estimate.requiresManualReview && (
+                      <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                        <p className="text-sm font-medium text-primary">Manual Review Required</p>
+                        <ul className="mt-1 space-y-0.5">
+                          {estimate.reviewReasons.map((r, i) => (<li key={i} className="text-xs text-muted-foreground">{r}</li>))}
+                        </ul>
                       </div>
                     )}
+
+                    {!estimate.requiresManualReview && (
+                      <>
+                        <div className="flex items-center justify-between py-3 border-t border-border">
+                          <span className="text-sm text-muted-foreground">Booking Request</span>
+                          <span className="text-lg font-semibold text-foreground">Due upon receipt</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground/80">Reserve your preferred date now and our team will follow up to confirm scheduling, scope, and final service details. Payment is due in full upon completion of service.</p>
+                      </>
+                    )}
+
+                    {estimate.breakdown.length > 0 && (
+                      <details className="group">
+                        <summary className="text-xs font-medium text-primary/60 cursor-pointer hover:text-primary/80 transition-colors select-none flex items-center justify-between">
+                          View Breakdown
+                          <svg className="w-3 h-3 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </summary>
+                        <div className="mt-3 space-y-1 max-h-48 overflow-y-auto">
+                          {estimate.breakdown.map((line, i) => (<p key={i} className={`text-xs ${line.startsWith("---") ? "font-semibold text-primary mt-2 first:mt-0" : "text-muted-foreground"}`}>{line}</p>))}
+                        </div>
+                      </details>
+                    )}
                   </div>
-                </div>
+                )}
 
-                {estimate?.requiresManualReview ? (
-                  <div className="rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-4 text-sm text-amber-50">
-                    <p className="font-semibold">Manual review required</p>
-                    <ul className="mt-2 space-y-1 text-amber-50/85">
-                      {estimate.reviewReasons.map((reason) => (
-                        <li key={reason}>• {reason}</li>
-                      ))}
-                    </ul>
+                {submissionMessage && (
+                  <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    {submissionMessage}
                   </div>
-                ) : null}
+                )}
+              </section>
+            )}
 
-                {estimate?.breakdown?.length ? (
-                  <details className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                    <summary className="cursor-pointer list-none text-sm font-medium text-white">
-                      View detailed pricing breakdown
-                    </summary>
-                    <div className="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm text-slate-300">
-                      {estimate.breakdown.map((line) => (
-                        <p key={line}>{line}</p>
-                      ))}
-                    </div>
-                  </details>
-                ) : null}
+            {/* ── NAVIGATION BUTTONS ── */}
+            <div className="flex items-center justify-between pt-4">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                className="gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
 
-                <div className="rounded-2xl border border-white/10 bg-[linear-gradient(145deg,rgba(15,23,42,0.95),rgba(8,47,73,0.55))] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">What happens next</p>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                    Submit the quote here, then continue to booking when you are ready to reserve a preferred service date.
-                    A1 Marine Care can confirm any manual-review items during follow-up.
-                  </p>
-                </div>
-
+              {currentStep < STEPS.length - 1 ? (
                 <Button
-                  variant="hero"
-                  size="lg"
-                  className="w-full"
-                  onClick={handleSubmit}
-                  disabled={!canSubmit || submissionState === "submitting"}
+                  onClick={handleNext}
+                  disabled={!canGoNext()}
+                  className="gap-2 font-semibold"
                 >
-                  {submissionState === "submitting" ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Submitting quote request
-                    </>
+                  Continue
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canBookNow || isSubmitting}
+                  className="gap-2 font-semibold"
+                >
+                  {isSubmitting ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" />Processing...</>
+                  ) : estimate?.requiresManualReview ? (
+                    "Book Now (Review Required)"
                   ) : (
                     <>
-                      Submit quote request
-                      <ArrowRight className="h-4 w-4" />
+                      Book Now
+                      <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </Button>
-
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-300">
-                  <div className="flex items-start gap-3">
-                    <Phone className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" />
-                    <p>
-                      Prefer to speak first? Submit the request here, then use the booking page or your normal A1 follow-up process to finalize timing.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
-          </aside>
+
+          </div>
+
+          <StickyPricePanel
+            lineItems={lineItems}
+            subtotal={estimate?.subtotal || 0}
+            requiresManualReview={estimate?.requiresManualReview || false}
+            reviewReasons={estimate?.reviewReasons || []}
+            breakdown={estimate?.breakdown || []}
+            canSubmit={!!canBookNow}
+            isSubmitting={isSubmitting}
+            isDownloadingPDF={isDownloadingPDF}
+            onSubmit={handleSubmit}
+            onDownloadPDF={handleDownloadPDF}
+          />
         </div>
       </div>
+
+      <LearnMoreModal open={learnMoreOpen} onOpenChange={setLearnMoreOpen} service={learnMoreService} />
     </section>
   );
 }
