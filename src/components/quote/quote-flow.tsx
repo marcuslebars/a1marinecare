@@ -193,16 +193,6 @@ export function QuoteFlow() {
     return items;
   }, [boatDetails.length, boatDetails.type, selectedServices, gelcoatConfig, exteriorConfig, interiorConfig, ceramicConfig, grapheneConfig, wetSandingConfig, bottomPaintingConfig, vinylConfig]);
 
-  const bookingSelectedServices = useMemo(
-    () =>
-      perServiceSubtotals.filter((item) => item.price > 0).map((item, i) => ({
-        id: i + 1,
-        name: item.name,
-        price: Math.round(item.price * 100),
-      })),
-    [perServiceSubtotals]
-  );
-
   const lineItems = useMemo(() => {
     if (!estimate) return [];
     const items: { label: string; amount: number }[] = [];
@@ -303,19 +293,7 @@ export function QuoteFlow() {
       if (!response.ok) throw new Error("Unable to create quote request.");
       const payload = await response.json();
 
-      const bookingParams = new URLSearchParams({
-        quoteId: payload.id?.toString() ?? "",
-        customerName: contactInfo.fullName,
-        customerEmail: contactInfo.email,
-        customerPhone: contactInfo.phone,
-        boatLength: String(boatDetails.length),
-        boatType: boatTypeLabels[boatDetails.type] ?? boatDetails.type,
-        serviceLocation: locationWithMarina,
-        services: JSON.stringify(bookingSelectedServices),
-        estimatedTotal: (estimate?.subtotal || 0).toFixed(2),
-      });
-
-      window.location.href = `https://booking.a1marinecare.ca/booking?${bookingParams.toString()}`;
+      window.location.href = `/booking?quoteId=${payload.id}`;
     } catch (error) {
       setSubmissionMessage(error instanceof Error ? error.message : "Unable to create quote request.");
       setIsSubmitting(false);
