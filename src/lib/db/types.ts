@@ -1,7 +1,9 @@
 import type { BookingFormData, QuoteFormData } from "@/types/lead";
 
 export type CreateQuoteLeadInput = QuoteFormData;
-export type CreateBookingLeadInput = BookingFormData;
+export type CreateBookingLeadInput = BookingFormData & {
+  quoteId?: string | null;
+};
 
 export type QuoteInsertResult = {
   id: string;
@@ -15,5 +17,6 @@ export type BookingInsertResult = {
 
 export interface LeadRepository {
   createQuoteLead(input: CreateQuoteLeadInput): Promise<QuoteInsertResult>;
+  getQuoteLead(id: string): Promise<QuoteFormData | null>;
   createBookingLead(input: CreateBookingLeadInput): Promise<BookingInsertResult>;
 }

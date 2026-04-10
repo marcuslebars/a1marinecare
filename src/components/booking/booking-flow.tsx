@@ -1,14 +1,26 @@
 "use client";
 
 import { format } from "date-fns";
-import { ArrowLeft, ArrowRight, CalendarDays, Check } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Loader2, Ship } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { timeSlots } from "@/content/booking";
 import { locations, services } from "@/content/site";
 import type { BookingFormData } from "@/types/lead";
+
+interface QuoteData {
+  boatLength: string;
+  boatType: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  locationSlug: string;
+  services: string[];
+  estimatedTotal: number;
+}
 
 const initialData: BookingFormData = {
   serviceSlug: services[0]?.slug ?? "",
@@ -24,10 +36,64 @@ const initialData: BookingFormData = {
 type SubmissionState = "idle" | "submitting" | "success" | "error";
 
 export function BookingFlow() {
+  const searchParams = useSearchParams();
+  const quoteId = searchParams?.get("quoteId") ?? null;
+
   const [step, setStep] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [data, setData] = useState<BookingFormData>(initialData);
   const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
+  const [isLoadingQuote, setIsLoadingQuote] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
+
+  const loadQuote = useCallback(async (id: string) => {
+    setIsLoadingQuote(true);
+    setQuoteError(null);
+    try {
+      const response = await fetch(`/api/quotes/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setQuoteError("Quote not found. Please start a new booking.");
+        } else {
+          setQuoteError("Failed to load quote. Please start a new booking.");
+        }
+        return;
+      }
+      const result = await response.json();
+      const quote = result.quote;
+
+      setQuoteData({
+        boatLength: quote.boatLength,
+        boatType: quote.boatType,
+        contactName: quote.contactName,
+        contactEmail: quote.contactEmail,
+        contactPhone: quote.contactPhone,
+        locationSlug: quote.locationSlug,
+        services: quote.services || [],
+        estimatedTotal: quote.estimatedTotal || 0,
+      });
+
+      setData((prev) => ({
+        ...prev,
+        contactName: quote.contactName || prev.contactName,
+        contactEmail: quote.contactEmail || prev.contactEmail,
+        contactPhone: quote.contactPhone || prev.contactPhone,
+        locationSlug: quote.locationSlug || prev.locationSlug,
+        notes: quote.notes || prev.notes,
+      }));
+    } catch {
+      setQuoteError("Failed to load quote. Please start a new booking.");
+    } finally {
+      setIsLoadingQuote(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (quoteId) {
+      loadQuote(quoteId);
+    }
+  }, [quoteId, loadQuote]);
 
   const canContinue = useMemo(() => {
     if (step === 0) return Boolean(data.date && data.timeSlot);
@@ -43,7 +109,7 @@ export function BookingFlow() {
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, quoteId }),
       });
 
       if (!response.ok) {
@@ -56,10 +122,59 @@ export function BookingFlow() {
     }
   }
 
+  if (isLoadingQuote) {
+    return (
+      <section className="section-space">
+        <div className="page-shell max-w-3xl">
+          <div className="surface-panel flex items-center justify-center p-12">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+              <p className="mt-4 text-muted-foreground">Loading your quote...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (quoteError) {
+    return (
+      <section className="section-space">
+        <div className="page-shell max-w-3xl">
+          <div className="surface-panel p-6 md:p-8">
+            <div className="text-center">
+              <p className="text-destructive">{quoteError}</p>
+              <Button asChild className="mt-4">
+                <a href="/quote">Get a Quote</a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="section-space">
       <div className="page-shell max-w-3xl">
         <div className="surface-panel p-6 md:p-8">
+          {quoteData && (
+            <div className="mb-6 rounded-xl bg-primary/5 border border-primary/20 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Ship className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Continuing from Quote</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {quoteData.boatLength}ft {quoteData.boatType} &bull; {quoteData.services.length} service{quoteData.services.length !== 1 ? "s" : ""} selected
+                {quoteData.estimatedTotal > 0 && (
+                  <span className="ml-2 font-medium text-foreground">
+                    ${(quoteData.estimatedTotal / 100).toFixed(2)} estimate
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+
           <div className="mb-6 flex flex-wrap gap-2 text-xs text-muted-foreground md:text-sm">
             {[
               "Calendar",
@@ -201,6 +316,11 @@ export function BookingFlow() {
                 <p>
                   <span className="font-medium">Contact:</span> {data.contactName} ({data.contactEmail})
                 </p>
+                {quoteData && quoteData.services.length > 0 && (
+                  <p>
+                    <span className="font-medium">Quote Services:</span> {quoteData.services.join(", ")}
+                  </p>
+                )}
               </div>
 
               <Button

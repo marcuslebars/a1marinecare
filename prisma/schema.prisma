@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model QuoteLead {
+  id                   String   @id @default(uuid())
+  createdAt            DateTime @default(now()) @map("created_at")
+  boatLength           String   @map("boat_length")
+  boatType             String   @map("boat_type")
+  services             String[] @default([])
+  addons               String[] @default([])
+  contactName          String   @map("contact_name")
+  contactEmail         String   @map("contact_email")
+  contactPhone         String   @map("contact_phone")
+  notes                String?
+  locationSlug          String   @map("location_slug")
+  estimatedTotal       BigInt?  @map("estimated_total")
+  requiresManualReview Boolean  @default(false) @map("requires_manual_review")
+  reviewReasons        String[] @default([]) @map("review_reasons")
+  metadata             Json     @default("{}")
+
+  bookingRequests BookingRequest[]
+
+  @@map("quote_leads")
+}
+
+model BookingRequest {
+  id           String   @id @default(uuid())
+  createdAt    DateTime @default(now()) @map("created_at")
+  quoteId      String?  @map("quote_id")
+  serviceSlug  String   @map("service_slug")
+  locationSlug String   @map("location_slug")
+  date         String
+  timeSlot     String   @map("time_slot")
+  contactName  String   @map("contact_name")
+  contactEmail String   @map("contact_email")
+  contactPhone String   @map("contact_phone")
+  notes        String?
+  status       String   @default("pending")
+  metadata     Json     @default("{}")
+
+  quote QuoteLead? @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  @@map("booking_requests")
+}

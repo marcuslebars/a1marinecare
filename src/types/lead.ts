@@ -19,6 +19,7 @@ export type QuoteFormData = {
 };
 
 export type BookingFormData = {
+  quoteId?: string | null;
   serviceSlug: string;
   locationSlug: string;
   date: string;

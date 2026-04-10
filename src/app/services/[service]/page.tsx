@@ -79,8 +79,6 @@ const COMPANION_SERVICE_BENEFITS: Record<string, { headline: string; benefits: s
   },
 };
 
-const PREMIUM_LOCATION_NAMES = ["georgian-bay", "midland", "muskoka", "lake-simcoe", "parry-sound", "honey-harbour"];
-
 const BEFORE_AFTER_IMAGES = [
   { src: "/images/before-after/results-candidate-1.jpg", label: "Before" },
   { src: "/images/before-after/results-candidate-2.png", label: "After" },
@@ -121,88 +119,85 @@ export default async function ServicePage({ params }: ServicePageParams) {
 
   const schema = serviceSchema(service);
   const companionBenefits = COMPANION_SERVICE_BENEFITS[service.slug];
-  const premiumLocations = locations.filter((l) => PREMIUM_LOCATION_NAMES.includes(l.slug));
-  const otherLocations = locations.filter((l) => !PREMIUM_LOCATION_NAMES.includes(l.slug));
+  const visibleLocations = locations.slice(0, 4);
+  const hiddenLocations = locations.slice(4);
 
   return (
     <>
       <SchemaScript schema={schema} />
 
-      {/* HERO */}
-      <section className="section-space bg-surface-ocean">
-        <div className="page-shell">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12">
-            <div className="flex-1">
-              <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Premium Marine Detailing</p>
-              <h1 className="mt-2 text-4xl lg:text-5xl font-semibold leading-tight">
-                Restore Deep Gloss.<br />Turn Heads at the Dock.
-              </h1>
-              <p className="mt-4 max-w-2xl text-base text-muted-foreground">
-                Professional boat detailing for owners who expect their vessel to stand out. We deliver the finish your boat deserves—dockside, on your schedule.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-4 text-sm">
-                <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1">
-                  <Star className="w-3.5 h-3.5 text-primary" />
-                  From ${service.basePriceFrom} CAD
-                </span>
-                <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1">
-                  <Clock className="w-3.5 h-3.5 text-primary" />
-                  {service.duration}
-                </span>
-              </div>
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Button asChild size="lg" className="gap-2">
-                  <Link href="/quote">
-                    Get Your Quote <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="gap-2">
-                  <Link href="/booking">
-                    Reserve Your Spot <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </Button>
-              </div>
+      {/* HERO - Full-width cinematic */}
+      <section className="relative min-h-[85vh] flex items-center bg-surface-ocean overflow-hidden">
+        <div className="absolute inset-0">
+          {service.slug === "boat-detailing" && (
+            <Image
+              src="/images/services/exterior-detailing.jpg"
+              alt={`${service.name}`}
+              fill
+              className="object-cover object-center"
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#03111c]/95 via-[#03111c]/80 to-[#03111c]/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#03111c]/50 to-transparent" />
+        </div>
+        <div className="page-shell relative z-10 py-24 lg:py-32">
+          <div className="max-w-xl">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary/80 mb-4">
+              Premium Marine Detailing
+            </p>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-white">
+              Restore Deep Gloss.
+              <br />
+              <span className="text-primary">Turn Heads</span> at the Dock.
+            </h1>
+            <p className="mt-6 text-lg text-white/70 leading-relaxed max-w-lg">
+              Professional boat detailing for owners who expect their vessel to stand out. We deliver the finish your boat deserves—dockside, on your schedule.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-5 py-2.5 text-sm font-medium text-white">
+                <Star className="w-4 h-4 text-primary" />
+                From ${service.basePriceFrom} CAD
+              </span>
+              <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-5 py-2.5 text-sm font-medium text-white">
+                <Clock className="w-4 h-4 text-primary" />
+                {service.duration}
+              </span>
             </div>
-            {service.slug === "boat-detailing" && (
-              <div className="mt-8 lg:mt-0 lg:w-[480px]">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border/50 shadow-2xl">
-                  <Image
-                    src="/images/services/exterior-detailing.jpg"
-                    alt={`${service.name} in progress`}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                </div>
-              </div>
-            )}
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Button asChild size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link href="/quote">
+                  Get Your Quote <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="heroOutline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50">
+                <Link href="/booking">
+                  Reserve Your Spot <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* MICRO-PROOF STRIP */}
-      <section className="border-y border-border/50 bg-card/30">
-        <div className="page-shell py-4">
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
-            <div className="flex items-center gap-2 text-sm">
-              <Star className="w-4 h-4 fill-primary text-primary" />
-              <span className="font-semibold">5.0</span>
-              <span className="text-muted-foreground">average rating</span>
+      {/* STATS BAR - Darker, larger */}
+      <section className="bg-[#03111c]/95 backdrop-blur-md border-y border-white/10">
+        <div className="page-shell py-6">
+          <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-20">
+            <div className="flex items-center gap-3">
+              <Star className="w-5 h-5 fill-primary text-primary" />
+              <span className="text-xl font-semibold text-white">5.0</span>
+              <span className="text-sm text-white/50">average rating</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Users className="w-4 h-4 text-primary" />
-              <span className="font-semibold">500+</span>
-              <span className="text-muted-foreground">boats detailed</span>
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5 text-primary" />
+              <span className="text-xl font-semibold text-white">500+</span>
+              <span className="text-sm text-white/50">boats detailed</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span className="font-semibold">Fully Mobile</span>
-              <span className="text-muted-foreground">dockside service</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-muted-foreground">Georgian Bay, Muskoka, Lake Simcoe</span>
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-primary" />
+              <span className="text-xl font-semibold text-white">Fully Mobile</span>
+              <span className="text-sm text-white/50">dockside service</span>
             </div>
           </div>
         </div>
@@ -210,17 +205,19 @@ export default async function ServicePage({ params }: ServicePageParams) {
 
       {/* WHO THIS IS FOR */}
       {service.slug === "boat-detailing" && (
-        <section className="py-14 bg-background">
+        <section className="py-24 bg-background">
           <div className="page-shell">
-            <h2 className="text-2xl font-semibold text-center mb-10">Who This Service Is For</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-semibold text-foreground">Who This Service Is For</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {WHO_THIS_IS_FOR.map((item, i) => (
-                <div key={i} className="text-center p-6 rounded-xl border border-border/50 bg-card/30 hover:bg-card/60 transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <item.icon className="w-6 h-6 text-primary" />
+                <div key={i} className="text-center p-8 rounded-2xl bg-card/50 hover:bg-card transition-all duration-500">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                    <item.icon className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -228,29 +225,37 @@ export default async function ServicePage({ params }: ServicePageParams) {
         </section>
       )}
 
-      {/* VISUAL PROOF - for boat-detailing */}
+      {/* VISUAL PROOF - Larger, staggered, more impactful */}
       {service.slug === "boat-detailing" && (
-        <section className="py-16 bg-surface-ocean">
+        <section className="py-24 bg-[#03111c]">
           <div className="page-shell">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-semibold">Real Results. Visible Transformation.</h2>
-              <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
+            <div className="text-center mb-16">
+              <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80 mb-3">See the Difference</p>
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Real Results. Visible Transformation.</h2>
+              <p className="mt-4 text-white/60 max-w-xl mx-auto text-lg">
                 From oxidized gelcoat to deep, mirror-like gloss. This is the difference professional detailing makes.
               </p>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               {BEFORE_AFTER_IMAGES.map((img, i) => (
-                <div key={i} className="relative">
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border/50 shadow-lg">
+                <div 
+                  key={i} 
+                  className={`relative ${i % 2 === 1 ? 'md:mt-16' : ''}`}
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden rounded-2xl shadow-2xl shadow-black/30">
                     <Image
                       src={img.src}
                       alt={`Boat ${img.label.toLowerCase()} detailing`}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 50vw, 25vw"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   </div>
-                  <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold ${img.label === 'Before' ? 'bg-red-500/80 text-white' : 'bg-green-500/80 text-white'}`}>
+                  <div className={`absolute top-4 left-4 px-4 py-1.5 rounded-full text-sm font-semibold backdrop-blur-sm ${
+                    img.label === 'Before' 
+                      ? 'bg-red-500/90 text-white' 
+                      : 'bg-emerald-500/90 text-white'
+                  }`}>
                     {img.label}
                   </div>
                 </div>
@@ -261,17 +266,17 @@ export default async function ServicePage({ params }: ServicePageParams) {
       )}
 
       {/* MID-PAGE CTA */}
-      <section className="py-16 bg-gradient-to-b from-primary/5 to-primary/10 border-y border-primary/20">
+      <section className="py-24 bg-gradient-to-b from-[#03111c] to-surface-ocean">
         <div className="page-shell text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
             <Award className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Takes Less Than a Minute</span>
           </div>
-          <h2 className="text-3xl font-semibold">Get Your Premium Detail Quote</h2>
-          <p className="mt-3 text-muted-foreground max-w-lg mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold">Get Your Premium Detail Quote</h2>
+          <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-lg">
             Tell us about your vessel. We'll prepare a transparent, detailed quote with no obligation.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Button asChild size="lg" className="gap-2">
               <Link href="/quote">
                 Get Your Quote <ArrowRight className="w-4 h-4" />
@@ -286,40 +291,42 @@ export default async function ServicePage({ params }: ServicePageParams) {
         </div>
       </section>
 
-      {/* PREMIUM LOCATIONS */}
-      <section className="section-space">
+      {/* PREMIUM LOCATIONS - Reduced, spacious */}
+      <section className="py-24 bg-background">
         <div className="page-shell">
-          <h2 className="text-2xl font-semibold md:text-3xl">Service Area</h2>
-          <p className="mt-2 text-muted-foreground">Premium dockside detailing across Ontario's finest waterways</p>
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {premiumLocations.map((location) => (
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-3">Service Area</h2>
+            <p className="text-muted-foreground text-lg">Premium dockside detailing across Ontario's finest waterways</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {visibleLocations.map((location) => (
               <Link
                 key={location.slug}
                 href={`/${service.slug}/${location.slug}`}
-                className="group text-center p-4 rounded-xl border border-border bg-card/50 hover:bg-card hover:border-primary/50 transition-all duration-300"
+                className="group p-8 rounded-2xl bg-card/80 hover:bg-card border border-transparent hover:border-primary/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5"
               >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <Sparkles className="w-5 h-5 text-primary" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles className="w-6 h-6 text-primary" />
                 </div>
-                <p className="font-semibold text-foreground">{location.name}</p>
-                <p className="text-xs text-muted-foreground mt-1">{location.region}</p>
+                <p className="text-lg font-semibold text-foreground">{location.name}</p>
+                <p className="text-sm text-muted-foreground mt-1">{location.region}</p>
               </Link>
             ))}
           </div>
-          {otherLocations.length > 0 && (
-            <details className="mt-6 group">
-              <summary className="cursor-pointer text-sm text-muted-foreground hover:text-primary transition-colors list-none flex items-center gap-2">
+          {hiddenLocations.length > 0 && (
+            <details className="mt-8 group">
+              <summary className="cursor-pointer text-center text-sm text-muted-foreground hover:text-primary transition-colors list-none flex items-center justify-center gap-2">
                 <span>View all {locations.length} service locations</span>
                 <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </summary>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {otherLocations.map((location) => (
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {hiddenLocations.map((location) => (
                   <Link
                     key={location.slug}
                     href={`/${service.slug}/${location.slug}`}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors px-3 py-1.5 rounded-full bg-card/50 hover:bg-card border border-border/50"
                   >
                     {location.name}
                   </Link>
@@ -330,13 +337,15 @@ export default async function ServicePage({ params }: ServicePageParams) {
         </div>
       </section>
 
-      {/* UPGRADED COMPANION SERVICES */}
+      {/* COMPANION SERVICES - Premium cards */}
       {companionBenefits && (
-        <section className="section-space bg-surface-ocean">
+        <section className="py-24 bg-surface-ocean">
           <div className="page-shell">
-            <h2 className="text-2xl font-semibold md:text-3xl">Complete the Detail</h2>
-            <p className="mt-2 text-muted-foreground">Popular add-ons to maximise your boat's protection and appearance</p>
-            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-semibold text-white mb-3">Complete the Detail</h2>
+              <p className="text-white/60 text-lg">Popular add-ons to maximise your boat's protection and appearance</p>
+            </div>
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {services
                 .filter((item) => item.slug !== service.slug)
                 .map((item) => {
@@ -345,18 +354,18 @@ export default async function ServicePage({ params }: ServicePageParams) {
                     <Link
                       key={item.slug}
                       href={`/services/${item.slug}`}
-                      className="group surface-panel bg-gradient-to-b from-card to-card/80 p-6 rounded-2xl border border-border hover:border-primary/50 transition-all duration-300 hover:-translate-y-1"
+                      className="group p-8 rounded-2xl bg-gradient-to-b from-card/90 to-card/60 backdrop-blur-sm border border-white/10 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-1"
                     >
-                      <div className="flex items-start justify-between mb-4">
-                        <h3 className="text-lg font-semibold">{item.name}</h3>
-                        <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                      <div className="flex items-start justify-between mb-5">
+                        <h3 className="text-xl font-semibold text-foreground">{item.name}</h3>
+                        <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
                       </div>
                       {benefits ? (
                         <>
-                          <p className="text-sm font-medium text-primary mb-3">{benefits.headline}</p>
-                          <ul className="space-y-2">
+                          <p className="text-sm font-medium text-primary mb-4">{benefits.headline}</p>
+                          <ul className="space-y-3">
                             {benefits.benefits.map((benefit, i) => (
-                              <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <li key={i} className="flex items-start gap-3 text-sm text-white/70">
                                 <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                                 {benefit}
                               </li>
@@ -364,9 +373,9 @@ export default async function ServicePage({ params }: ServicePageParams) {
                           </ul>
                         </>
                       ) : (
-                        <p className="text-sm text-muted-foreground">{item.shortDescription}</p>
+                        <p className="text-sm text-white/60">{item.shortDescription}</p>
                       )}
-                      <div className="mt-4 pt-4 border-t border-border/50 flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="mt-6 pt-5 border-t border-white/10 flex items-center gap-2 text-sm text-white/50">
                         <Shield className="w-4 h-4" />
                         From ${item.basePriceFrom}
                       </div>
@@ -379,19 +388,19 @@ export default async function ServicePage({ params }: ServicePageParams) {
       )}
 
       {/* FINAL CTA */}
-      <section className="py-16 bg-[#03111c] text-white">
+      <section className="py-24 bg-[#03111c] text-white">
         <div className="page-shell text-center">
-          <h2 className="text-3xl font-semibold">Ready to Transform Your Vessel?</h2>
-          <p className="mt-3 text-slate-300 max-w-lg mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold">Ready to Transform Your Vessel?</h2>
+          <p className="mt-4 text-white/60 max-w-lg mx-auto text-lg">
             Secure your preferred service date before the season fills up. Your boat deserves it.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Button asChild size="lg" className="gap-2 bg-white text-[#03111c] hover:bg-slate-100">
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Button asChild size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
               <Link href="/quote">
                 Get Your Quote <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10">
+            <Button asChild variant="heroOutline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50">
               <Link href="/booking">
                 Reserve Your Spot <ArrowRight className="w-4 h-4" />
               </Link>
