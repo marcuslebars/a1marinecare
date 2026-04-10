@@ -29,7 +29,7 @@ export const company = {
 export const services: Service[] = [
   {
     slug: "boat-detailing",
-    name: "Boat Detailing",
+    name: "Exterior Detailing",
     shortDescription: "Full exterior detailing that restores showroom gloss on premium vessels.",
     longDescription:
       "A complete top-to-bottom detailing package focused on oxidation removal, stain treatment, and finish restoration for fiberglass and painted marine surfaces.",
@@ -64,13 +64,40 @@ export const services: Service[] = [
     duration: "3-6 hours",
   },
   {
-    slug: "wash-and-wax",
-    name: "Wash and Wax",
-    shortDescription: "Scheduled wash and wax maintenance for peak season presentation.",
+    slug: "graphene-coating",
+    name: "Graphene Nano Coating",
+    shortDescription: "Next-generation graphene matrix coating for superior durability and hydrophobic properties.",
     longDescription:
-      "Scheduled maintenance package for routine washdowns, salt and grime removal, and premium wax application for ongoing shine between full details.",
-    basePriceFrom: 219,
-    duration: "2-4 hours",
+      "Advanced graphene-based ceramic coating offering extended durability, enhanced UV resistance, and superior water-beading compared to standard ceramic options.",
+    basePriceFrom: 1299,
+    duration: "1-2 days",
+  },
+  {
+    slug: "wet-sanding",
+    name: "Wet Sanding / Paint Correction",
+    shortDescription: "Precision wet sanding and multi-stage paint correction for show-car results.",
+    longDescription:
+      "Specialized correction service using progressive wet sanding techniques combined with machine polishing to remove deep oxidation, scratches, and swirl marks.",
+    basePriceFrom: 699,
+    duration: "1-2 days",
+  },
+  {
+    slug: "bottom-painting",
+    name: "Bottom Painting",
+    shortDescription: "Anti-fouling bottom coating application for seasonal protection.",
+    longDescription:
+      "Professional bottom paint application using premium anti-fouling coatings to protect hull from marine growth, algae, and zebra mussels during the season.",
+    basePriceFrom: 899,
+    duration: "1 day",
+  },
+  {
+    slug: "vinyl-removal",
+    name: "Vinyl Removal / Installation",
+    shortDescription: "Custom vinyl graphics, striping, and name lettering installation.",
+    longDescription:
+      "Complete vinyl services including removal of old graphics, surface preparation, and professional installation of new vinyl striping, names, and decorative elements.",
+    basePriceFrom: 399,
+    duration: "4-8 hours",
   },
 ];
 

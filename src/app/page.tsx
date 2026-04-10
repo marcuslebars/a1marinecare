@@ -3,7 +3,19 @@ import { InternalLinkGrid } from "@/components/site/internal-link-grid";
 import { SectionCard } from "@/components/site/section-card";
 import { StatStrip } from "@/components/site/stat-strip";
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { locations, services } from "@/content/site";
+
+const CORE_SERVICES = ["boat-detailing", "gelcoat-restoration", "ceramic-coating", "interior-detailing"];
+
+const SERVICE_IMAGES: Record<string, string> = {
+  "boat-detailing": "/images/services/exterior-detailing.jpg",
+  "gelcoat-restoration": "/images/services/gelcoat-restoration.jpg",
+  "ceramic-coating": "/images/services/ceramic-coating.jpg",
+  "interior-detailing": "/images/services/interior-detailing.jpg",
+};
 
 export default function HomePage() {
   return (
@@ -93,26 +105,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      <InternalLinkGrid
-        title="Before and after worthy services"
-        emphasizeVisuals
-        items={services.map((service) => {
-          const serviceImageMap: Record<string, string> = {
-            "boat-detailing": "/images/services/exterior-detailing.jpg",
-            "gelcoat-restoration": "/images/services/gelcoat-restoration.jpg",
-            "ceramic-coating": "/images/services/ceramic-coating.jpg",
-            "interior-detailing": "/images/services/interior-detailing.jpg",
-            "wash-and-wax": "/images/services/wash-and-wax.jpg",
-          };
-
-          return {
-            href: `/services/${service.slug}`,
-            title: service.name,
-            description: service.shortDescription,
-            imageSrc: serviceImageMap[service.slug],
-          };
-        })}
-      />
+      <section className="section-space">
+        <div className="page-shell">
+          <div className="mb-10 text-center">
+            <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary">What We Offer</p>
+            <h2 className="mt-2 text-4xl font-bold md:text-5xl">Premium Marine Services</h2>
+            <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+              From oxidation removal to ceramic protection, we deliver the finish your vessel deserves.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {services
+              .filter((s) => CORE_SERVICES.includes(s.slug))
+              .map((service) => (
+                <Link
+                  key={service.slug}
+                  href={`/services/${service.slug}`}
+                  className="group relative aspect-[16/10] overflow-hidden rounded-2xl"
+                >
+                  <Image
+                    src={SERVICE_IMAGES[service.slug]}
+                    alt={service.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                    <h3 className="text-xl font-bold text-white md:text-2xl">{service.name}</h3>
+                    <p className="mt-2 text-sm text-white/70">{service.shortDescription}</p>
+                    <div className="mt-4 flex items-center gap-2 text-sm font-medium text-primary">
+                      From ${service.basePriceFrom} CAD <span className="text-white/40">•</span> {service.duration}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Button asChild variant="outline" size="lg" className="gap-2">
+              <Link href="/services">
+                View All Services <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       <section className="section-space py-10 md:py-14">
         <div className="page-shell grid gap-3 md:grid-cols-[1.2fr_0.8fr]">
