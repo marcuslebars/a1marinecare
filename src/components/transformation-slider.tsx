@@ -34,7 +34,7 @@ export function TransformationSlider() {
   return (
     <div
       ref={containerRef}
-      className="group relative aspect-[5/4] overflow-hidden rounded-[2rem] bg-neutral-950 md:aspect-[21/10]"
+      className="group relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-neutral-950 sm:aspect-[5/4] md:aspect-[4/3] lg:aspect-[3/2]"
       onMouseMove={(event) => {
         if (isDragging) updatePosition(event.clientX);
       }}
@@ -48,11 +48,11 @@ export function TransformationSlider() {
     >
       <div className="absolute inset-0">
         <Image
-          src="/images/before-after/chaparral-before.webp"
+          src="/images/before-after/chaparral-after.webp"
           alt="Chaparral boat hull before detailing with a dull, oxidized finish"
           fill
           priority
-          className="object-cover object-center"
+          className="object-contain object-center"
           sizes="100vw"
         />
       </div>
@@ -62,18 +62,24 @@ export function TransformationSlider() {
         style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
       >
         <Image
-          src="/images/before-after/chaparral-after.webp"
+          src="/images/before-after/chaparral-before.webp"
           alt="Chaparral boat hull after detailing with a restored, high-gloss finish"
           fill
           priority
-          className="object-cover object-center"
+          className="object-contain object-center"
           sizes="100vw"
         />
       </div>
 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/16" />
-      <div className="pointer-events-none absolute inset-y-0 z-20 w-px -translate-x-1/2 bg-white/80 shadow-[0_0_30px_rgba(255,255,255,0.35)]" style={{ left: `${position}%` }} />
-      <div className="pointer-events-none absolute inset-y-0 z-10 w-24 -translate-x-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-xl" style={{ left: `${position}%` }} />
+      <div
+        className="pointer-events-none absolute inset-y-0 z-20 w-px -translate-x-1/2 bg-white/80 shadow-[0_0_30px_rgba(255,255,255,0.35)]"
+        style={{ left: `${position}%` }}
+      />
+      <div
+        className="pointer-events-none absolute inset-y-0 z-10 w-24 -translate-x-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-xl"
+        style={{ left: `${position}%` }}
+      />
 
       <button
         type="button"
