@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, Sparkles, Shield, Star, Clock, Award, MapPin, Users, Zap } from "lucide-react";
+import { ArrowRight, Check, Sparkles, Shield, Star, Clock, Award, MapPin, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SchemaScript } from "@/components/site/schema-script";
@@ -44,7 +44,69 @@ export async function generateMetadata({ params }: ServicePageParams): Promise<M
   };
 }
 
+const SERVICE_IMAGES: Record<string, string> = {
+  "boat-detailing": "/images/services/exterior-detailing.jpg",
+  "gelcoat-restoration": "/images/services/gelcoat-restoration.jpg",
+  "ceramic-coating": "/images/services/ceramic-coating.jpg",
+  "interior-detailing": "/images/services/interior-detailing.jpg",
+  "graphene-coating": "/images/services/ceramic-coating.jpg",
+  "wet-sanding": "/images/services/gelcoat-restoration.jpg",
+  "bottom-painting": "/images/services/exterior-detailing.jpg",
+  "vinyl-removal": "/images/services/interior-detailing.jpg",
+};
+
+const SERVICE_HERO_CONTENT: Record<string, { eyebrow: string; headline: string; subline: string }> = {
+  "boat-detailing": {
+    eyebrow: "Exterior Detailing",
+    headline: "Restore Deep Gloss.",
+    subline: "Professional boat detailing for owners who expect their vessel to stand out. We deliver the finish your boat deserves—dockside, on your schedule.",
+  },
+  "gelcoat-restoration": {
+    eyebrow: "Gelcoat Restoration",
+    headline: "Bring Back the original shine.",
+    subline: "Multi-stage correction that reverses weathering, removes oxidation, and recovers the depth and clarity your gelcoat had when it left the showroom.",
+  },
+  "ceramic-coating": {
+    eyebrow: "Ceramic Coating",
+    headline: "Protection That Lasts All Season.",
+    subline: "Marine-grade ceramic coating that improves gloss, reduces wash effort, and provides season-long UV and environmental protection for your hull.",
+  },
+  "interior-detailing": {
+    eyebrow: "Interior Detailing",
+    headline: "Cabin Comfort, Fresh from Bow to Stern.",
+    subline: "Complete interior reset including vinyl treatment, carpet extraction, mould-prone area targeting, and fresh detailing for a cabin that's ready to enjoy.",
+  },
+  "graphene-coating": {
+    eyebrow: "Graphene Nano Coating",
+    headline: "Next-Level Surface Protection.",
+    subline: "Advanced graphene-based ceramic coating offering superior hardness, enhanced UV resistance, and water-beading that outperforms standard ceramic options.",
+  },
+  "wet-sanding": {
+    eyebrow: "Wet Sanding & Paint Correction",
+    headline: "Show-Car Precision for Your Hull.",
+    subline: "Progressive wet sanding combined with multi-stage machine polishing to remove deep oxidation, scratches, and swirl marks that compound work can't fix.",
+  },
+  "bottom-painting": {
+    eyebrow: "Bottom Painting",
+    headline: "Protect the Hull Below the Waterline.",
+    subline: "Professional anti-fouling bottom paint application using premium coatings to shield your hull from marine growth, algae, and zebra mussels all season.",
+  },
+  "vinyl-removal": {
+    eyebrow: "Vinyl Removal & Installation",
+    headline: "Custom Graphics That Make a Statement.",
+    subline: "Complete vinyl services including safe removal of old graphics, expert surface preparation, and professional installation of new striping, names, and decorative elements.",
+  },
+};
+
 const COMPANION_SERVICE_BENEFITS: Record<string, { headline: string; benefits: string[] }> = {
+  "boat-detailing": {
+    headline: "Complete Exterior Care",
+    benefits: [
+      "Removes salt, algae, and waterline staining",
+      "Wash, clay bar, and hand polish with sealant",
+      "Protects gelcoat between full correction cycles",
+    ],
+  },
   "gelcoat-restoration": {
     headline: "Restore Factory Gloss & Remove Oxidation",
     benefits: [
@@ -69,12 +131,36 @@ const COMPANION_SERVICE_BENEFITS: Record<string, { headline: string; benefits: s
       "Leaves cabin ready for next season's first outing",
     ],
   },
-  "wash-and-wax": {
-    headline: "Peak-Season Presentation Maintenance",
+  "graphene-coating": {
+    headline: "Superior Durability & Heat Resistance",
     benefits: [
-      "Removes salt, algae, and waterline stains",
-      "Premium carnauba or synthetic wax adds deep warmth",
-      "Protects gelcoat between full detailing cycles",
+      "Graphene matrix outperforms standard ceramic coatings",
+      "Enhanced resistance to micro-scratching and swirl marks",
+      "Superior water-beading and self-cleaning effect",
+    ],
+  },
+  "wet-sanding": {
+    headline: "Precision Correction for Severe Defects",
+    benefits: [
+      "Removes deep scratches unfixable by compounding alone",
+      "Progressive wet sanding stages for safe material removal",
+      "Multi-stage polishing restores mirror finish after sanding",
+    ],
+  },
+  "bottom-painting": {
+    headline: "Season-Long Hull Protection",
+    benefits: [
+      "Premium anti-fouling coatings prevent marine growth",
+      "Reduces drag and maintains hull efficiency",
+      "Protects against zebra mussels and algae buildup",
+    ],
+  },
+  "vinyl-removal": {
+    headline: "Professional Vinyl Craftsmanship",
+    benefits: [
+      "Safe removal of old graphics without damaging gelcoat",
+      "Expert surface preparation for flawless new installation",
+      "Custom design consultation and professional application",
     ],
   },
 };
@@ -86,28 +172,7 @@ const BEFORE_AFTER_IMAGES = [
   { src: "/images/before-after/results-candidate-4.jpg", label: "After" },
 ];
 
-const WHO_THIS_IS_FOR = [
-  {
-    icon: Award,
-    title: "Owners Who Demand a Showroom Finish",
-    description: "You take pride in your vessel. You want it to look as good as the day it left the showroom.",
-  },
-  {
-    icon: Sparkles,
-    title: "Boats with Dull or Oxidized Gelcoat",
-    description: "Season after season, UV and salt rob your gelcoat of its original lustre. We bring it back.",
-  },
-  {
-    icon: Zap,
-    title: "Preparing for Peak Season or a Sale",
-    description: "Whether you're launching, selling, or hosting guests—your boat deserves to make an entrance.",
-  },
-  {
-    icon: Shield,
-    title: "High-Value Vessels Worth Proper Care",
-    description: "You understand that premium boats need premium care. You want specialists, not generalists.",
-  },
-];
+const SHOW_TRANSFORMATION_SLUGS = ["boat-detailing", "gelcoat-restoration", "ceramic-coating", "wet-sanding"];
 
 export default async function ServicePage({ params }: ServicePageParams) {
   const { service: serviceSlug } = await params;
@@ -118,7 +183,14 @@ export default async function ServicePage({ params }: ServicePageParams) {
   }
 
   const schema = serviceSchema(service);
+  const heroContent = SERVICE_HERO_CONTENT[service.slug] || {
+    eyebrow: service.name,
+    headline: service.shortDescription,
+    subline: service.longDescription,
+  };
   const companionBenefits = COMPANION_SERVICE_BENEFITS[service.slug];
+  const heroImage = SERVICE_IMAGES[service.slug];
+  const showTransformation = SHOW_TRANSFORMATION_SLUGS.includes(service.slug);
   const visibleLocations = locations.slice(0, 4);
   const hiddenLocations = locations.slice(4);
 
@@ -129,10 +201,10 @@ export default async function ServicePage({ params }: ServicePageParams) {
       {/* HERO - Full-width cinematic */}
       <section className="relative min-h-[85vh] flex items-center bg-surface-ocean overflow-hidden">
         <div className="absolute inset-0">
-          {service.slug === "boat-detailing" && (
+          {heroImage && (
             <Image
-              src="/images/services/exterior-detailing.jpg"
-              alt={`${service.name}`}
+              src={heroImage}
+              alt={`${service.name} - ${heroContent.headline}`}
               fill
               className="object-cover object-center"
               priority
@@ -144,15 +216,15 @@ export default async function ServicePage({ params }: ServicePageParams) {
         <div className="page-shell relative z-10 py-24 lg:py-32">
           <div className="max-w-xl">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary/80 mb-4">
-              Premium Marine Detailing
+              {heroContent.eyebrow}
             </p>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-white">
-              Restore Deep Gloss.
+              {heroContent.headline}
               <br />
               <span className="text-primary">Turn Heads</span> at the Dock.
             </h1>
             <p className="mt-6 text-lg text-white/70 leading-relaxed max-w-lg">
-              Professional boat detailing for owners who expect their vessel to stand out. We deliver the finish your boat deserves—dockside, on your schedule.
+              {heroContent.subline}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-5 py-2.5 text-sm font-medium text-white">
@@ -180,7 +252,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
         </div>
       </section>
 
-      {/* STATS BAR - Darker, larger */}
+      {/* STATS BAR */}
       <section className="bg-[#03111c]/95 backdrop-blur-md border-y border-white/10">
         <div className="page-shell py-6">
           <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-20">
@@ -203,30 +275,8 @@ export default async function ServicePage({ params }: ServicePageParams) {
         </div>
       </section>
 
-      {/* WHO THIS IS FOR */}
-      {service.slug === "boat-detailing" && (
-        <section className="py-24 bg-background">
-          <div className="page-shell">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-semibold text-foreground">Who This Service Is For</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {WHO_THIS_IS_FOR.map((item, i) => (
-                <div key={i} className="text-center p-8 rounded-2xl bg-card/50 hover:bg-card transition-all duration-500">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                    <item.icon className="w-8 h-8 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* VISUAL PROOF - Larger, staggered, more impactful */}
-      {service.slug === "boat-detailing" && (
+      {/* VISUAL PROOF - Transformation section (only for relevant services) */}
+      {showTransformation && (
         <section className="py-24 bg-[#03111c]">
           <div className="page-shell">
             <div className="text-center mb-16">
@@ -238,9 +288,9 @@ export default async function ServicePage({ params }: ServicePageParams) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               {BEFORE_AFTER_IMAGES.map((img, i) => (
-                <div 
-                  key={i} 
-                  className={`relative ${i % 2 === 1 ? 'md:mt-16' : ''}`}
+                <div
+                  key={i}
+                  className={`relative ${i % 2 === 1 ? "md:mt-16" : ""}`}
                 >
                   <div className="relative aspect-[16/10] overflow-hidden rounded-2xl shadow-2xl shadow-black/30">
                     <Image
@@ -252,9 +302,9 @@ export default async function ServicePage({ params }: ServicePageParams) {
                     />
                   </div>
                   <div className={`absolute top-4 left-4 px-4 py-1.5 rounded-full text-sm font-semibold backdrop-blur-sm ${
-                    img.label === 'Before' 
-                      ? 'bg-red-500/90 text-white' 
-                      : 'bg-emerald-500/90 text-white'
+                    img.label === "Before"
+                      ? "bg-red-500/90 text-white"
+                      : "bg-emerald-500/90 text-white"
                   }`}>
                     {img.label}
                   </div>
@@ -265,6 +315,17 @@ export default async function ServicePage({ params }: ServicePageParams) {
         </section>
       )}
 
+      {/* SERVICE DESCRIPTION */}
+      <section className="py-24 bg-background">
+        <div className="page-shell">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80 mb-3">About This Service</p>
+            <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-6">{service.name}</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">{service.longDescription}</p>
+          </div>
+        </div>
+      </section>
+
       {/* MID-PAGE CTA */}
       <section className="py-24 bg-gradient-to-b from-[#03111c] to-surface-ocean">
         <div className="page-shell text-center">
@@ -272,9 +333,9 @@ export default async function ServicePage({ params }: ServicePageParams) {
             <Award className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Takes Less Than a Minute</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold">Get Your Premium Detail Quote</h2>
+          <h2 className="text-4xl md:text-5xl font-bold">Get Your {service.name} Quote</h2>
           <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-lg">
-            Tell us about your vessel. We'll prepare a transparent, detailed quote with no obligation.
+            Tell us about your vessel. We&apos;ll prepare a transparent, detailed quote with no obligation.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Button asChild size="lg" className="gap-2">
@@ -291,12 +352,12 @@ export default async function ServicePage({ params }: ServicePageParams) {
         </div>
       </section>
 
-      {/* PREMIUM LOCATIONS - Reduced, spacious */}
+      {/* PREMIUM LOCATIONS */}
       <section className="py-24 bg-background">
         <div className="page-shell">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-3">Service Area</h2>
-            <p className="text-muted-foreground text-lg">Premium dockside detailing across Ontario's finest waterways</p>
+            <p className="text-muted-foreground text-lg">Premium dockside detailing across Ontario&apos;s finest waterways</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {visibleLocations.map((location) => (
@@ -337,13 +398,13 @@ export default async function ServicePage({ params }: ServicePageParams) {
         </div>
       </section>
 
-      {/* COMPANION SERVICES - Premium cards */}
+      {/* COMPANION SERVICES */}
       {companionBenefits && (
         <section className="py-24 bg-surface-ocean">
           <div className="page-shell">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-semibold text-white mb-3">Complete the Detail</h2>
-              <p className="text-white/60 text-lg">Popular add-ons to maximise your boat's protection and appearance</p>
+              <p className="text-white/60 text-lg">Popular add-ons to maximise your boat&apos;s protection and appearance</p>
             </div>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {services

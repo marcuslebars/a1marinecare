@@ -13,6 +13,7 @@ export const quoteSchema = z.object({
 });
 
 export const bookingSchema = z.object({
+  quoteId: z.string().optional().nullable(),
   serviceSlug: z.string().min(1),
   locationSlug: z.string().min(1),
   date: z.string().min(1),
