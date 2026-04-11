@@ -95,48 +95,56 @@ export default function HomePage() {
         </div>
 
         <div className="space-y-5">
-          <div className="relative overflow-hidden bg-neutral-950 md:grid md:grid-cols-2">
-            <div className="relative aspect-[5/4] md:aspect-[4/3]">
-              <Image
-                src="/images/before-after/results-candidate-1.jpg"
-                alt="Boat finish before correction and detailing"
-                fill
-                className="object-cover brightness-[0.62] contrast-[0.9] saturate-[0.7]"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/38 to-black/18" />
-              <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white md:left-8 md:top-8">
-                Before
-              </div>
-              <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">Oxidized Finish</p>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-white/78 md:text-base">
-                  Flat reflection, reduced depth, and a finish that disappears instead of standing out.
-                </p>
-              </div>
-            </div>
+          <div className="relative aspect-[5/4] overflow-hidden bg-neutral-950 md:aspect-[21/10]">
+            <Image
+              src="/images/before-after/results-candidate-1.jpg"
+              alt="Boat finish before correction and detailing"
+              fill
+              className="object-cover brightness-[0.6] contrast-[0.88] saturate-[0.68]"
+              sizes="100vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/34 to-black/18" />
 
-            <div className="relative aspect-[5/4] border-t border-white/10 md:aspect-[4/3] md:border-l md:border-t-0 md:border-white/10">
+            <div
+              className="absolute inset-y-0 right-0 w-[52%] overflow-hidden"
+              style={{ clipPath: "inset(0 0 0 0)" }}
+            >
               <Image
                 src="/images/before-after/results-candidate-4.jpg"
                 alt="Restored boat finish with deep gloss after premium detailing"
                 fill
-                className="object-cover brightness-[1.06] contrast-[1.12] saturate-[1.08]"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover brightness-[1.06] contrast-[1.14] saturate-[1.08]"
+                sizes="52vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/18 to-transparent" />
-              <div className="absolute left-4 top-4 rounded-full border border-white/35 bg-white/12 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_0_30px_rgba(255,255,255,0.12)] md:left-8 md:top-8">
-                After
+              <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/14 to-transparent" />
+            </div>
+
+            <div className="absolute inset-y-0 left-[48%] z-10 hidden w-px -translate-x-1/2 bg-white/50 md:block" />
+            <div className="absolute left-[48%] top-1/2 z-20 hidden h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-black/72 text-[10px] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_0_40px_rgba(0,0,0,0.45)] md:flex">
+              Reveal
+            </div>
+
+            <div className="absolute left-4 top-4 z-20 rounded-full border border-white/20 bg-black/72 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white md:left-8 md:top-8">
+              Before
+            </div>
+            <div className="absolute right-4 top-4 z-20 rounded-full border border-white/35 bg-white/12 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_0_30px_rgba(255,255,255,0.12)] md:right-8 md:top-8">
+              After
+            </div>
+
+            <div className="absolute inset-x-0 bottom-0 z-20 grid gap-6 p-5 md:grid-cols-2 md:gap-10 md:p-8">
+              <div className="max-w-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/52">Oxidized Finish</p>
+                <p className="mt-2 text-sm leading-6 text-white/76 md:text-base">
+                  Flat reflection, reduced depth, and a finish that fades into the dock instead of standing out.
+                </p>
               </div>
-              <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Mirror Gloss</p>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-white/82 md:text-base">
-                  Sharper reflections, deeper color, and a finish that reads clean the moment you approach the dock.
+              <div className="max-w-sm md:justify-self-end md:text-right">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/62">Mirror Gloss</p>
+                <p className="mt-2 text-sm leading-6 text-white/84 md:text-base">
+                  Sharper reflections, deeper color, and a finish that looks premium the moment it comes into view.
                 </p>
               </div>
             </div>
-
-            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden h-24 w-px -translate-x-1/2 -translate-y-1/2 bg-white/25 md:block" />
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
