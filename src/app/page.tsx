@@ -9,7 +9,7 @@ import { services } from "@/content/site";
 const FEATURED_SERVICE_SLUGS = ["boat-detailing", "gelcoat-restoration", "ceramic-coating", "interior-detailing"] as const;
 
 const SERVICE_IMAGES: Record<string, string> = {
-  "boat-detailing": "/images/services/exterior-detailing.jpg",
+  "boat-detailing": "/images/services/exterior-detailing-home.png",
   "gelcoat-restoration": "/images/services/gelcoat-restoration.jpg",
   "ceramic-coating": "/images/services/ceramic-coating.jpg",
   "interior-detailing": "/images/services/interior-detailing.jpg",
@@ -163,8 +163,7 @@ export default function HomePage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/28 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">Premium Service</p>
-                  <h3 className="mt-3 text-2xl font-black text-white md:text-3xl">{service.name}</h3>
+                  <h3 className="text-2xl font-black text-white md:text-3xl">{service.name}</h3>
                   <p className="mt-3 max-w-md text-sm leading-6 text-white/68">{service.shortDescription}</p>
                 </div>
               </Link>
