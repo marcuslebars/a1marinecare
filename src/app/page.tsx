@@ -35,7 +35,7 @@ const whyA1Points = [
 export default function HomePage() {
   return (
     <>
-      <section className="relative flex min-h-screen items-end overflow-hidden bg-black">
+      <section className="relative flex min-h-screen items-center overflow-hidden bg-black">
         <Image
           src="/images/marinas/marina-3.jpg"
           alt="Premium boats docked in a marina in Georgian Bay"
@@ -47,24 +47,24 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/35" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/10" />
 
-        <div className="page-shell relative z-10 flex min-h-screen items-end py-20 md:py-24">
-          <div className="max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-[0.22em] text-white/70">A1 Marine Care</p>
-            <h1 className="mt-6 max-w-2xl text-5xl font-black leading-[0.95] text-white sm:text-6xl md:text-7xl lg:text-[5.5rem]">
+        <div className="page-shell relative z-10 flex min-h-screen items-center justify-center py-20 md:py-24">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="text-base font-medium uppercase tracking-[0.24em] text-white/78 md:text-lg">A1 Marine Care</p>
+            <h1 className="mx-auto mt-6 max-w-3xl text-6xl font-black leading-[0.92] text-white sm:text-7xl md:text-8xl lg:text-[6.5rem]">
               Premium Boat Detailing in Georgian Bay
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-white/72 md:text-lg">
+            <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-white/78 md:text-xl md:leading-9">
               High-end dockside detailing, restoration, and protection for owners who want a clean finish and a sharp first impression all season.
             </p>
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <Button asChild size="lg" className="h-14 px-8 text-base font-semibold">
+            <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Button asChild size="lg" className="h-16 min-w-[220px] px-10 text-lg font-semibold">
                 <Link href="/quote">Request a Quote</Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-14 border-white/30 bg-white/5 px-8 text-base font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
+                className="h-16 min-w-[220px] border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
               >
                 <Link href="/booking">Reserve Your Date</Link>
               </Button>
