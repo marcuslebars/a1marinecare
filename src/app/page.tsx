@@ -108,12 +108,13 @@ export default function HomePage() {
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/28 to-black/10" />
-              <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/72 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white">
+              <div className="absolute left-4 top-4 rounded-full border border-white/35 bg-black/88 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_12px_30px_rgba(0,0,0,0.45)] backdrop-blur-sm">
                 Before
               </div>
               <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
-                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/55">Oxidized finish</p>
-
+                <p className="inline-flex rounded-full border border-white/20 bg-black/78 px-4 py-2 text-sm font-bold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(0,0,0,0.42)] backdrop-blur-sm">
+                  Oxidized finish
+                </p>
               </div>
             </div>
 
@@ -126,12 +127,13 @@ export default function HomePage() {
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/74 via-black/20 to-transparent" />
-              <div className="absolute left-4 top-4 rounded-full border border-white/35 bg-white/12 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_0_30px_rgba(255,255,255,0.12)]">
+              <div className="absolute left-4 top-4 rounded-full border border-white/45 bg-black/76 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_12px_30px_rgba(0,0,0,0.4)] backdrop-blur-sm">
                 After
               </div>
               <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
-                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/62">Mirror gloss</p>
-
+                <p className="inline-flex rounded-full border border-white/28 bg-black/72 px-4 py-2 text-sm font-bold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(0,0,0,0.38)] backdrop-blur-sm">
+                  Mirror gloss
+                </p>
               </div>
             </div>
           </div>
