@@ -90,50 +90,87 @@ export default function HomePage() {
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-primary/80">Transformation</p>
           <h2 className="mt-4 text-4xl font-black text-white md:text-6xl">From dull to mirror finish.</h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/60 md:text-lg">
-            Real correction work, real gloss, and a finish that changes how the boat reads at the dock.
+            A clearer side-by-side comparison that shows exactly how the finish changes after correction, polishing, and protection.
           </p>
         </div>
 
-        <div className="space-y-4">
-          <div className="relative aspect-[16/9] overflow-hidden md:aspect-[21/9]">
-            <Image
-              src="/images/before-after/results-candidate-4.jpg"
-              alt="Restored boat finish with deep gloss after premium detailing"
-              fill
-              className="object-cover"
-              sizes="100vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
-            <div className="absolute left-4 top-4 rounded-full border border-white/25 bg-black/50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white md:left-8 md:top-8">
-              After
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="space-y-5">
+          <div className="relative overflow-hidden bg-neutral-950 md:grid md:grid-cols-2">
+            <div className="relative aspect-[5/4] md:aspect-[4/3]">
               <Image
                 src="/images/before-after/results-candidate-1.jpg"
                 alt="Boat finish before correction and detailing"
                 fill
-                className="object-cover"
+                className="object-cover brightness-[0.62] contrast-[0.9] saturate-[0.7]"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-              <div className="absolute left-4 top-4 rounded-full border border-white/25 bg-black/50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/38 to-black/18" />
+              <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white md:left-8 md:top-8">
                 Before
               </div>
+              <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">Oxidized Finish</p>
+                <p className="mt-2 max-w-sm text-sm leading-6 text-white/78 md:text-base">
+                  Flat reflection, reduced depth, and a finish that disappears instead of standing out.
+                </p>
+              </div>
             </div>
-            <div className="relative aspect-[4/3] overflow-hidden">
+
+            <div className="relative aspect-[5/4] border-t border-white/10 md:aspect-[4/3] md:border-l md:border-t-0 md:border-white/10">
               <Image
-                src="/images/before-after/results-candidate-2.png"
-                alt="Boat surface being polished to a high-gloss finish"
+                src="/images/before-after/results-candidate-4.jpg"
+                alt="Restored boat finish with deep gloss after premium detailing"
                 fill
-                className="object-cover"
+                className="object-cover brightness-[1.06] contrast-[1.12] saturate-[1.08]"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-              <div className="absolute left-4 top-4 rounded-full border border-white/25 bg-black/50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/18 to-transparent" />
+              <div className="absolute left-4 top-4 rounded-full border border-white/35 bg-white/12 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_0_30px_rgba(255,255,255,0.12)] md:left-8 md:top-8">
                 After
+              </div>
+              <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Mirror Gloss</p>
+                <p className="mt-2 max-w-sm text-sm leading-6 text-white/82 md:text-base">
+                  Sharper reflections, deeper color, and a finish that reads clean the moment you approach the dock.
+                </p>
+              </div>
+            </div>
+
+            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden h-24 w-px -translate-x-1/2 -translate-y-1/2 bg-white/25 md:block" />
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-950">
+              <Image
+                src="/images/before-after/results-candidate-1.jpg"
+                alt="Boat surface before detailing with muted finish and low reflection"
+                fill
+                className="object-cover brightness-[0.68] contrast-[0.92] saturate-[0.72]"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/28 to-black/10" />
+              <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/72 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white">
+                Before
+              </div>
+              <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/55">Low clarity</p>
+              </div>
+            </div>
+
+            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-950">
+              <Image
+                src="/images/before-after/results-candidate-2.png"
+                alt="Boat surface after polishing with clear gloss and refined reflection"
+                fill
+                className="object-cover brightness-[1.05] contrast-[1.15] saturate-[1.08]"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/74 via-black/20 to-transparent" />
+              <div className="absolute left-4 top-4 rounded-full border border-white/35 bg-white/12 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_0_30px_rgba(255,255,255,0.12)]">
+                After
+              </div>
+              <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/62">High gloss</p>
               </div>
             </div>
           </div>
