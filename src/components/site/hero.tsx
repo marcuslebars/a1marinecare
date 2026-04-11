@@ -32,8 +32,6 @@ export function Hero({
       />
       <div className="absolute inset-0 bg-hero-overlay" />
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/20" />
-      <div className="absolute -left-24 top-8 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-      <div className="absolute -right-20 bottom-6 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
       <div className="page-shell relative py-24 md:py-36">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">A1 Marine Care</p>
         <h1 className="text-hero-glow mt-4 max-w-5xl text-5xl font-black leading-[0.95] md:text-7xl">{title}</h1>
