@@ -101,10 +101,10 @@ export default function HomePage() {
           <div className="grid gap-5 md:grid-cols-2">
             <div className="relative aspect-[4/3] overflow-hidden bg-neutral-950">
               <Image
-                src="/images/before-after/results-candidate-1.jpg"
-                alt="Boat surface before detailing with muted finish and low reflection"
+                src="/images/before-after/cobalt-back-before.webp"
+                alt="Cobalt stern panel before detailing with oxidation, haze, and reduced clarity"
                 fill
-                className="object-cover brightness-[0.68] contrast-[0.92] saturate-[0.72]"
+                className="object-cover brightness-[0.72] contrast-[0.94] saturate-[0.76]"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/28 to-black/10" />
@@ -112,16 +112,17 @@ export default function HomePage() {
                 Before
               </div>
               <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/55">Low clarity</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/55">Oxidized finish</p>
+
               </div>
             </div>
 
             <div className="relative aspect-[4/3] overflow-hidden bg-neutral-950">
               <Image
-                src="/images/before-after/results-candidate-2.png"
-                alt="Boat surface after polishing with clear gloss and refined reflection"
+                src="/images/before-after/cobalt-back-after.webp"
+                alt="Cobalt stern panel after polishing with deep gloss and sharp reflection"
                 fill
-                className="object-cover brightness-[1.05] contrast-[1.15] saturate-[1.08]"
+                className="object-cover brightness-[1.02] contrast-[1.12] saturate-[1.04]"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/74 via-black/20 to-transparent" />
@@ -129,7 +130,8 @@ export default function HomePage() {
                 After
               </div>
               <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/62">High gloss</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/62">Mirror gloss</p>
+
               </div>
             </div>
           </div>
