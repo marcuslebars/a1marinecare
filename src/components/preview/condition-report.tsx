@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, Sparkles, ArrowRight, RefreshCw, Download, Loader2 } from "lucide-react";
+import { AlertCircle, Sparkles, ArrowRight, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { ConditionReport } from "@/app/api/condition-report/route";
@@ -52,55 +51,19 @@ function getServiceName(slug: string): string {
   return service?.name || slug;
 }
 
-async function downloadConditionReport(report: ConditionReport, image: string): Promise<void> {
-  const response = await fetch("/api/condition-report/pdf", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ report, image }),
-  });
-
-  if (!response.ok) throw new Error("Failed to generate PDF");
-
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `A1-Boat-Condition-Report-${Date.now()}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 interface ConditionReportDisplayProps {
   report: ConditionReport;
   image: string;
-  onPreviewResults?: () => void;
   onReset?: () => void;
 }
 
 export function ConditionReportDisplay({
   report,
   image,
-  onPreviewResults,
   onReset,
 }: ConditionReportDisplayProps) {
   const score = calculateScore(report);
   const scoreMeta = getScoreColor(score);
-  const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
-
-  const handleDownloadPDF = async () => {
-    setDownloading(true);
-    setDownloadError(null);
-    try {
-      await downloadConditionReport(report, image);
-    } catch {
-      setDownloadError("Failed to download PDF. Please try again.");
-    } finally {
-      setDownloading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -206,48 +169,6 @@ export function ConditionReportDisplay({
               </div>
             </div>
           )}
-
-          <div className="pt-4 border-t border-white/10 space-y-3">
-            <div className="flex gap-3">
-              <Button
-                asChild
-                className="flex-1 h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-              >
-                <Link href="/quote">
-                  Get My Quote <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
-              {onPreviewResults && (
-                <Button
-                  onClick={onPreviewResults}
-                  variant="outline"
-                  className="flex-1 h-12 border-white/20 bg-white/5 text-white hover:border-white/40 hover:bg-white/10 font-medium"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Preview My Results
-                </Button>
-              )}
-            </div>
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={downloading}
-              variant="outline"
-              className="w-full h-11 border-white/20 bg-white/5 text-white hover:border-white/40 hover:bg-white/10 font-medium"
-            >
-              {downloading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4 mr-2" />
-              )}
-              Download My Condition Report
-            </Button>
-            {downloadError && (
-              <p className="text-xs text-center text-red-400">{downloadError}</p>
-            )}
-            <p className="text-xs text-center text-white/40">
-              Free AI analysis — no commitment required
-            </p>
-          </div>
         </div>
       </div>
     </div>
