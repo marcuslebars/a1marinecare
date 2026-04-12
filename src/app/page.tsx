@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Scan } from "lucide-react";
 
 import { TransformationSlider } from "@/components/transformation-slider";
 import { GoogleReviewsSection } from "@/components/site/google-reviews";
@@ -258,6 +258,17 @@ export default function HomePage() {
               className="h-14 px-10 text-base font-semibold border-white/30 bg-white/5 text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
             >
               <Link href="/preview">Preview Your Boat&apos;s Potential</Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="h-14 px-10 text-base font-semibold border-white/20 bg-white/5 text-white hover:bg-white/10"
+            >
+              <Link href="/condition-report">
+                <Scan className="w-4 h-4 mr-2" />
+                AI Condition Report
+              </Link>
             </Button>
           </div>
         </div>

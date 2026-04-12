@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, Zap, Shield, ArrowRight, Scan } from "lucide-react";
+import { Scan, Shield, Zap, FileText, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { BoatPreviewForm } from "@/components/preview/boat-preview-form";
+import { ConditionReportForm } from "@/components/preview/condition-report-form";
 import { absoluteUrl, buildTitle, buildDescription } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: buildTitle("Preview Your Boat's Potential"),
+  title: buildTitle("AI Boat Condition Report"),
   description: buildDescription(
-    "Upload a photo of your boat and see an AI-powered preview of what it could look like after our professional detailing, ceramic coating, or restoration services."
+    "Upload a photo of your boat and get an AI-generated condition assessment. Understand your boat's oxidation, gloss, and cleanliness levels with expert recommendations."
   ),
   alternates: {
-    canonical: absoluteUrl("/preview"),
+    canonical: absoluteUrl("/condition-report"),
   },
 };
 
@@ -21,39 +21,44 @@ const howItWorks = [
   {
     step: "01",
     title: "Upload Your Photo",
-    description: "Share a photo of your boat as it looks today. Show the areas you'd like to improve.",
+    description: "Share a clear, well-lit photo of your boat showing the areas you'd like assessed.",
   },
   {
     step: "02",
-    title: "Select a Service",
-    description: "Choose the treatment you're considering — from detailing to full restoration.",
+    title: "AI Analysis",
+    description: "Our AI examines surfaces for oxidation, gloss retention, cleanliness, and likely issues.",
   },
   {
     step: "03",
-    title: "See the Potential",
-    description: "Our AI generates a realistic preview showing what your boat could look like after service.",
+    title: "Get Your Report",
+    description: "Receive a detailed condition report with recommendations and a downloadable PDF.",
   },
 ];
 
 const benefits = [
   {
-    icon: Zap,
-    title: "Instant Visualization",
-    description: "See potential results in seconds, not after the fact.",
+    icon: Scan,
+    title: "Comprehensive Assessment",
+    description: "Get objective analysis of oxidation, gloss, and cleanliness levels.",
+  },
+  {
+    icon: FileText,
+    title: "Downloadable Report",
+    description: "Share a branded PDF condition report with your marine professional.",
   },
   {
     icon: Shield,
-    title: "Honest Expectations",
-    description: "Previews are realistic — we show you what we can realistically achieve.",
+    title: "Honest Guidance",
+    description: "We tell you what your boat needs — not what we can sell you.",
   },
   {
-    icon: Sparkles,
-    title: "Motivates Action",
-    description: "A clear vision of the end result makes booking easier.",
+    icon: Zap,
+    title: "Instant Results",
+    description: "AI-powered analysis completes in seconds, not days.",
   },
 ];
 
-export default function PreviewPage() {
+export default function ConditionReportPage() {
   return (
     <>
       <section className="relative overflow-hidden bg-black py-20 md:py-28">
@@ -72,16 +77,16 @@ export default function PreviewPage() {
         <div className="page-shell relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">AI-Powered Preview</span>
+              <Scan className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">AI Condition Analysis</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight">
-              Preview Your Boat&apos;s Potential
+              AI Boat Condition Report
             </h1>
             <p className="mt-6 text-lg text-white/70 leading-relaxed">
-              Upload a photo of your boat and see what it could look like after our professional
-              detailing, correction, or protection services. No commitment — just a glimpse of what
-              your vessel could become.
+              Upload a photo of your boat and get an AI-generated condition assessment. Understand your
+              vessel&apos;s surface condition, identify likely issues, and receive expert service
+              recommendations — all in under a minute.
             </p>
           </div>
         </div>
@@ -105,16 +110,16 @@ export default function PreviewPage() {
 
       <section className="bg-black py-16 md:py-24">
         <div className="page-shell">
-          <BoatPreviewForm />
+          <ConditionReportForm />
         </div>
       </section>
 
       <section className="bg-neutral-950 py-16 md:py-20">
         <div className="page-shell">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {benefits.map((item) => (
               <div key={item.title} className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-primary/10">
+                <div className="p-3 rounded-xl bg-primary/10 shrink-0">
                   <item.icon className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -130,11 +135,11 @@ export default function PreviewPage() {
       <section className="py-20 md:py-28 bg-surface-ocean">
         <div className="page-shell text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white">
-            Ready to See It for Real?
+            Ready for a Full Assessment?
           </h2>
           <p className="mt-4 text-white/60 max-w-lg mx-auto">
-            The AI preview is just the start. Book a service and let us show you the actual
-            difference we can make.
+            The AI condition report is a great starting point. Book a service for a definitive evaluation
+            and professional treatment.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Button asChild size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
@@ -148,19 +153,8 @@ export default function PreviewPage() {
               size="lg"
               className="gap-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50"
             >
-              <Link href="/services">
-                Explore Services <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10"
-            >
-              <Link href="/condition-report">
-                <Scan className="w-4 h-4" />
-                Get AI Condition Report
+              <Link href="/preview">
+                Try Visual Preview <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
           </div>
