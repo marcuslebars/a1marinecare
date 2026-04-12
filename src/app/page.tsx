@@ -27,10 +27,10 @@ const trustItems = [
 ];
 
 const whyA1Points = [
-  "Dockside service that meets you at the marina, private slip, or waterfront property.",
-  "Hands-on experience caring for high-value vessels that demand precise finish work.",
-  "Consistent, high-quality results built around gloss, protection, and long-term upkeep.",
-  "Trusted by owners throughout Georgian Bay and surrounding premium boating regions.",
+  "No drop-offs, no waiting around. We come right to your marina, private slip, or property - whenever works for you.",
+  "We have spent years working on high-value vessels that can't afford shortcuts. You get that experience every single time.",
+  "Everything we do is built around lasting results. Deep gloss, real protection, and a finish that holds up all season.",
+  "We've earned the trust of boat owners across Georgian Bay, Lake Simcoe, and Muskoka. Chances are, your neighbour's already a client.",
 ];
 
 export default function HomePage() {
@@ -184,8 +184,8 @@ export default function HomePage() {
       <section className="bg-black py-20 md:py-28">
         <div className="page-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.18em] text-primary/80">Why A1</p>
-            <h2 className="mt-4 max-w-lg text-4xl font-black text-white md:text-5xl">Clean, confident service without the marina runaround.</h2>
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-primary/80">WHY CHOOSE A1?</p>
+            <h2 className="mt-4 max-w-xl text-4xl font-black text-white md:text-5xl">We show up, do the work, and leave your boat looking exactly how it should.</h2>
           </div>
 
           <div className="space-y-8">
