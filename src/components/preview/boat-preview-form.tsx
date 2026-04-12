@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Upload, Sparkles, AlertCircle, Loader2, ArrowRight, ImageIcon, RotateCcw } from "lucide-react";
+import { Upload, Sparkles, AlertCircle, Loader2, ArrowRight, ImageIcon, RotateCcw, Scan } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,11 @@ import {
   getPreviewMeta,
   type PreviewService,
 } from "@/lib/preview-prompts";
+import {
+  ConditionReportDisplay,
+  ConditionReportError,
+} from "@/components/preview/condition-report";
+import type { ConditionReport } from "@/app/api/condition-report/route";
 
 const PREVIEW_SERVICE_MAP = services.filter((s) =>
   PREVIEW_SERVICES.includes(s.slug as PreviewService)
@@ -24,12 +29,18 @@ const UPLOAD_TIPS = [
   "Avoid blurry or heavily filtered photos",
 ];
 
+type Mode = "preview" | "condition";
+
 export function BoatPreviewForm() {
+  const [mode, setMode] = useState<Mode>("preview");
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [selectedService, setSelectedService] = useState<string>("");
   const [result, setResult] = useState<string | null>(null);
+  const [conditionReport, setConditionReport] = useState<ConditionReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [conditionLoading, setConditionLoading] = useState(false);
+  const [conditionError, setConditionError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -102,11 +113,53 @@ export function BoatPreviewForm() {
     }
   };
 
+  const handleAnalyzeCondition = async () => {
+    if (!image || !imageFile) return;
+
+    setConditionLoading(true);
+    setConditionError(null);
+    setConditionReport(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", image);
+      if (selectedService) formData.append("service", selectedService);
+
+      const response = await fetch("/api/condition-report", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        setConditionError(data.error || "Failed to analyze condition. Please try again.");
+        return;
+      }
+
+      setConditionReport(data.report);
+    } catch {
+      setConditionError("Failed to analyze condition. Please try again.");
+    } finally {
+      setConditionLoading(false);
+    }
+  };
+
   const handleReset = () => {
     setImage(null);
     setImageFile(null);
     setSelectedService("");
     setResult(null);
+    setConditionReport(null);
+    setConditionError(null);
+    setError(null);
+  };
+
+  const handleModeSwitch = (newMode: Mode) => {
+    setMode(newMode);
+    setResult(null);
+    setConditionReport(null);
+    setConditionError(null);
     setError(null);
   };
 
@@ -115,12 +168,39 @@ export function BoatPreviewForm() {
 
   return (
     <div className="space-y-8">
+      <div className="flex items-center justify-center gap-2 p-1.5 rounded-xl bg-white/5 border border-white/10 w-fit mx-auto">
+        <button
+          onClick={() => handleModeSwitch("preview")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            mode === "preview"
+              ? "bg-primary text-primary-foreground"
+              : "text-white/60 hover:text-white"
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          Visual Preview
+        </button>
+        <button
+          onClick={() => handleModeSwitch("condition")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            mode === "condition"
+              ? "bg-primary text-primary-foreground"
+              : "text-white/60 hover:text-white"
+          }`}
+        >
+          <Scan className="w-4 h-4" />
+          Condition Report
+        </button>
+      </div>
+
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
         <div className="space-y-6">
           <div>
             <h3 className="text-xl font-semibold text-white mb-2">Upload Your Boat Photo</h3>
             <p className="text-sm text-white/50 mb-4">
-              JPG, PNG up to 10MB. Show the areas you want us to focus on.
+              {mode === "preview"
+                ? "JPG, PNG up to 10MB. Show the areas you want us to focus on."
+                : "JPG, PNG up to 10MB. A clear, well-lit photo gives the most accurate assessment."}
             </p>
           </div>
 
@@ -191,43 +271,55 @@ export function BoatPreviewForm() {
             </ul>
           </div>
 
-          <div>
-            <h3 className="text-xl font-semibold text-white mb-2">Choose a Service</h3>
-            <p className="text-sm text-white/50 mb-4">
-              Select the service you&apos;re considering for your boat.
-            </p>
-            <select
-              value={selectedService}
-              onChange={(e) => {
-                setSelectedService(e.target.value);
-                setResult(null);
-              }}
-              disabled={loading}
-              className="w-full h-12 px-4 rounded-lg bg-neutral-800 border border-white/20 text-white appearance-none cursor-pointer focus:outline-none focus:border-primary disabled:opacity-50"
-            >
-              <option value="">Select a service...</option>
-              {PREVIEW_SERVICE_MAP.map((service) => (
-                <option key={service.slug} value={service.slug}>
-                  {service.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {mode === "preview" && (
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2">Choose a Service</h3>
+              <p className="text-sm text-white/50 mb-4">
+                Select the service you&apos;re considering for your boat.
+              </p>
+              <select
+                value={selectedService}
+                onChange={(e) => {
+                  setSelectedService(e.target.value);
+                  setResult(null);
+                }}
+                disabled={loading}
+                className="w-full h-12 px-4 rounded-lg bg-neutral-800 border border-white/20 text-white appearance-none cursor-pointer focus:outline-none focus:border-primary disabled:opacity-50"
+              >
+                <option value="">Select a service...</option>
+                {PREVIEW_SERVICE_MAP.map((service) => (
+                  <option key={service.slug} value={service.slug}>
+                    {service.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <Button
-            onClick={handleGenerate}
-            disabled={!image || !selectedService || loading}
+            onClick={mode === "preview" ? handleGenerate : handleAnalyzeCondition}
+            disabled={
+              !image ||
+              (mode === "preview" ? !selectedService : false) ||
+              loading ||
+              conditionLoading
+            }
             className="w-full h-14 text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? (
+            {loading || conditionLoading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Generating Preview...
+                {mode === "preview" ? "Generating Preview..." : "Analyzing Condition..."}
               </>
-            ) : (
+            ) : mode === "preview" ? (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
                 Generate Preview
+              </>
+            ) : (
+              <>
+                <Scan className="w-5 h-5 mr-2" />
+                Analyze Condition
               </>
             )}
           </Button>
@@ -245,16 +337,57 @@ export function BoatPreviewForm() {
 
         <div className="space-y-6">
           <div>
-            <h3 className="text-xl font-semibold text-white mb-2">Preview Result</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">
+              {mode === "preview" ? "Preview Result" : "Condition Report"}
+            </h3>
             <p className="text-sm text-white/50">
-              {serviceMeta
-                ? serviceMeta.subtitle
-                : "Your preview will appear here"}
+              {mode === "preview"
+                ? serviceMeta
+                  ? serviceMeta.subtitle
+                  : "Your preview will appear here"
+                : conditionReport
+                  ? "AI-powered analysis of your boat's condition"
+                  : "Your condition report will appear here"}
             </p>
           </div>
 
           <div className="surface-panel rounded-2xl overflow-hidden min-h-[450px] flex flex-col">
-            {result ? (
+            {mode === "condition" ? (
+              conditionLoading ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+                  <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mb-6">
+                    <Scan className="w-10 h-10 text-primary/40" />
+                  </div>
+                  <p className="text-white/50 text-sm mb-6 max-w-[280px]">
+                    Our AI is analyzing your boat&apos;s surfaces and generating a detailed condition report. This usually takes 5-10 seconds...
+                  </p>
+                  <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: "60%" }} />
+                  </div>
+                </div>
+              ) : conditionError ? (
+                <div className="flex-1 p-6">
+                  <ConditionReportError error={conditionError} onRetry={handleAnalyzeCondition} />
+                </div>
+              ) : conditionReport && image ? (
+                <div className="flex-1 p-6">
+                  <ConditionReportDisplay
+                    report={conditionReport}
+                    image={image}
+                    onReset={handleReset}
+                  />
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+                  <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mb-6">
+                    <Scan className="w-10 h-10 text-white/15" />
+                  </div>
+                  <p className="text-white/50 text-sm mb-6 max-w-[240px]">
+                    Upload a photo and click &quot;Analyze Condition&quot; to get a detailed assessment of your boat
+                  </p>
+                </div>
+              )
+            ) : result ? (
               <div className="flex-1 flex flex-col">
                 {image && (
                   <div className="grid grid-cols-2 gap-px bg-white/10">
