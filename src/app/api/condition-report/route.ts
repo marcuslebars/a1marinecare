@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const model = process.env.GEMINI_VISION_MODEL || "gemini-1.5-flash";
+    const model = process.env.GEMINI_VISION_MODEL || "gemini-2.5-flash";
     const prompt = serviceContext
       ? `${ANALYSIS_PROMPT}\n\nThe user is specifically interested in: ${serviceContext}`
       : ANALYSIS_PROMPT;

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     }
 
     const model =
-      process.env.GEMINI_IMAGE_MODEL || "gemini-2.0-flash-preview-image-generation";
+      process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-preview";
     const prompt = getPreviewPrompt(service);
     const compressedImage = await compressImage(imageBase64);
 
