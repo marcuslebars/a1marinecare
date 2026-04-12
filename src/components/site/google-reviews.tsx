@@ -20,7 +20,7 @@ type TrustData = {
 
 const TRUST_DATA: TrustData = {
   rating: 5.0,
-  reviewCount: 47,
+  reviewCount: 12,
   googleMapsUrl: `https://www.google.com/search?q=${encodeURIComponent(company.name)}+${encodeURIComponent(company.addressLocality)}+${encodeURIComponent(company.addressRegion)}`,
   leaveReviewUrl: `https://www.google.com/search?q=${encodeURIComponent(company.name + " reviews")}`,
   reviews: [],
@@ -109,18 +109,11 @@ export function TrustSection() {
           <TrustBadge />
         </div>
 
-        {hasReviews ? (
+        {hasReviews && (
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {TRUST_DATA.reviews.map((review, index) => (
               <ReviewCard key={`${review.authorName}-${index}`} review={review} />
             ))}
-          </div>
-        ) : (
-          <div className="mx-auto mt-10 max-w-3xl rounded-[1.75rem] border border-white/10 bg-white/[0.03] px-6 py-8 text-center shadow-[0_24px_60px_rgba(0,0,0,0.28)] md:px-10 md:py-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/40">Verified trust signals</p>
-            <p className="mt-4 text-base leading-7 text-white/68 md:text-lg md:leading-8">
-              Real client review cards can be added back at any time by updating <span className="font-semibold text-white/88">TRUST_DATA.reviews</span>. Until then, this section stays clean, premium, and centered around your public Google reputation.
-            </p>
           </div>
         )}
 
