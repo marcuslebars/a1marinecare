@@ -466,6 +466,11 @@ export default async function ServicePage({ params }: ServicePageParams) {
                 Reserve Your Spot <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
+            <Button asChild variant="outline" size="lg" className="gap-2 border-white/20 bg-white/5 text-white hover:border-white/40 hover:bg-white/10">
+              <Link href="/preview">
+                Preview Your Boat <Sparkles className="w-4 h-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

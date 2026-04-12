@@ -247,9 +247,17 @@ export default function HomePage() {
           <h2 className="mx-auto mt-4 max-w-4xl text-4xl font-black leading-tight text-white md:text-6xl">
             Get your boat looking right this season.
           </h2>
-          <div className="mt-8">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="h-14 px-10 text-base font-semibold">
               <Link href="/quote">Request a Quote</Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="h-14 px-10 text-base font-semibold border-white/30 bg-white/5 text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
+            >
+              <Link href="/preview">Preview Your Boat&apos;s Potential</Link>
             </Button>
           </div>
         </div>
