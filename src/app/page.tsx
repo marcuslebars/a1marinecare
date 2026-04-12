@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { TransformationSlider } from "@/components/transformation-slider";
+import { GoogleReviewsSection } from "@/components/site/google-reviews";
 import { Button } from "@/components/ui/button";
 import { services } from "@/content/site";
 
@@ -197,6 +198,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <GoogleReviewsSection />
 
       <section className="relative overflow-hidden bg-black py-20 md:py-28">
         <div className="absolute inset-0">

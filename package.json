@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:deploy": "prisma migrate deploy && npm run build"
+    "db:deploy": "prisma migrate deploy && npm run build",
+    "lookup:place-id": "tsx scripts/lookup-place-id.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -87,6 +88,7 @@
     "lovable-tagger": "^1.1.13",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vitest": "^3.2.4"
