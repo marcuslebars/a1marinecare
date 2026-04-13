@@ -25,8 +25,8 @@ const howItWorks = [
   },
   {
     step: "02",
-    title: "AI Analysis",
-    description: "Our AI examines surfaces for oxidation, gloss retention, cleanliness, and likely issues.",
+    title: "Condition Assessment",
+    description: "We assess visible surfaces for oxidation, gloss retention, cleanliness, and likely issues.",
   },
   {
     step: "03",

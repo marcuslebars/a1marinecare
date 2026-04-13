@@ -211,75 +211,53 @@ export default function HomePage() {
 
       <GoogleReviewsSection />
 
-      <section className="relative overflow-hidden bg-black py-20 md:py-28">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/marinas/marina-1.jpg"
-            alt="Premium marina service area in Georgian Bay"
-            fill
-            className="object-cover"
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-black/45" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/35" />
-        </div>
-
-        <div className="page-shell relative z-10">
-          <div className="max-w-3xl py-10 md:py-16">
-            <p className="text-sm font-medium uppercase tracking-[0.18em] text-white/65">Service Area</p>
-            <h2 className="mt-4 text-4xl font-black leading-tight text-white md:text-6xl">
-              Serving Georgian Bay, Muskoka, and Lake Simcoe
+      <section className="bg-black py-24 md:py-32">
+        <div className="page-shell">
+          <div className="max-w-4xl text-left">
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-white/60">Ready for the season</p>
+            <h2 className="mt-4 max-w-4xl text-4xl font-black leading-tight text-white md:text-6xl">
+              Get your boat looking right this season.
             </h2>
-            <div className="mt-8">
-              <Button asChild size="lg" className="h-12 px-8 text-base font-semibold">
-                <Link href="/locations">View All Locations</Link>
+            <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+              <Button asChild size="lg" className="h-14 px-10 text-base font-semibold">
+                <Link href="/quote">Request a Quote</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-14 px-10 text-base font-semibold border-white/30 bg-white/5 text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
+              >
+                <Link href="/preview">Preview Your Boat&apos;s Potential</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-14 px-10 text-base font-semibold border-white/20 bg-white/5 text-white hover:bg-white/10"
+              >
+                <Link href="/condition-report">
+                  <Scan className="mr-2 h-4 w-4" />
+                  Condition Report
+                </Link>
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-black py-24 md:py-32">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/services/exterior-detailing.jpg"
-            alt="Boat receiving premium exterior detailing service"
-            fill
-            className="object-cover"
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-black/55" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/35" />
-        </div>
-
-        <div className="page-shell relative z-10 text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-white/60">Ready for the season</p>
-          <h2 className="mx-auto mt-4 max-w-4xl text-4xl font-black leading-tight text-white md:text-6xl">
-            Get your boat looking right this season.
-          </h2>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild size="lg" className="h-14 px-10 text-base font-semibold">
-              <Link href="/quote">Request a Quote</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="h-14 px-10 text-base font-semibold border-white/30 bg-white/5 text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
-            >
-              <Link href="/preview">Preview Your Boat&apos;s Potential</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="h-14 px-10 text-base font-semibold border-white/20 bg-white/5 text-white hover:bg-white/10"
-            >
-              <Link href="/condition-report">
-                <Scan className="w-4 h-4 mr-2" />
-                Condition Report
-              </Link>
-            </Button>
+      <section className="bg-black py-20 md:py-28">
+        <div className="page-shell text-center">
+          <div className="mx-auto max-w-4xl">
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-white/65">Service Area</p>
+            <h2 className="mt-4 text-4xl font-black leading-tight text-white md:text-6xl">
+              Serving Georgian Bay, Muskoka, and Lake Simcoe
+            </h2>
+            <div className="mt-8 flex justify-center">
+              <Button asChild size="lg" className="h-12 px-8 text-base font-semibold">
+                <Link href="/locations">View All Locations</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
