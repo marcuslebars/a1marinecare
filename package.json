@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/copy-assets.mjs",
+    "build": "next build && mkdir -p .next/standalone/.next && cp -R public .next/standalone/public && cp -R .next/static .next/standalone/.next/static && echo 'Assets copied'",
     "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "test": "vitest run",
