@@ -39,22 +39,22 @@ const benefits = [
   {
     icon: Scan,
     title: "Comprehensive Assessment",
-    description: "Get objective analysis of oxidation, gloss, and cleanliness levels.",
+    description: "Snap a photo and get a real read on your boat's oxidation, gloss, and overall condition.",
   },
   {
     icon: FileText,
     title: "Downloadable Report",
-    description: "Share a branded PDF condition report with your marine professional.",
+    description: "Save or share your condition report - a handy record of where your boat stands before and after.",
   },
   {
     icon: Shield,
     title: "Honest Guidance",
-    description: "We tell you what your boat needs — not what we can sell you.",
+    description: "Clear, straightforward results that tell you what's going on with your boat - no jargon.",
   },
   {
     icon: Zap,
     title: "Instant Results",
-    description: "AI-powered analysis completes in seconds, not days.",
+    description: "No waiting around. Your condition report is ready in seconds.",
   },
 ];
 
