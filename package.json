@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && mkdir -p .next/standalone/.next && cp -R public .next/standalone/public && cp -R .next/static .next/standalone/.next/static && echo 'Assets copied'",
+    "build": "next build && node -e \"const fs=require('fs'),path=require('path');[['public','.next/standalone/public'],['.next/static','.next/standalone/.next/static']].forEach(([s,d])=>{fs.mkdirSync(d,{recursive:true});fs.cpSync(s,d,{recursive:true});console.log('Copied',s,'to',d);});\"",
     "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "test": "vitest run",
