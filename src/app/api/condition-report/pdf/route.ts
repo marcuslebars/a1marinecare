@@ -1,7 +1,7 @@
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { NextResponse } from "next/server";
 
-console.log("[PDF ROUTE] PURE PDF-LIB CONFIRMED");
+console.log("[PDF ROUTE] CLEAN PDF-LIB ROUTE ACTIVE");
 
 interface ConditionReportPDFParams {
   report: {
@@ -33,10 +33,10 @@ export async function POST(request: Request) {
     const font = await doc.embedFont(StandardFonts.Helvetica);
     const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
 
-    page.drawRectangle({ x: 0, y: 792 - 100, width: 612, height: 100, color: { red: 0.067, green: 0.067, blue: 0.067 } });
-    page.drawText("A1 MARINE CARE", { x: 48, y: 792 - 48, size: 24, font: fontBold, color: { red: 0, green: 0.807, blue: 0.82 } });
-    page.drawText("Condition Report", { x: 48, y: 792 - 80, size: 14, font: font, color: { red: 1, green: 1, blue: 1 } });
-    page.drawText(report.summary || "No summary available.", { x: 48, y: 792 - 140, size: 12, font: font, color: { red: 0.2, green: 0.2, blue: 0.2 }, maxWidth: 516 });
+    page.drawRectangle({ x: 0, y: 692, width: 612, height: 100, color: rgb(0.067, 0.067, 0.067) });
+    page.drawText("A1 MARINE CARE", { x: 48, y: 744, size: 24, font: fontBold, color: rgb(0, 0.807, 0.82) });
+    page.drawText("Condition Report", { x: 48, y: 712, size: 14, font: font, color: rgb(1, 1, 1) });
+    page.drawText(report.summary || "No summary available.", { x: 48, y: 652, size: 12, font: font, color: rgb(0.2, 0.2, 0.2), maxWidth: 516 });
 
     const pdfBytes = await doc.save();
     console.log("[PDF Route] pdf-lib bytes generated:", pdfBytes.length);
