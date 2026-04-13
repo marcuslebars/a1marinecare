@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
 import { NextResponse } from "next/server";
 import path from "path";
+import fs from "fs";
 import type { ConditionReport } from "@/app/api/condition-report/route";
 
 const C = {
@@ -62,12 +63,16 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
 
       const { fontRegular, fontBold } = loadFontPaths();
 
+      console.log("[PDF] Font exists Regular:", fs.existsSync(fontRegular), fontRegular);
+      console.log("[PDF] Font exists Bold:", fs.existsSync(fontBold), fontBold);
+
       try {
         doc.registerFont("Regular", fontRegular);
         doc.registerFont("Bold", fontBold);
-        console.log("[PDF] Custom fonts registered:", { fontRegular, fontBold });
+        doc.font("Regular");
+        console.log("[PDF] Custom fonts registered and default font set");
       } catch (fontErr) {
-        console.error("[PDF] Font registration failed:", fontErr);
+        console.error("[PDF] Font load failed:", fontErr);
         reject(fontErr);
         return;
       }
@@ -83,7 +88,7 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
         day: "numeric",
       });
 
-      // Header
+      // Header background
       doc.rect(0, 0, W, 100).fill(C.headerBg);
       doc.font("Bold").fontSize(24).fillColor(C.cyan).text("A1 MARINE CARE", MX, 28);
       doc.font("Regular").fontSize(9).fillColor(C.white).text("Premium Boat Detailing & Protection", MX, 68);
@@ -158,7 +163,7 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
 
       // Recommended services
       if (report.recommendedServices && report.recommendedServices.length > 0) {
-        if (y > 580) { doc.addPage(); y = 40; }
+        if (y > 580) { doc.addPage(); y = 40; doc.font("Regular"); }
         doc.roundedRect(MX, y, CW, 24, 3).fill(C.headerBg);
         doc.font("Bold").fontSize(8).fillColor(C.white).text("RECOMMENDED SERVICES", MX + 14, y + 8);
         y += 24;
@@ -175,7 +180,7 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
 
       // Confidence note
       if (report.confidenceNote) {
-        if (y > 620) { doc.addPage(); y = 40; }
+        if (y > 620) { doc.addPage(); y = 40; doc.font("Regular"); }
         doc.roundedRect(MX, y, CW, 50, 4).fill(C.tableBg);
         doc.font("Regular").fontSize(8).fillColor(C.textMuted).text("Assessment Note", MX + 14, y + 10);
         doc.font("Regular").fontSize(9).fillColor(C.textLight).text(report.confidenceNote, MX + 14, y + 26, { width: CW - 28 });
@@ -183,7 +188,7 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
       }
 
       // Next steps
-      if (y > 580) { doc.addPage(); y = 40; }
+      if (y > 580) { doc.addPage(); y = 40; doc.font("Regular"); }
       doc.roundedRect(MX, y, CW, 64, 4).fill("#F0FFFE");
       doc.rect(MX, y, 3, 64).fill(C.cyan);
       doc.font("Bold").fontSize(9).fillColor(C.text).text("Next Steps", MX + 16, y + 10);
