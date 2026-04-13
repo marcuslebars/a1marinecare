@@ -8,32 +8,14 @@ import { ConditionReportForm } from "@/components/preview/condition-report-form"
 import { absoluteUrl, buildTitle, buildDescription } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: buildTitle("AI Boat Condition Report"),
+  title: buildTitle("Boat Condition Report"),
   description: buildDescription(
-    "Upload a photo of your boat and get an AI-generated condition assessment. Understand your boat's oxidation, gloss, and cleanliness levels with expert recommendations."
+    "Upload a photo of your boat and get a condition assessment. Understand your boat's oxidation, gloss, and cleanliness levels with expert recommendations."
   ),
   alternates: {
     canonical: absoluteUrl("/condition-report"),
   },
 };
-
-const howItWorks = [
-  {
-    step: "01",
-    title: "Upload Your Photo",
-    description: "Share a clear, well-lit photo of your boat showing the areas you'd like assessed.",
-  },
-  {
-    step: "02",
-    title: "AI Analysis",
-    description: "Our AI examines surfaces for oxidation, gloss retention, cleanliness, and likely issues.",
-  },
-  {
-    step: "03",
-    title: "Get Your Report",
-    description: "Receive a detailed condition report with recommendations and a downloadable PDF.",
-  },
-];
 
 const benefits = [
   {
@@ -78,13 +60,13 @@ export default function ConditionReportPage() {
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
               <Scan className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">AI Condition Analysis</span>
+              <span className="text-sm font-medium text-primary">Condition Analysis</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight">
-              AI Boat Condition Report
+              Boat Condition Report
             </h1>
             <p className="mt-6 text-lg text-white/70 leading-relaxed">
-              Upload a photo of your boat and get an AI-generated condition assessment. Understand your
+              Upload a photo of your boat and get a clear condition assessment. Understand your
               vessel&apos;s surface condition, identify likely issues, and receive expert service
               recommendations — all in under a minute.
             </p>
@@ -92,18 +74,17 @@ export default function ConditionReportPage() {
         </div>
       </section>
 
-      <section className="bg-neutral-950 py-16 md:py-20">
+      <section className="bg-neutral-950 py-10 md:py-12 border-y border-white/10">
         <div className="page-shell">
-          <div className="grid md:grid-cols-3 gap-8">
-            {howItWorks.map((item) => (
-              <div key={item.step} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary font-bold text-lg mb-4">
-                  {item.step}
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-sm text-white/60">{item.description}</p>
-              </div>
-            ))}
+          <div className="max-w-5xl mx-auto text-center">
+            <p className="text-sm md:text-base font-semibold tracking-[0.18em] text-white/90 uppercase">
+              500+ Boats Detailed · 5+ Years Experience · 5.0 Google Rating · Georgian Bay | Lake Simcoe | Muskoka
+            </p>
+            <p className="mt-4 text-base md:text-lg text-white/65">
+              Five years. Five stars. Five hundred boats and counting.
+              <br className="hidden md:block" />
+              We come to you, and we don&apos;t leave until it&apos;s right.
+            </p>
           </div>
         </div>
       </section>
@@ -136,7 +117,7 @@ export default function ConditionReportPage() {
             Ready for a Full Assessment?
           </h2>
           <p className="mt-4 text-white/60 max-w-lg mx-auto">
-            The AI condition report is a great starting point. Book a service for a definitive evaluation
+            The condition report is a great starting point. Book a service for a definitive evaluation
             and professional treatment.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
