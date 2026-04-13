@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Upload, Sparkles, AlertCircle, Loader2, ArrowRight, ImageIcon, RotateCcw } from "lucide-react";
+import { Upload, Sparkles, AlertCircle, Loader2, ArrowRight, ImageIcon, RotateCcw, Scan } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
