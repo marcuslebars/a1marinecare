@@ -9,6 +9,11 @@ const nextConfig = {
       },
     ],
   },
+  outputFileTracingIncludes: {
+    "/api/quotes/pdf/**": [
+      "node_modules/pdfkit/js/data/*.afm",
+    ],
+  },
 };
 
 export default nextConfig;
