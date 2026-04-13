@@ -160,7 +160,7 @@ export default function PreviewPage() {
             >
               <Link href="/condition-report">
                 <Scan className="w-4 h-4" />
-                Get AI Condition Report
+                Condition Report
               </Link>
             </Button>
           </div>

@@ -267,7 +267,7 @@ export default function HomePage() {
             >
               <Link href="/condition-report">
                 <Scan className="w-4 h-4 mr-2" />
-                AI Condition Report
+                Condition Report
               </Link>
             </Button>
           </div>

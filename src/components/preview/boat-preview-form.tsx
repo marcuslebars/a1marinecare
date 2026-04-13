@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Upload, Sparkles, AlertCircle, Loader2, ArrowRight, ImageIcon, RotateCcw, Scan } from "lucide-react";
+import { Upload, Sparkles, AlertCircle, Loader2, ArrowRight, ImageIcon, RotateCcw } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -179,17 +179,6 @@ export function BoatPreviewForm() {
         >
           <Sparkles className="w-4 h-4" />
           Visual Preview
-        </button>
-        <button
-          onClick={() => handleModeSwitch("condition")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-            mode === "condition"
-              ? "bg-primary text-primary-foreground"
-              : "text-white/60 hover:text-white"
-          }`}
-        >
-          <Scan className="w-4 h-4" />
-          Condition Report
         </button>
       </div>
 
