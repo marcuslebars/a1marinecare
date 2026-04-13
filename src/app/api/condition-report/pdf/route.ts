@@ -1,10 +1,10 @@
 import PDFDocument from "pdfkit";
 import { NextResponse } from "next/server";
+import path from "path";
 import type { ConditionReport } from "@/app/api/condition-report/route";
 
 const C = {
   cyan: "#00CED1",
-  cyanLight: "#E0FFFE",
   white: "#FFFFFF",
   text: "#333333",
   textLight: "#666666",
@@ -45,27 +45,21 @@ interface ConditionReportPDFParams {
 }
 
 function buildPDF(report: ConditionReport, image: string | undefined): Promise<Buffer> {
-  return new Promise<Buffer>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
-      console.log("[PDF] Initializing PDFDocument...");
       const doc = new PDFDocument({ size: "letter", margin: 0 });
       const chunks: Buffer[] = [];
 
-      doc.on("data", (chunk: Buffer) => {
-        chunks.push(chunk);
-        console.log("[PDF] Chunk received, total chunks so far:", chunks.length);
-      });
+      doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+      doc.on("end", () => resolve(Buffer.concat(chunks)));
+      doc.on("error", reject);
 
-      doc.on("end", () => {
-        const pdfBuffer = Buffer.concat(chunks);
-        console.log("[PDF] Done. Final buffer length:", pdfBuffer.length, "bytes");
-        resolve(pdfBuffer);
-      });
+      const fontDir = path.resolve(process.cwd(), "node_modules/pdfkit/data");
+      doc.registerFont("Helvetica", path.join(fontDir, "Helvetica.afm"));
+      doc.registerFont("Helvetica-Bold", path.join(fontDir, "Helvetica-Bold.afm"));
 
-      doc.on("error", (err: Error) => {
-        console.error("[PDF] PDFDocument error:", err.message);
-        reject(err);
-      });
+      console.log("[PDF] Font dir:", fontDir);
+      console.log("[PDF] Registered Helvetica:", path.join(fontDir, "Helvetica.afm"));
 
       const W = 612;
       const MX = 48;
@@ -89,7 +83,7 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
 
       y = 128;
 
-      // Image (optional — skip if missing or fails)
+      // Image
       if (image) {
         try {
           const imgData = image.includes(",") ? image.split(",")[1] : image;
@@ -99,32 +93,29 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
           console.log("[PDF] Image embedded successfully");
           y += 140;
         } catch (err) {
-          console.error("[PDF] Image embedding FAILED, skipping image:", err);
+          console.error("[PDF] Image embedding FAILED, skipping:", err);
           y += 20;
         }
-      } else {
-        console.log("[PDF] No image provided, skipping image block");
       }
 
-      // Summary section
+      // Summary
       doc.fillColor(C.text).font("Helvetica-Bold").fontSize(11).text("Summary", MX, y);
       y += 16;
       doc.fillColor(C.textLight).font("Helvetica").fontSize(9.5).text(report.summary || "No summary available.", MX, y, { width: CW });
       y += 30;
 
-      // Condition assessment header
+      // Assessment header
       doc.roundedRect(MX, y, CW, 24, 3).fill(C.headerBg);
       doc.fillColor(C.white).font("Helvetica-Bold").fontSize(8).text("CONDITION ASSESSMENT", MX + 14, y + 8);
       y += 24;
 
-      // Three assessment boxes
+      // Three boxes
       const assessments = [
         { label: "Oxidation Level", value: String(report.oxidationLevel) },
         { label: "Gloss Level", value: String(report.glossLevel) },
         { label: "Cleanliness", value: String(report.cleanlinessLevel) },
       ];
       const colW = (CW - 24) / 3;
-
       for (let i = 0; i < assessments.length; i++) {
         const a = assessments[i];
         const ax = MX + i * (colW + 8);
@@ -140,17 +131,14 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
         doc.roundedRect(MX, y, CW, 24, 3).fill(C.headerBg);
         doc.fillColor(C.white).font("Helvetica-Bold").fontSize(8).text("LIKELY ISSUES DETECTED", MX + 14, y + 8);
         y += 24;
-
         const issueBoxH = 14 + report.likelyIssues.length * 20;
         doc.roundedRect(MX, y, CW, issueBoxH, 4).fill("#FFF8F8");
         doc.rect(MX, y, 3, issueBoxH).fill(C.red);
-
         for (let i = 0; i < report.likelyIssues.length; i++) {
           doc.fillColor(C.red).fontSize(7).text("\u2022", MX + 12, y + 12 + i * 20, { lineBreak: false });
           doc.fillColor(C.textLight).font("Helvetica").fontSize(9).text(
             report.likelyIssues[i] || "",
-            MX + 24,
-            y + 10 + i * 20,
+            MX + 24, y + 10 + i * 20,
             { width: CW - 36 }
           );
         }
@@ -160,15 +148,12 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
       // Recommended services
       if (report.recommendedServices && report.recommendedServices.length > 0) {
         if (y > 580) { doc.addPage(); y = 40; }
-
         doc.roundedRect(MX, y, CW, 24, 3).fill(C.headerBg);
         doc.fillColor(C.white).font("Helvetica-Bold").fontSize(8).text("RECOMMENDED SERVICES", MX + 14, y + 8);
         y += 24;
-
         const recBoxH = 14 + report.recommendedServices.length * 20;
         doc.roundedRect(MX, y, CW, recBoxH, 4).fill("#F0FFFE");
         doc.rect(MX, y, 3, recBoxH).fill(C.cyan);
-
         for (let i = 0; i < report.recommendedServices.length; i++) {
           const svcName = SERVICE_NAMES[report.recommendedServices[i]] || report.recommendedServices[i];
           doc.fillColor(C.cyan).fontSize(7).text("\u2022", MX + 12, y + 12 + i * 20, { lineBreak: false });
@@ -217,11 +202,8 @@ function buildPDF(report: ConditionReport, image: string | undefined): Promise<B
         0, footerY + 22, { align: "center", width: W }
       );
 
-      console.log("[PDF] Calling doc.end()...");
       doc.end();
-      console.log("[PDF] doc.end() returned, waiting for 'end' event...");
     } catch (err) {
-      console.error("[PDF] Synchronous error in buildPDF:", err);
       reject(err);
     }
   });
@@ -232,26 +214,18 @@ export async function POST(request: Request) {
     const params: ConditionReportPDFParams = await request.json();
     const { report, image } = params;
 
-    console.log("[PDF Route] POST /api/condition-report/pdf called");
-    console.log("[PDF Route] Request body keys:", Object.keys(params));
-    console.log("[PDF Route] report exists:", !!report, report ? `oxidation=${report.oxidationLevel}, gloss=${report.glossLevel}, cleanliness=${report.cleanlinessLevel}` : "N/A");
-    console.log("[PDF Route] image exists:", !!image, image ? `length=${image.length}` : "N/A");
+    console.log("[PDF Route] POST called, report exists:", !!report, "| image exists:", !!image);
 
     if (!report) {
-      console.error("[PDF Route] ERROR: report is missing from request body");
       return NextResponse.json({ error: "report is required" }, { status: 400 });
     }
 
-    console.log("[PDF Route] Calling buildPDF...");
     const pdfBuffer = await buildPDF(report, image);
-    console.log("[PDF Route] buildPDF returned, buffer length:", pdfBuffer.length);
+    console.log("[PDF Route] PDF generated, size:", pdfBuffer.length, "bytes");
 
     if (pdfBuffer.length === 0) {
-      console.error("[PDF Route] ERROR: generated PDF is empty (0 bytes)");
       return NextResponse.json({ error: "PDF generation produced empty buffer" }, { status: 500 });
     }
-
-    console.log("[PDF Route] Returning NextResponse with PDF buffer, size:", pdfBuffer.length);
 
     return new NextResponse(pdfBuffer, {
       status: 200,
