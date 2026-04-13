@@ -20,12 +20,6 @@ const featuredServices = FEATURED_SERVICE_SLUGS.map((slug) => services.find((ser
   (service): service is (typeof services)[number] => Boolean(service)
 );
 
-const trustItems = [
-  { value: "500+", label: "Boats Detailed" },
-  { value: "15+", label: "Years Experience" },
-  { value: "5.0", label: "Rating" },
-];
-
 const whyA1Points = [
   "No drop-offs, no waiting around. We come right to your marina, private slip, or property - whenever works for you.",
   "We have spent years working on high-value vessels that can't afford shortcuts. You get that experience every single time.",
@@ -74,15 +68,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-white/10 bg-black py-6 md:py-8">
+      <section className="border-y border-white/10 bg-black py-8 md:py-10">
         <div className="page-shell">
-          <div className="flex flex-col items-center justify-center gap-8 text-center md:flex-row md:gap-16 md:text-left">
-            {trustItems.map((item) => (
-              <div key={item.label} className="space-y-1">
-                <p className="text-3xl font-black text-white md:text-4xl">{item.value}</p>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">{item.label}</p>
+          <div className="max-w-5xl mx-auto text-center">
+            <div className="flex flex-col items-center justify-center gap-8 md:flex-row md:gap-16">
+              <div className="space-y-1">
+                <p className="text-3xl font-black text-white md:text-4xl">500+</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">Boats Detailed</p>
               </div>
-            ))}
+              <div className="space-y-1">
+                <p className="text-3xl font-black text-white md:text-4xl">5+</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">Years Experience</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black text-white md:text-4xl">5.0</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">Google Rating</p>
+              </div>
+            </div>
+            <p className="mt-8 text-xl font-black uppercase tracking-[0.14em] text-white md:text-2xl">
+              Georgian Bay | Lake Simcoe | Muskoka
+            </p>
+            <p className="mt-4 text-base italic leading-7 text-white/65 md:text-lg">
+              Five years. Five stars. Five hundred boats and counting.
+              <br className="hidden md:block" />
+              We come to you, and we don&apos;t leave until it&apos;s right.
+            </p>
           </div>
         </div>
       </section>

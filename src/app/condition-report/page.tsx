@@ -17,6 +17,24 @@ export const metadata: Metadata = {
   },
 };
 
+const howItWorks = [
+  {
+    step: "01",
+    title: "Upload Your Photo",
+    description: "Share a clear, well-lit photo of your boat showing the areas you'd like assessed.",
+  },
+  {
+    step: "02",
+    title: "AI Analysis",
+    description: "Our AI examines surfaces for oxidation, gloss retention, cleanliness, and likely issues.",
+  },
+  {
+    step: "03",
+    title: "Get Your Report",
+    description: "Receive a detailed condition report with recommendations and a downloadable PDF.",
+  },
+];
+
 const benefits = [
   {
     icon: Scan,
@@ -74,17 +92,18 @@ export default function ConditionReportPage() {
         </div>
       </section>
 
-      <section className="bg-neutral-950 py-10 md:py-12 border-y border-white/10">
+      <section className="bg-neutral-950 py-16 md:py-20">
         <div className="page-shell">
-          <div className="max-w-5xl mx-auto text-center">
-            <p className="text-sm md:text-base font-semibold tracking-[0.18em] text-white/90 uppercase">
-              500+ Boats Detailed · 5+ Years Experience · 5.0 Google Rating · Georgian Bay | Lake Simcoe | Muskoka
-            </p>
-            <p className="mt-4 text-base md:text-lg text-white/65">
-              Five years. Five stars. Five hundred boats and counting.
-              <br className="hidden md:block" />
-              We come to you, and we don&apos;t leave until it&apos;s right.
-            </p>
+          <div className="grid md:grid-cols-3 gap-8">
+            {howItWorks.map((item) => (
+              <div key={item.step} className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary font-bold text-lg mb-4">
+                  {item.step}
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+                <p className="text-sm text-white/60">{item.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
