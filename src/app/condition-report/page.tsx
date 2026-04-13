@@ -118,14 +118,12 @@ export default function ConditionReportPage() {
         <div className="page-shell">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {benefits.map((item) => (
-              <div key={item.title} className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-primary/10 shrink-0">
+              <div key={item.title} className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
                   <item.icon className="w-6 h-6 text-primary" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-white mb-1">{item.title}</h3>
-                  <p className="text-sm text-white/60">{item.description}</p>
-                </div>
+                <h3 className="font-semibold text-white mb-2">{item.title}</h3>
+                <p className="text-sm text-white/60">{item.description}</p>
               </div>
             ))}
           </div>
