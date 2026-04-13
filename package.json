@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build && node scripts/copy-assets.js",
     "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "test": "vitest run",
@@ -79,6 +79,7 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "autoprefixer": "^10.4.21",
+    "copyfiles": "^2.4.1",
     "eslint": "^9.32.0",
     "eslint-config-next": "^15.3.1",
     "eslint-plugin-react-hooks": "^5.2.0",
