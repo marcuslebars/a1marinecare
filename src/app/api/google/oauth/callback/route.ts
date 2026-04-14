@@ -6,7 +6,7 @@ export async function GET(request: Request) {
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/google/oauth/callback";
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || "https://a1marinecare.ca/api/google/oauth/callback";
 
   if (!code) {
     return NextResponse.json({ error: "No authorization code received" }, { status: 400 });
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is not set" }, { status: 500 });
   }
 
-  console.log("[Google OAuth] Received code, exchanging for tokens...");
+  console.log("[Google OAuth Callback] redirect_uri used in token exchange:", redirectUri);
 
   try {
     const response = await fetch("https://oauth2.googleapis.com/token", {
