@@ -212,13 +212,13 @@ export default function HomePage() {
       <GoogleReviewsSection />
 
       <section className="bg-black py-24 md:py-32">
-        <div className="page-shell">
-          <div className="max-w-4xl text-left">
+        <div className="page-shell text-center">
+          <div className="mx-auto max-w-4xl">
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-white/60">Ready for the season</p>
-            <h2 className="mt-4 max-w-4xl text-4xl font-black leading-tight text-white md:text-6xl">
+            <h2 className="mx-auto mt-4 max-w-4xl text-4xl font-black leading-tight text-white md:text-6xl">
               Get your boat looking right this season.
             </h2>
-            <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap">
               <Button asChild size="lg" className="h-14 px-10 text-base font-semibold">
                 <Link href="/quote">Request a Quote</Link>
               </Button>
@@ -246,8 +246,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-black py-20 md:py-28">
-        <div className="page-shell text-center">
+      <section className="relative overflow-hidden bg-black py-20 md:py-28">
+        <div className="absolute inset-0">
+          <Image
+            src="/images/marinas/service-area-bg.jpg"
+            alt="Luxury boats docked at a marina in the service area"
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/40 to-black/70" />
+        </div>
+        <div className="page-shell relative z-10 text-center">
           <div className="mx-auto max-w-4xl">
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-white/65">Service Area</p>
             <h2 className="mt-4 text-4xl font-black leading-tight text-white md:text-6xl">
