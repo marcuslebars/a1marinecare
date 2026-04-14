@@ -8,14 +8,20 @@ export async function POST(request: Request) {
     const payload = await request.json();
     const parsed = quoteSchema.parse(payload);
 
+    console.log("[Quote Create] payload received, services:", parsed.services?.length);
+
     const record = await createQuoteLead(parsed);
+
+    console.log("[Quote Create] created ID:", record.id, "| createdAt:", record.createdAt);
 
     return NextResponse.json({
       success: true,
       id: record.id,
       createdAt: record.createdAt,
     });
-  } catch {
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[Quote Create] FAILED:", msg);
     return NextResponse.json(
       {
         success: false,

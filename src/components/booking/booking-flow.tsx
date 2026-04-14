@@ -60,8 +60,10 @@ export function BookingFlow() {
   const loadQuote = useCallback(async (id: string) => {
     setIsLoadingQuote(true);
     setQuoteError(null);
+    console.log("[Booking Load] requested quoteId:", id);
     try {
       const response = await fetch(`/api/quotes/${id}`);
+      console.log("[Booking Load] response status:", response.status, "| quoteId:", id);
       if (!response.ok) {
         if (response.status === 404) {
           setQuoteError("Quote not found. Please start a new booking.");
@@ -72,6 +74,7 @@ export function BookingFlow() {
       }
       const result = await response.json();
       const quote = result.quote;
+      console.log("[Booking Load] quote found:", !!quote, "| quoteId:", id);
 
       setQuoteData({
         boatLength: quote.boatLength,
@@ -92,7 +95,8 @@ export function BookingFlow() {
         locationSlug: quote.locationSlug || prev.locationSlug,
         notes: quote.notes || prev.notes,
       }));
-    } catch {
+    } catch (err) {
+      console.error("[Booking Load] fetch error:", err);
       setQuoteError("Failed to load quote. Please start a new booking.");
     } finally {
       setIsLoadingQuote(false);
