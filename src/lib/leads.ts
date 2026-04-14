@@ -2,6 +2,8 @@ import { MockLeadRepository } from "@/lib/db/mock-repository";
 import { PrismaLeadRepository } from "@/lib/db/prisma-repository";
 import type { LeadRepository } from "@/lib/db/types";
 import type { QuoteFormData } from "@/types/lead";
+import { createGoogleCalendarEvent, estimateEventDuration, buildEventTimes } from "@/lib/google-calendar";
+import { prisma } from "@/lib/db/prisma";
 
 function getLeadRepository(): LeadRepository {
   if (process.env.DATABASE_URL) {
@@ -32,5 +34,46 @@ export async function getQuoteLead(id: string): Promise<QuoteFormData | null> {
 
 export async function createBookingLead(payload: Parameters<LeadRepository["createBookingLead"]>[0]) {
   const repository = getLeadRepository();
-  return repository.createBookingLead(payload);
+  const record = await repository.createBookingLead(payload);
+
+  let calendarEventId: string | null = null;
+
+  if (process.env.GOOGLE_REFRESH_TOKEN && process.env.GOOGLE_CLIENT_ID) {
+    try {
+      const durationHours = estimateEventDuration(payload.serviceSlug);
+      const { startDateTime, endDateTime } = buildEventTimes(payload.date, payload.timeSlot, durationHours);
+
+      calendarEventId = await createGoogleCalendarEvent({
+        summary: `A1 Marine Care - ${payload.contactName}`,
+        description: `Booking #${record.id}`,
+        startDateTime,
+        endDateTime,
+        timeZone: "America/Toronto",
+        bookingId: record.id,
+        quoteId: payload.quoteId ?? null,
+        customerName: payload.contactName,
+        customerEmail: payload.contactEmail,
+        customerPhone: payload.contactPhone,
+        serviceSlug: payload.serviceSlug,
+        locationSlug: payload.locationSlug,
+        notes: payload.notes,
+      });
+
+      if (calendarEventId && process.env.DATABASE_URL) {
+        await prisma.bookingRequest.update({
+          where: { id: record.id },
+          data: { googleCalendarEventId: calendarEventId },
+        });
+        console.log("[Booking] Calendar event linked:", calendarEventId);
+      }
+    } catch (err) {
+      console.error("[Booking] Google Calendar event creation failed:", err);
+    }
+  }
+
+  return {
+    id: record.id,
+    createdAt: record.createdAt,
+    googleCalendarEventId: calendarEventId,
+  };
 }

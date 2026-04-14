@@ -13,6 +13,7 @@ export type QuoteInsertResult = {
 export type BookingInsertResult = {
   id: string;
   createdAt: string;
+  googleCalendarEventId?: string | null;
 };
 
 export interface LeadRepository {
