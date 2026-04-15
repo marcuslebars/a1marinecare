@@ -2,7 +2,7 @@ import { MockLeadRepository } from "@/lib/db/mock-repository";
 import { PrismaLeadRepository } from "@/lib/db/prisma-repository";
 import type { LeadRepository } from "@/lib/db/types";
 import type { QuoteFormData } from "@/types/lead";
-import { createGoogleCalendarEvent, estimateEventDuration, buildEventTimes } from "@/lib/google-calendar";
+import { createGoogleCalendarEvent, estimateEventDuration, buildEventTimes, type CalendarEventResult } from "@/lib/google-calendar";
 import { sendBookingNotificationEmail } from "@/lib/emails";
 import { prisma } from "@/lib/db/prisma";
 
@@ -47,14 +47,16 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
   console.log("[Booking] Booking created:", record.id);
 
   let calendarEventId: string | null = null;
+  let calendarHtmlLink: string | null = null;
   let calendarSyncStatus: string = "pending";
   let emailStatus: string = "pending";
+  const calendarIdUsed = process.env.GOOGLE_CALENDAR_ID || "primary";
 
   // Step 1: Google Calendar
   if (process.env.GOOGLE_REFRESH_TOKEN && process.env.GOOGLE_CLIENT_ID) {
     console.log("[Google Calendar] Creating event...", {
       bookingId: record.id,
-      calendarId: process.env.GOOGLE_CALENDAR_ID,
+      calendarId: calendarIdUsed,
     });
 
     try {
@@ -68,7 +70,7 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
         durationHours,
       });
 
-      calendarEventId = await createGoogleCalendarEvent({
+      const calendarResult: CalendarEventResult = await createGoogleCalendarEvent({
         summary: `A1 Marine Care - ${payload.contactName}`,
         description: `Booking #${record.id}`,
         startDateTime,
@@ -84,9 +86,13 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
         notes: payload.notes,
       });
 
+      calendarEventId = calendarResult.eventId;
+      calendarHtmlLink = calendarResult.htmlLink;
+
       if (calendarEventId) {
         calendarSyncStatus = "synced";
         console.log("[Google Calendar] Event created successfully:", calendarEventId);
+        console.log("[Google Calendar] htmlLink:", calendarHtmlLink);
       } else {
         calendarSyncStatus = "failed";
         console.error("[Google Calendar] Event returned null - calendar API may have failed silently");
@@ -121,6 +127,8 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
         contactPhone: payload.contactPhone,
         notes: payload.notes,
         calendarEventId,
+        calendarHtmlLink,
+        calendarId: calendarIdUsed,
       });
 
       if (emailResult.success) {
@@ -147,6 +155,7 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
         where: { id: record.id },
         data: {
           googleCalendarEventId: calendarEventId,
+          googleCalendarHtmlLink: calendarHtmlLink,
           calendarSyncStatus,
           emailStatus,
         },
@@ -163,6 +172,7 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
   console.log("[Booking] Booking flow complete.", {
     bookingId: record.id,
     calendarEventId,
+    calendarHtmlLink,
     calendarSyncStatus,
     emailStatus,
   });
@@ -171,5 +181,6 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
     id: record.id,
     createdAt: record.createdAt,
     googleCalendarEventId: calendarEventId,
+    googleCalendarHtmlLink: calendarHtmlLink,
   };
 }

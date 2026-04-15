@@ -43,8 +43,9 @@ model BookingRequest {
   notes                 String?
   status                String   @default("pending")
   metadata              Json     @default("{}")
-  googleCalendarEventId String?  @map("google_calendar_event_id")
-  calendarSyncStatus    String?  @map("calendar_sync_status")
+  googleCalendarEventId  String?  @map("google_calendar_event_id")
+  googleCalendarHtmlLink String?  @map("google_calendar_html_link")
+  calendarSyncStatus     String?  @map("calendar_sync_status")
   emailStatus           String?  @map("email_status")
 
   quote QuoteLead? @relation(fields: [quoteId], references: [id], onDelete: SetNull)

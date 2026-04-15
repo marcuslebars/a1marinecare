@@ -191,10 +191,40 @@ export const locations: Location[] = [
 export const serviceMap = new Map(services.map((service) => [service.slug, service]));
 export const locationMap = new Map(locations.map((location) => [location.slug, location]));
 
+export const serviceNameToSlug: Record<string, string> = {
+  "Exterior Detailing": "boat-detailing",
+  "Gelcoat Restoration": "gelcoat-restoration",
+  "Ceramic Coating": "ceramic-coating",
+  "Interior Detailing": "interior-detailing",
+  "Graphene Nano Coating": "graphene-coating",
+  "Wet Sanding / Paint Correction": "wet-sanding",
+  "Bottom Painting": "bottom-painting",
+  "Vinyl Removal / Installation": "vinyl-removal",
+};
+
+export const slugToServiceName: Record<string, string> = {
+  "boat-detailing": "Exterior Detailing",
+  "gelcoat-restoration": "Gelcoat Restoration",
+  "ceramic-coating": "Ceramic Coating",
+  "interior-detailing": "Interior Detailing",
+  "graphene-coating": "Graphene Nano Coating",
+  "wet-sanding": "Wet Sanding / Paint Correction",
+  "bottom-painting": "Bottom Painting",
+  "vinyl-removal": "Vinyl Removal / Installation",
+};
+
 export function getServiceBySlug(slug: string) {
   return serviceMap.get(slug);
 }
 
 export function getLocationBySlug(slug: string) {
   return locationMap.get(slug);
+}
+
+export function getServiceSlugByName(name: string): string | null {
+  return serviceNameToSlug[name] ?? null;
+}
+
+export function getServiceNamesFromSlugs(slugs: string[]): string[] {
+  return slugs.map((slug) => slugToServiceName[slug] ?? slug).filter(Boolean);
 }

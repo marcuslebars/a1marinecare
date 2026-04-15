@@ -16,6 +16,8 @@ export interface BookingEmailInput {
   contactPhone: string;
   notes?: string;
   calendarEventId?: string | null;
+  calendarHtmlLink?: string | null;
+  calendarId?: string;
 }
 
 function buildBusinessEmailContent(input: BookingEmailInput): { subject: string; html: string } {
@@ -116,8 +118,12 @@ function buildBusinessEmailContent(input: BookingEmailInput): { subject: string;
     ${input.calendarEventId ? `
     <div class="section" style="background:#D1FAE5;">
       <div class="field" style="margin:0;">
-        <div class="label" style="color:#065F46;">Google Calendar Event ID</div>
-        <div class="value" style="color:#065F46;font-size:13px;">${input.calendarEventId}</div>
+        <div class="label" style="color:#065F46;">Google Calendar</div>
+        <div class="value" style="color:#065F46;font-size:13px;">
+          <div>Calendar ID: <strong>${input.calendarId || "primary"}</strong></div>
+          <div>Event ID: <strong>${input.calendarEventId}</strong></div>
+          ${input.calendarHtmlLink ? `<div style="margin-top:8px;"><a href="${input.calendarHtmlLink}" style="color:#059669;">View in Google Calendar →</a></div>` : ""}
+        </div>
       </div>
     </div>
     ` : ""}

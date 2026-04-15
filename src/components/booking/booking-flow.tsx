@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Loader2, MapPin, Ship } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Loader2, MapPin, Pencil, Ship, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { timeSlots } from "@/content/booking";
-import { locations, services } from "@/content/site";
+import { getServiceSlugByName, locations, services } from "@/content/site";
 import type { BookingFormData } from "@/types/lead";
 
 interface QuoteData {
@@ -28,9 +28,12 @@ interface QuoteData {
   contactEmail: string;
   contactPhone: string;
   locationSlug: string;
-  services: string[];
+  serviceSlugs: string[];
+  serviceNames: string[];
   estimatedTotal: number;
 }
+
+type BookingSource = "quote" | "direct";
 
 const initialData: BookingFormData = {
   serviceSlug: services[0]?.slug ?? "",
@@ -56,11 +59,13 @@ export function BookingFlow() {
   const [isLoadingQuote, setIsLoadingQuote] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
+  const [bookingSource, setBookingSource] = useState<BookingSource>("direct");
+  const [editServicesFromQuote, setEditServicesFromQuote] = useState(false);
 
   const loadQuote = useCallback(async (id: string) => {
     setIsLoadingQuote(true);
     setQuoteError(null);
-    console.log("[Booking Load] requested quoteId:", id);
+    console.log("[Booking Load] quoteId:", id);
     try {
       const response = await fetch(`/api/quotes/${id}`);
       console.log("[Booking Load] response status:", response.status, "| quoteId:", id);
@@ -74,8 +79,30 @@ export function BookingFlow() {
       }
       const result = await response.json();
       const quote = result.quote;
-      console.log("[Booking Load] quote found:", !!quote, "| quoteId:", id);
+      console.log("[Booking Load] quote payload:", JSON.stringify({
+        boatLength: quote.boatLength,
+        boatType: quote.boatType,
+        services: quote.services,
+        locationSlug: quote.locationSlug,
+        contactName: quote.contactName,
+        estimatedTotal: quote.estimatedTotal,
+      }));
 
+      const serviceNames: string[] = quote.services || [];
+      const serviceSlugs: string[] = serviceNames
+        .map((name) => getServiceSlugByName(name))
+        .filter((slug): slug is string => slug !== null);
+
+      const primaryServiceSlug = serviceSlugs[0] || services[0]?.slug || "";
+
+      console.log("[Booking Init] prefilled services:", {
+        serviceNames,
+        serviceSlugs,
+        primaryServiceSlug,
+        quoteHasServices: serviceSlugs.length > 0,
+      });
+
+      setBookingSource("quote");
       setQuoteData({
         boatLength: quote.boatLength,
         boatType: quote.boatType,
@@ -83,18 +110,25 @@ export function BookingFlow() {
         contactEmail: quote.contactEmail,
         contactPhone: quote.contactPhone,
         locationSlug: quote.locationSlug,
-        services: quote.services || [],
+        serviceSlugs,
+        serviceNames,
         estimatedTotal: quote.estimatedTotal || 0,
       });
 
       setData((prev) => ({
         ...prev,
+        serviceSlug: primaryServiceSlug,
         contactName: quote.contactName || prev.contactName,
         contactEmail: quote.contactEmail || prev.contactEmail,
         contactPhone: quote.contactPhone || prev.contactPhone,
         locationSlug: quote.locationSlug || prev.locationSlug,
         notes: quote.notes || prev.notes,
       }));
+
+      if (serviceSlugs.length === 0) {
+        console.log("[Booking Init] quote has no mappable services - will show service selector");
+        setEditServicesFromQuote(true);
+      }
     } catch (err) {
       console.error("[Booking Load] fetch error:", err);
       setQuoteError("Failed to load quote. Please start a new booking.");
@@ -179,7 +213,7 @@ export function BookingFlow() {
                 <span className="text-sm font-medium text-primary">Continuing from Quote</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                {quoteData.boatLength}ft {quoteData.boatType} &bull; {quoteData.services.length} service{quoteData.services.length !== 1 ? "s" : ""} selected
+                {quoteData.boatLength}ft {quoteData.boatType} &bull; {quoteData.serviceNames.length} service{quoteData.serviceNames.length !== 1 ? "s" : ""} selected
                 {quoteData.estimatedTotal > 0 && (
                   <span className="ml-2 font-medium text-foreground">
                     ${(quoteData.estimatedTotal / 100).toFixed(2)} estimate
@@ -252,26 +286,72 @@ export function BookingFlow() {
           {step === 1 && (
             <div>
               <h2 className="text-2xl font-semibold">Service and location</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Choose the service type and your location.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {bookingSource === "quote" && !editServicesFromQuote
+                  ? "Review your quoted services below."
+                  : "Choose the service type and your location."}
+              </p>
               <div className="mt-5 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="service">Service</Label>
-                  <Select
-                    value={data.serviceSlug}
-                    onValueChange={(value) => setData((previous) => ({ ...previous, serviceSlug: value }))}
-                  >
-                    <SelectTrigger id="service" className="rounded-xl">
-                      <SelectValue placeholder="Select service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {services.map((service) => (
-                        <SelectItem key={service.slug} value={service.slug}>
-                          {service.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {bookingSource === "quote" && !editServicesFromQuote && quoteData && quoteData.serviceNames.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium text-primary">Quoted Services</span>
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {quoteData.serviceNames.length} service{quoteData.serviceNames.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {quoteData.serviceNames.map((name, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <Check className="w-4 h-4 text-primary" />
+                            <span>{name}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {quoteData.estimatedTotal > 0 && (
+                        <div className="mt-3 pt-3 border-t border-primary/20">
+                          <span className="text-sm font-medium text-primary">
+                            Quote estimate: ${(quoteData.estimatedTotal / 100).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        console.log("[Booking Init] switching to manual service selection");
+                        setEditServicesFromQuote(true);
+                        setBookingSource("direct");
+                      }}
+                      className="gap-2"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      Edit services
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="service">Service</Label>
+                    <Select
+                      value={data.serviceSlug}
+                      onValueChange={(value) => setData((previous) => ({ ...previous, serviceSlug: value }))}
+                    >
+                      <SelectTrigger id="service" className="rounded-xl">
+                        <SelectValue placeholder="Select service" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {services.map((service) => (
+                          <SelectItem key={service.slug} value={service.slug}>
+                            {service.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="location" className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" /> Location
@@ -370,18 +450,28 @@ export function BookingFlow() {
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Location</p>
                     <p className="font-medium">{locations.find((l) => l.slug === data.locationSlug)?.name}</p>
                   </div>
+                  {quoteData && quoteData.serviceNames.length > 0 && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Quoted Services</p>
+                      <div className="mt-1 space-y-1">
+                        {quoteData.serviceNames.map((name, index) => (
+                          <p key={index} className="font-medium">{name}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {quoteData && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Boat Details</p>
+                      <p className="font-medium">{quoteData.boatLength}ft {quoteData.boatType}</p>
+                    </div>
+                  )}
                   <div className="col-span-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Contact</p>
                     <p className="font-medium">{data.contactName}</p>
                     <p className="text-muted-foreground text-xs">{data.contactEmail}</p>
                     <p className="text-muted-foreground text-xs">{data.contactPhone}</p>
                   </div>
-                  {quoteData && quoteData.services.length > 0 && (
-                    <div className="col-span-2">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Quote Services</p>
-                      <p className="font-medium">{quoteData.services.join(", ")}</p>
-                    </div>
-                  )}
                   {data.notes && (
                     <div className="col-span-2">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Notes</p>
