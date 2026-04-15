@@ -144,7 +144,7 @@ export function ContactPageContent() {
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/45">Service Area</p>
-                <p className="mt-3 text-lg font-semibold text-white">Georgian Bay to Lake Simcoe</p>
+                <p className="mt-3 text-lg font-semibold text-white">Muskoka, Georgian Bay & Lake Simcoe</p>
               </div>
             </div>
           </div>
@@ -329,7 +329,7 @@ export function ContactPageContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium uppercase tracking-[0.18em] text-primary/80">Service Regions</p>
-                  <h3 className="mt-1 text-xl font-bold text-white">Dockside where you need us</h3>
+                  <h3 className="mt-1 text-xl font-bold text-white">We go where you need us</h3>
                 </div>
               </div>
               <p className="mt-5 text-sm leading-7 text-white/68">
