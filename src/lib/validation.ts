@@ -24,5 +24,16 @@ export const bookingSchema = z.object({
   notes: z.string().max(1200).optional().default(""),
 });
 
+export const contactSchema = z.object({
+  fullName: z.string().trim().min(2),
+  email: z.string().trim().email(),
+  phone: z.string().trim().min(7),
+  subject: z.string().trim().min(3).max(160),
+  serviceInterest: z.string().trim().optional().default("general-inquiry"),
+  message: z.string().trim().min(10).max(2500),
+  source: z.string().trim().max(120).optional().default("contact-page"),
+});
+
 export type QuoteInput = z.infer<typeof quoteSchema>;
 export type BookingInput = z.infer<typeof bookingSchema>;
+export type ContactInput = z.infer<typeof contactSchema>;
