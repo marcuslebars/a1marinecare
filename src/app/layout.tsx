@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
+import { Metadata } from "next";
+import Script from "next/script";
 
 import "./globals.css";
 
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
-import { company, locations } from "@/content/site";
-import { absoluteUrl, defaultDescription, defaultTitle } from "@/lib/seo";
-import { localBusinessSchema } from "@/lib/schema";
 import { SchemaScript } from "@/components/site/schema-script";
+import { company, locations } from "@/content/site";
+import { localBusinessSchema } from "@/lib/schema";
+import { absoluteUrl, defaultDescription, defaultTitle } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: defaultTitle,
@@ -37,6 +38,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className="min-h-screen bg-background text-foreground flex flex-col">
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-XDHBCBCT9P" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-XDHBCBCT9P');
+          `}
+        </Script>
         <SchemaScript schema={businessSchema} />
         <SiteHeader />
         <main className="flex-1">{children}</main>
