@@ -158,6 +158,46 @@ export function estimateEventDuration(serviceSlug: string): number {
   return DURATIONS[serviceSlug] ?? 4;
 }
 
+const TIMEZONE = "America/Toronto";
+
+function getTimezoneOffsetISO(timeZone: string, dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(new Date(year, month - 1, day, 12, 0, 0));
+
+  const getPart = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+
+  const utcDate = new Date(
+    Date.UTC(
+      Number(getPart("year")),
+      Number(getPart("month")) - 1,
+      Number(getPart("day")),
+      Number(getPart("hour")),
+      Number(getPart("minute")),
+      Number(getPart("second"))
+    )
+  );
+
+  const offsetMinutes = (12 * 60 * 60 * 1000 - (utcDate.getTime() - new Date(year, month - 1, day, 12, 0, 0).getTime())) / (60 * 1000);
+
+  const sign = offsetMinutes <= 0 ? "+" : "-";
+  const absMinutes = Math.abs(Math.round(offsetMinutes));
+  const offsetHours = Math.floor(absMinutes / 60);
+  const offsetMins = absMinutes % 60;
+
+  return `${sign}${String(offsetHours).padStart(2, "0")}:${String(offsetMins).padStart(2, "0")}`;
+}
+
 export function buildEventTimes(
   dateStr: string,
   timeSlot: string,
@@ -169,14 +209,25 @@ export function buildEventTimes(
   if (period === "PM" && hours !== 12) hour24 += 12;
   if (period === "AM" && hours === 12) hour24 = 0;
 
-  const startDate = new Date(`${dateStr}T${String(hour24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`);
-  const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
+  const localDate = new Date(`${dateStr}T${String(hour24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`);
 
-  const toISOString = (d: Date) =>
-    d.toISOString().replace(".000", "");
+  console.log("[DateTime] selected date:", dateStr);
+  console.log("[DateTime] selected timeSlot:", timeSlot);
+  console.log("[DateTime] hour24:", hour24, "minutes:", minutes);
+  console.log("[DateTime] localDate (server interpret):", localDate.toISOString());
+  console.log("[DateTime] timezone:", TIMEZONE);
+
+  const offsetISO = getTimezoneOffsetISO(TIMEZONE, dateStr);
+  console.log("[DateTime] offsetISO:", offsetISO);
+
+  const startDateTime = `${dateStr}T${String(hour24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00${offsetISO}`;
+  const endDateTime = new Date(localDate.getTime() + durationHours * 60 * 60 * 1000).toISOString().replace(".000", "").replace("Z", offsetISO);
+
+  console.log("[DateTime] startDateTime (final):", startDateTime);
+  console.log("[DateTime] endDateTime (final):", endDateTime);
 
   return {
-    startDateTime: toISOString(startDate),
-    endDateTime: toISOString(endDate),
+    startDateTime,
+    endDateTime,
   };
 }
