@@ -11,6 +11,21 @@ const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 const PRIMARY_IMAGE_MODEL = "gemini-2.0-flash-exp";
 const FALLBACK_IMAGE_MODEL = "gemini-1.5-flash";
 
+const KNOWN_BAD_MODELS = ["gemini-3.1-pro-preview", "gemini-3.0-pro-exp", "gemini-3.0-flash-exp"];
+
+function getEffectiveModel(): string {
+  const envModel = process.env.GEMINI_IMAGE_MODEL;
+  if (envModel && !KNOWN_BAD_MODELS.includes(envModel)) {
+    console.log("[Boat Preview] Using env model:", envModel);
+    return envModel;
+  }
+  if (envModel && KNOWN_BAD_MODELS.includes(envModel)) {
+    console.warn(`[Boat Preview] Env model "${envModel}" is known to not output images. Using ${PRIMARY_IMAGE_MODEL} instead.`);
+  }
+  console.log("[Boat Preview] Using default model:", PRIMARY_IMAGE_MODEL);
+  return PRIMARY_IMAGE_MODEL;
+}
+
 async function compressImage(base64: string, _maxWidth = 1024): Promise<string> {
   return base64;
 }
@@ -129,7 +144,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const model = process.env.GEMINI_IMAGE_MODEL || PRIMARY_IMAGE_MODEL;
+    const model = getEffectiveModel();
     const prompt = getPreviewPrompt(service);
     const compressedImage = await compressImage(imageBase64);
 
