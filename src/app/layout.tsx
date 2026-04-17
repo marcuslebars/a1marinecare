@@ -37,6 +37,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
   return (
     <html lang="en">
+      <head>
+        <script async defer src="https://tools.luckyorange.com/core/lo.js?site-id=fa8ac7ac"></script>
+      </head>
       <body className="min-h-screen bg-background text-foreground flex flex-col">
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-XDHBCBCT9P" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
