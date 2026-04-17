@@ -46,7 +46,9 @@ async function generatePreviewWithModel(
 ): Promise<GenerateContentResult> {
   console.log("[Boat Preview] Attempting with model:", model);
 
-  const geminiRequest = {
+  const isImageGenModel = model.includes("image-generation") || model.includes("preview-image");
+
+  const geminiRequest: Record<string, unknown> = {
     contents: [
       {
         role: "user",
@@ -61,10 +63,13 @@ async function generatePreviewWithModel(
         ],
       },
     ],
-    generationConfig: {
-      responseModalities: ["TEXT", "IMAGE"],
-    },
   };
+
+  if (!isImageGenModel) {
+    (geminiRequest as { generationConfig: Record<string, unknown> }).generationConfig = {
+      responseModalities: ["TEXT", "IMAGE"],
+    };
+  }
 
   const response = await fetch(`${GEMINI_API_URL}/${model}:generateContent?key=${apiKey}`, {
     method: "POST",
