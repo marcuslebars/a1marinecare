@@ -6,7 +6,7 @@ import {
   getAllPreviewServices,
 } from "@/lib/preview-prompts";
 
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models";
 
 const PRIMARY_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation";
 const FALLBACK_IMAGE_MODEL = "gemini-1.5-flash";
