@@ -8,7 +8,7 @@ import {
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
-const PRIMARY_IMAGE_MODEL = "gemini-2.0-flash-exp";
+const PRIMARY_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation";
 const FALLBACK_IMAGE_MODEL = "gemini-1.5-flash";
 
 const KNOWN_BAD_MODELS = ["gemini-3.1-pro-preview", "gemini-3.0-pro-exp", "gemini-3.0-flash-exp"];
