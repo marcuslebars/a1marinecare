@@ -8,19 +8,37 @@ import {
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models";
 
-const PRIMARY_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation";
-const FALLBACK_IMAGE_MODEL = "gemini-1.5-flash";
+const PRIMARY_IMAGE_MODEL = "gemini-2.5-flash-image";
+const FALLBACK_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 
-const KNOWN_BAD_MODELS = ["gemini-3.1-pro-preview", "gemini-3.0-pro-exp", "gemini-3.0-flash-exp"];
+const VALID_IMAGE_MODELS = [
+  "gemini-2.5-flash-image",
+  "gemini-3.1-flash-image-preview",
+  "gemini-3-pro-image-preview",
+] as const;
+
+const KNOWN_BAD_MODELS = [
+  "gemini-2.0-flash-preview-image-generation",
+  "gemini-1.5-flash",
+  "gemini-3.1-pro-preview",
+  "gemini-3.0-pro-exp",
+  "gemini-3.0-flash-exp",
+];
+
+function isValidImageModel(model: string): model is (typeof VALID_IMAGE_MODELS)[number] {
+  return (VALID_IMAGE_MODELS as readonly string[]).includes(model);
+}
 
 function getEffectiveModel(): string {
   const envModel = process.env.GEMINI_IMAGE_MODEL;
-  if (envModel && !KNOWN_BAD_MODELS.includes(envModel)) {
+  if (envModel && isValidImageModel(envModel)) {
     console.log("[Boat Preview] Using env model:", envModel);
     return envModel;
   }
   if (envModel && KNOWN_BAD_MODELS.includes(envModel)) {
-    console.warn(`[Boat Preview] Env model "${envModel}" is known to not output images. Using ${PRIMARY_IMAGE_MODEL} instead.`);
+    console.warn(`[Boat Preview] Env model "${envModel}" is not valid for image generation. Using ${PRIMARY_IMAGE_MODEL} instead.`);
+  } else if (envModel) {
+    console.warn(`[Boat Preview] Env model "${envModel}" is unsupported. Allowed image models: ${VALID_IMAGE_MODELS.join(", ")}. Using ${PRIMARY_IMAGE_MODEL}.`);
   }
   console.log("[Boat Preview] Using default model:", PRIMARY_IMAGE_MODEL);
   return PRIMARY_IMAGE_MODEL;
@@ -46,8 +64,6 @@ async function generatePreviewWithModel(
 ): Promise<GenerateContentResult> {
   console.log("[Boat Preview] Attempting with model:", model);
 
-  const isImageGenModel = model.includes("image-generation") || model.includes("preview-image");
-
   const geminiRequest: Record<string, unknown> = {
     contents: [
       {
@@ -65,11 +81,7 @@ async function generatePreviewWithModel(
     ],
   };
 
-  if (!isImageGenModel) {
-    (geminiRequest as { generationConfig: Record<string, unknown> }).generationConfig = {
-      responseModalities: ["TEXT", "IMAGE"],
-    };
-  }
+  console.log("[Boat Preview] Request payload fields:", Object.keys(geminiRequest));
 
   const response = await fetch(`${GEMINI_API_URL}/${model}:generateContent?key=${apiKey}`, {
     method: "POST",
@@ -81,7 +93,8 @@ async function generatePreviewWithModel(
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`[Boat Preview] ${model} API error:`, response.status, errorText.slice(0, 200));
+    console.error(`[Boat Preview] ${model} API error status:`, response.status);
+    console.error(`[Boat Preview] ${model} API error body:`, errorText);
     return { success: false, error: "Gemini API error", modelUsed: model };
   }
 
@@ -94,10 +107,12 @@ async function generatePreviewWithModel(
 
   const parts = data.candidates[0].content.parts;
   const partTypes = parts.map((p: { inlineData?: unknown; text?: unknown }) => p.inlineData ? "image" : "text");
+  const hasInlineImageData = parts.some((part: { inlineData?: unknown }) => Boolean(part.inlineData));
 
   console.log("[Boat Preview] Response from", model + ":");
   console.log("- Parts count:", parts.length);
   console.log("- Part types:", partTypes);
+  console.log("- Has inline image data:", hasInlineImageData);
 
   const imagePart = parts.find(
     (part: { inlineData?: { mimeType: string; data: string } }) => part.inlineData
@@ -166,8 +181,8 @@ export async function POST(request: Request) {
 
     let result = await generatePreviewWithModel(model, prompt, imageData, apiKey);
 
-    if (!result.success && model === PRIMARY_IMAGE_MODEL) {
-      console.log("[Boat Preview] Primary model failed, trying fallback...");
+    if (!result.success && model !== FALLBACK_IMAGE_MODEL) {
+      console.log("[Boat Preview] Initial model failed, trying fallback...");
       result = await generatePreviewWithModel(FALLBACK_IMAGE_MODEL, prompt, imageData, apiKey);
     }
 
@@ -201,5 +216,6 @@ export async function GET() {
     availableServices: getAllPreviewServices(),
     primaryModel: PRIMARY_IMAGE_MODEL,
     fallbackModel: FALLBACK_IMAGE_MODEL,
+    validImageModels: VALID_IMAGE_MODELS,
   });
 }
