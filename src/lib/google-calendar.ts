@@ -160,42 +160,13 @@ export function estimateEventDuration(serviceSlug: string): number {
 
 const TIMEZONE = "America/Toronto";
 
-function getTimezoneOffsetISO(timeZone: string, dateStr: string): string {
+function addDaysToDateString(dateStr: string, daysToAdd: number): string {
   const [year, month, day] = dateStr.split("-").map(Number);
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-
-  const parts = formatter.formatToParts(new Date(year, month - 1, day, 12, 0, 0));
-
-  const getPart = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
-
-  const utcDate = new Date(
-    Date.UTC(
-      Number(getPart("year")),
-      Number(getPart("month")) - 1,
-      Number(getPart("day")),
-      Number(getPart("hour")),
-      Number(getPart("minute")),
-      Number(getPart("second"))
-    )
-  );
-
-  const offsetMinutes = (12 * 60 * 60 * 1000 - (utcDate.getTime() - new Date(year, month - 1, day, 12, 0, 0).getTime())) / (60 * 1000);
-
-  const sign = offsetMinutes <= 0 ? "+" : "-";
-  const absMinutes = Math.abs(Math.round(offsetMinutes));
-  const offsetHours = Math.floor(absMinutes / 60);
-  const offsetMins = absMinutes % 60;
-
-  return `${sign}${String(offsetHours).padStart(2, "0")}:${String(offsetMins).padStart(2, "0")}`;
+  const dateUtc = new Date(Date.UTC(year, month - 1, day + daysToAdd));
+  const yyyy = dateUtc.getUTCFullYear();
+  const mm = String(dateUtc.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(dateUtc.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 export function buildEventTimes(
@@ -209,22 +180,26 @@ export function buildEventTimes(
   if (period === "PM" && hours !== 12) hour24 += 12;
   if (period === "AM" && hours === 12) hour24 = 0;
 
-  const localDate = new Date(`${dateStr}T${String(hour24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`);
-
   console.log("[DateTime] selected date:", dateStr);
-  console.log("[DateTime] selected timeSlot:", timeSlot);
+  console.log("[DateTime] selected time:", timeSlot);
   console.log("[DateTime] hour24:", hour24, "minutes:", minutes);
-  console.log("[DateTime] localDate (server interpret):", localDate.toISOString());
   console.log("[DateTime] timezone:", TIMEZONE);
 
-  const offsetISO = getTimezoneOffsetISO(TIMEZONE, dateStr);
-  console.log("[DateTime] offsetISO:", offsetISO);
+  const startDateTime = `${dateStr}T${String(hour24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
 
-  const startDateTime = `${dateStr}T${String(hour24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00${offsetISO}`;
-  const endDateTime = new Date(localDate.getTime() + durationHours * 60 * 60 * 1000).toISOString().replace(".000", "").replace("Z", offsetISO);
+  const durationMinutes = Math.round(durationHours * 60);
+  const startTotalMinutes = hour24 * 60 + minutes;
+  const endTotalMinutes = startTotalMinutes + durationMinutes;
+  const dayOffset = Math.floor(endTotalMinutes / (24 * 60));
+  const endMinutesInDay = ((endTotalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const endHour24 = Math.floor(endMinutesInDay / 60);
+  const endMinute = endMinutesInDay % 60;
+  const endDateStr = addDaysToDateString(dateStr, dayOffset);
+  const endDateTime = `${endDateStr}T${String(endHour24).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}:00`;
 
-  console.log("[DateTime] startDateTime (final):", startDateTime);
-  console.log("[DateTime] endDateTime (final):", endDateTime);
+  console.log("[DateTime] startDateTime:", startDateTime);
+  console.log("[DateTime] endDateTime:", endDateTime);
+  console.log("[DateTime] timeZone used:", TIMEZONE);
 
   return {
     startDateTime,
