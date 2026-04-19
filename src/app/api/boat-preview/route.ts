@@ -6,10 +6,11 @@ import {
   getAllPreviewServices,
 } from "@/lib/preview-prompts";
 
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+const GEMINI_API_VERSION = "v1beta";
 
-const PRIMARY_IMAGE_MODEL = "gemini-2.5-flash-image";
-const FALLBACK_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+const PRIMARY_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+const FALLBACK_IMAGE_MODEL = "gemini-2.5-flash-image";
 
 const VALID_IMAGE_MODELS = [
   "gemini-2.5-flash-image",
@@ -63,6 +64,8 @@ async function generatePreviewWithModel(
   apiKey: string
 ): Promise<GenerateContentResult> {
   console.log("[Boat Preview] Attempting with model:", model);
+  console.log("[Boat Preview] API version:", GEMINI_API_VERSION);
+  console.log("[Boat Preview] API path:", `${GEMINI_API_URL}/${model}:generateContent`);
 
   const geminiRequest: Record<string, unknown> = {
     contents: [
@@ -115,14 +118,17 @@ async function generatePreviewWithModel(
   console.log("- Has inline image data:", hasInlineImageData);
 
   const imagePart = parts.find(
-    (part: { inlineData?: { mimeType: string; data: string } }) => part.inlineData
+    (part: { inlineData?: { mimeType?: string; data?: string } }) => {
+      const data = part.inlineData?.data;
+      return typeof data === "string" && data.length > 0;
+    }
   );
 
   if (imagePart) {
     console.log("[Boat Preview] Image generated successfully with", model, "- size:", imagePart.inlineData.data.length, "chars");
     return {
       success: true,
-      image: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`,
+      image: `data:${imagePart.inlineData.mimeType || "image/png"};base64,${imagePart.inlineData.data}`,
       modelUsed: model,
       partTypes,
     };
@@ -183,6 +189,7 @@ export async function POST(request: Request) {
 
     if (!result.success && model !== FALLBACK_IMAGE_MODEL) {
       console.log("[Boat Preview] Initial model failed, trying fallback...");
+      console.log("[Boat Preview] Fallback model:", FALLBACK_IMAGE_MODEL);
       result = await generatePreviewWithModel(FALLBACK_IMAGE_MODEL, prompt, imageData, apiKey);
     }
 
