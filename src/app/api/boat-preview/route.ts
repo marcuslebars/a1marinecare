@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
 
 import {
   isValidPreviewService,
@@ -6,7 +7,6 @@ import {
   getAllPreviewServices,
 } from "@/lib/preview-prompts";
 
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const GEMINI_API_VERSION = "v1beta";
 
 const PRIMARY_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
@@ -58,88 +58,89 @@ interface GenerateContentResult {
 }
 
 async function generatePreviewWithModel(
+  ai: GoogleGenAI,
   model: string,
   prompt: string,
-  imageData: string,
-  apiKey: string
+  imageData: string
 ): Promise<GenerateContentResult> {
   console.log("[Boat Preview] Attempting with model:", model);
+  console.log("[Boat Preview] API client:", "@google/genai");
   console.log("[Boat Preview] API version:", GEMINI_API_VERSION);
-  console.log("[Boat Preview] API path:", `${GEMINI_API_URL}/${model}:generateContent`);
+  console.log("[Boat Preview] API method:", "ai.models.generateContent");
 
-  const geminiRequest: Record<string, unknown> = {
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { text: prompt },
-          {
-            inlineData: {
-              mimeType: "image/jpeg",
-              data: imageData,
-            },
+  const contents = [
+    {
+      role: "user",
+      parts: [
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: imageData,
           },
-        ],
-      },
-    ],
-  };
-
-  console.log("[Boat Preview] Request payload fields:", Object.keys(geminiRequest));
-
-  const response = await fetch(`${GEMINI_API_URL}/${model}:generateContent?key=${apiKey}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+        },
+      ],
     },
-    body: JSON.stringify(geminiRequest),
-  });
+  ];
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`[Boat Preview] ${model} API error status:`, response.status);
-    console.error(`[Boat Preview] ${model} API error body:`, errorText);
-    return { success: false, error: "Gemini API error", modelUsed: model };
-  }
+  console.log("[Boat Preview] Request payload fields:", ["contents"]);
 
-  const data = await response.json();
+  try {
+    const data = await ai.models.generateContent({
+      model,
+      contents,
+    });
 
-  if (!data.candidates?.[0]?.content?.parts) {
-    console.error("[Boat Preview] Invalid response structure from", model);
-    return { success: false, error: "Invalid response structure", modelUsed: model };
-  }
+    const hasCandidates = Boolean(data.candidates?.length);
+    console.log("[Boat Preview] Candidates exist:", hasCandidates);
 
-  const parts = data.candidates[0].content.parts;
-  const partTypes = parts.map((p: { inlineData?: unknown; text?: unknown }) => p.inlineData ? "image" : "text");
-  const hasInlineImageData = parts.some((part: { inlineData?: unknown }) => Boolean(part.inlineData));
-
-  console.log("[Boat Preview] Response from", model + ":");
-  console.log("- Parts count:", parts.length);
-  console.log("- Part types:", partTypes);
-  console.log("- Has inline image data:", hasInlineImageData);
-
-  const imagePart = parts.find(
-    (part: { inlineData?: { mimeType?: string; data?: string } }) => {
-      const data = part.inlineData?.data;
-      return typeof data === "string" && data.length > 0;
+    if (!data.candidates?.[0]?.content?.parts) {
+      console.error("[Boat Preview] Invalid response structure from", model);
+      return { success: false, error: "Invalid response structure", modelUsed: model };
     }
-  );
 
-  if (imagePart) {
-    console.log("[Boat Preview] Image generated successfully with", model, "- size:", imagePart.inlineData.data.length, "chars");
-    return {
-      success: true,
-      image: `data:${imagePart.inlineData.mimeType || "image/png"};base64,${imagePart.inlineData.data}`,
-      modelUsed: model,
-      partTypes,
-    };
+    const parts = data.candidates[0].content.parts;
+    const partTypes = parts.map((part: { inlineData?: unknown; text?: unknown }) => {
+      if (part.inlineData) return "inlineData";
+      if (part.text) return "text";
+      return "unknown";
+    });
+    const hasInlineImageData = parts.some((part: { inlineData?: { data?: string } }) => {
+      const inlineBytes = part.inlineData?.data;
+      return typeof inlineBytes === "string" && inlineBytes.length > 0;
+    });
+
+    console.log("[Boat Preview] Response from", model + ":");
+    console.log("- Part types:", partTypes);
+    console.log("- Has inlineData image bytes:", hasInlineImageData);
+
+    const imagePart = parts.find(
+      (part: { inlineData?: { mimeType?: string; data?: string } }) => {
+        const inlineBytes = part.inlineData?.data;
+        return typeof inlineBytes === "string" && inlineBytes.length > 0;
+      }
+    );
+
+    if (imagePart) {
+      console.log("[Boat Preview] Image generated successfully with", model, "- size:", imagePart.inlineData.data.length, "chars");
+      return {
+        success: true,
+        image: `data:${imagePart.inlineData.mimeType || "image/png"};base64,${imagePart.inlineData.data}`,
+        modelUsed: model,
+        partTypes,
+      };
+    }
+
+    const textPart = parts.find((part: { text?: string }) => part.text);
+    if (textPart) {
+      console.log("[Boat Preview]", model, "returned text only:", (textPart as { text: string }).text.slice(0, 200));
+    }
+
+    return { success: false, error: "No image bytes in response", modelUsed: model, partTypes };
+  } catch (error) {
+    console.error(`[Boat Preview] ${model} SDK error (full object):`, error);
+    return { success: false, error: "Gemini SDK error", modelUsed: model };
   }
-
-  const textPart = parts.find((part: { text?: string }) => part.text);
-  if (textPart) {
-    console.log("[Boat Preview]", model, "returned text only:", (textPart as { text: string }).text.slice(0, 200));
-  }
-
-  return { success: false, error: "No image in response", modelUsed: model, partTypes };
 }
 
 export async function POST(request: Request) {
@@ -173,6 +174,10 @@ export async function POST(request: Request) {
     const model = getEffectiveModel();
     const prompt = getPreviewPrompt(service);
     const compressedImage = await compressImage(imageBase64);
+    const ai = new GoogleGenAI({
+      apiKey,
+      apiVersion: GEMINI_API_VERSION,
+    });
 
     const imageData = compressedImage.includes(",")
       ? compressedImage.split(",")[1]
@@ -185,12 +190,12 @@ export async function POST(request: Request) {
     console.log("[Boat Preview] Image data length:", imageData.length, "chars");
     console.log("[Boat Preview] ===================================");
 
-    let result = await generatePreviewWithModel(model, prompt, imageData, apiKey);
+    let result = await generatePreviewWithModel(ai, model, prompt, imageData);
 
     if (!result.success && model !== FALLBACK_IMAGE_MODEL) {
       console.log("[Boat Preview] Initial model failed, trying fallback...");
       console.log("[Boat Preview] Fallback model:", FALLBACK_IMAGE_MODEL);
-      result = await generatePreviewWithModel(FALLBACK_IMAGE_MODEL, prompt, imageData, apiKey);
+      result = await generatePreviewWithModel(ai, FALLBACK_IMAGE_MODEL, prompt, imageData);
     }
 
     if (result.success && result.image) {
