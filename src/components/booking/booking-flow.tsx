@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { timeSlots } from "@/content/booking";
-import { getServiceSlugByName, locations, services } from "@/content/site";
+import { getRecurringServiceRate, getRecurringServiceTypeBySlug, getServiceSlugByName, isRecurringServiceSlug, locations, services, slugToServiceName } from "@/content/site";
 import type { BookingFormData } from "@/types/lead";
 
 interface QuoteData {
@@ -44,6 +44,13 @@ const initialData: BookingFormData = {
   contactEmail: "",
   contactPhone: "",
   notes: "",
+  boatLength: "",
+  recurrenceType: null,
+  bookingMode: "one-time",
+  estimatedRecurringRate: undefined,
+  serviceDisplayName: undefined,
+  quotedServices: [],
+  metadata: undefined,
 };
 
 type SubmissionState = "idle" | "submitting" | "success" | "error";
@@ -61,6 +68,27 @@ export function BookingFlow() {
   const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
   const [bookingSource, setBookingSource] = useState<BookingSource>("direct");
   const [editServicesFromQuote, setEditServicesFromQuote] = useState(false);
+
+  const recurringServiceSlug = useMemo(() => {
+    if (quoteData?.serviceSlugs?.length) {
+      return quoteData.serviceSlugs.find((slug) => isRecurringServiceSlug(slug)) ?? null;
+    }
+    return isRecurringServiceSlug(data.serviceSlug) ? data.serviceSlug : null;
+  }, [quoteData, data.serviceSlug]);
+
+  const recurrenceType = useMemo(() => {
+    return recurringServiceSlug ? getRecurringServiceTypeBySlug(recurringServiceSlug) : null;
+  }, [recurringServiceSlug]);
+
+  const recurringRatePerFoot = useMemo(() => {
+    return recurringServiceSlug ? getRecurringServiceRate(recurringServiceSlug) : null;
+  }, [recurringServiceSlug]);
+
+  const resolvedBoatLength = quoteData?.boatLength || data.boatLength || "";
+  const recurringRate = recurrenceType && recurringRatePerFoot && resolvedBoatLength
+    ? Number(resolvedBoatLength) * recurringRatePerFoot
+    : null;
+  const isRecurringBooking = Boolean(recurrenceType);
 
   const loadQuote = useCallback(async (id: string) => {
     setIsLoadingQuote(true);
@@ -93,7 +121,8 @@ export function BookingFlow() {
         .map((name) => getServiceSlugByName(name))
         .filter((slug): slug is string => slug !== null);
 
-      const primaryServiceSlug = serviceSlugs[0] || services[0]?.slug || "";
+      const recurringQuoteServiceSlug = serviceSlugs.find((slug) => isRecurringServiceSlug(slug)) || null;
+      const primaryServiceSlug = recurringQuoteServiceSlug || serviceSlugs[0] || services[0]?.slug || "";
 
       console.log("[Booking Init] prefilled services:", {
         serviceNames,
@@ -115,14 +144,26 @@ export function BookingFlow() {
         estimatedTotal: quote.estimatedTotal || 0,
       });
 
+      const recurrenceType = recurringQuoteServiceSlug ? getRecurringServiceTypeBySlug(recurringQuoteServiceSlug) : null;
+      const recurringRatePerFoot = recurringQuoteServiceSlug ? getRecurringServiceRate(recurringQuoteServiceSlug) : null;
+      const quoteBoatLength = quote.boatLength || "";
+
       setData((prev) => ({
         ...prev,
         serviceSlug: primaryServiceSlug,
+        serviceDisplayName: slugToServiceName[primaryServiceSlug] || serviceNames[0] || prev.serviceDisplayName,
+        quotedServices: serviceNames,
         contactName: quote.contactName || prev.contactName,
         contactEmail: quote.contactEmail || prev.contactEmail,
         contactPhone: quote.contactPhone || prev.contactPhone,
         locationSlug: quote.locationSlug || prev.locationSlug,
         notes: quote.notes || prev.notes,
+        boatLength: quoteBoatLength || prev.boatLength,
+        recurrenceType,
+        bookingMode: recurrenceType ? "recurring" : "one-time",
+        estimatedRecurringRate: recurrenceType && recurringRatePerFoot && quoteBoatLength
+          ? Number(quoteBoatLength) * recurringRatePerFoot
+          : prev.estimatedRecurringRate,
       }));
 
       if (serviceSlugs.length === 0) {
@@ -145,10 +186,13 @@ export function BookingFlow() {
 
   const canContinue = useMemo(() => {
     if (step === 0) return Boolean(data.date && data.timeSlot);
-    if (step === 1) return Boolean(data.serviceSlug && data.locationSlug);
+    if (step === 1) {
+      const needsBoatLength = bookingSource !== "quote" && isRecurringBooking;
+      return Boolean(data.serviceSlug && data.locationSlug && (!needsBoatLength || data.boatLength));
+    }
     if (step === 2) return Boolean(data.contactName && data.contactEmail && data.contactPhone);
     return true;
-  }, [step, data]);
+  }, [step, data, bookingSource, isRecurringBooking]);
 
   async function submitBooking() {
     setSubmissionState("submitting");
@@ -157,7 +201,23 @@ export function BookingFlow() {
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, quoteId }),
+        body: JSON.stringify({
+          ...data,
+          quoteId,
+          boatLength: resolvedBoatLength || data.boatLength,
+          recurrenceType,
+          bookingMode: isRecurringBooking ? "recurring" : "one-time",
+          estimatedRecurringRate: recurringRate ?? data.estimatedRecurringRate,
+          serviceDisplayName: slugToServiceName[data.serviceSlug] || data.serviceDisplayName,
+          quotedServices: quoteData?.serviceNames || data.quotedServices,
+          metadata: {
+            bookingSource,
+            recurrenceType,
+            quotedServices: quoteData?.serviceNames || data.quotedServices || [],
+            estimatedRecurringRate: recurringRate ?? data.estimatedRecurringRate ?? null,
+            boatLength: resolvedBoatLength || data.boatLength || null,
+          },
+        }),
       });
 
       if (!response.ok) {
@@ -241,8 +301,8 @@ export function BookingFlow() {
 
           {step === 0 && (
             <div>
-              <h2 className="text-2xl font-semibold">Select date and time</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Choose an available appointment slot.</p>
+              <h2 className="text-2xl font-semibold">{isRecurringBooking ? "Select your start date and preferred time window" : "Select date and time"}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{isRecurringBooking ? "We will anchor your recurring Maintenance Plan to this first visit and preferred time window." : "Choose an available appointment slot."}</p>
               <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <div className="rounded-xl border border-border p-3">
                   <Calendar
@@ -285,11 +345,15 @@ export function BookingFlow() {
 
           {step === 1 && (
             <div>
-              <h2 className="text-2xl font-semibold">Service and location</h2>
+              <h2 className="text-2xl font-semibold">{isRecurringBooking ? "Recurring service confirmation" : "Service and location"}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {bookingSource === "quote" && !editServicesFromQuote
-                  ? "Review your quoted services below."
-                  : "Choose the service type and your location."}
+                  ? isRecurringBooking
+                    ? "Review your quoted Maintenance Plan and confirm the recurring booking details below."
+                    : "Review your quoted services below."
+                  : isRecurringBooking
+                    ? "Choose your Maintenance Plan, confirm the boat length, and select the service location."
+                    : "Choose the service type and your location."}
               </p>
               <div className="mt-5 space-y-4">
                 {bookingSource === "quote" && !editServicesFromQuote && quoteData && quoteData.serviceNames.length > 0 ? (
@@ -350,6 +414,29 @@ export function BookingFlow() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+                {isRecurringBooking && (
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
+                    <p className="font-medium text-primary">Recurring Service Type</p>
+                    <p className="mt-1 text-foreground">{recurrenceType === "weekly" ? "Weekly" : "Bi-Weekly"} Maintenance Plan</p>
+                    <p className="mt-1 text-muted-foreground">Includes pressure wash, wipe down, chrome polish, and window cleaning on a recurring cadence.</p>
+                    {recurringRate !== null && (
+                      <p className="mt-2 text-foreground font-medium">Calculated recurring rate: ${recurringRate.toFixed(2)} per visit</p>
+                    )}
+                  </div>
+                )}
+                {bookingSource !== "quote" && isRecurringBooking && (
+                  <div className="space-y-2">
+                    <Label htmlFor="boatLength">Boat Length (ft)</Label>
+                    <Input
+                      id="boatLength"
+                      type="number"
+                      placeholder="30"
+                      value={data.boatLength || ""}
+                      onChange={(event) => setData((previous) => ({ ...previous, boatLength: event.target.value }))}
+                      className="rounded-xl"
+                    />
                   </div>
                 )}
                 <div className="space-y-2">
@@ -439,13 +526,25 @@ export function BookingFlow() {
                     <p className="font-medium">{data.date}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Time</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">{isRecurringBooking ? "Preferred Time Window" : "Time"}</p>
                     <p className="font-medium">{data.timeSlot}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Service</p>
                     <p className="font-medium">{services.find((s) => s.slug === data.serviceSlug)?.name}</p>
                   </div>
+                  {isRecurringBooking && (
+                    <>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Recurring Service Type</p>
+                        <p className="font-medium">{recurrenceType === "weekly" ? "Weekly" : "Bi-Weekly"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Boat Length</p>
+                        <p className="font-medium">{resolvedBoatLength ? `${resolvedBoatLength}ft` : "Pending"}</p>
+                      </div>
+                    </>
+                  )}
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Location</p>
                     <p className="font-medium">{locations.find((l) => l.slug === data.locationSlug)?.name}</p>
@@ -464,6 +563,12 @@ export function BookingFlow() {
                     <div className="col-span-2">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Boat Details</p>
                       <p className="font-medium">{quoteData.boatLength}ft {quoteData.boatType}</p>
+                    </div>
+                  )}
+                  {isRecurringBooking && recurringRate !== null && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Recurring Rate</p>
+                      <p className="font-medium">${recurringRate.toFixed(2)} per visit</p>
                     </div>
                   )}
                   <div className="col-span-2">
@@ -499,7 +604,7 @@ export function BookingFlow() {
                       Booking Confirmed
                     </>
                   ) : (
-                    "Confirm Booking"
+                    isRecurringBooking ? "Confirm Recurring Plan" : "Confirm Booking"
                   )}
                 </Button>
 

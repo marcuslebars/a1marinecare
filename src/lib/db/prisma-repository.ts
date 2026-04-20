@@ -5,6 +5,7 @@ import type {
   LeadRepository,
   QuoteInsertResult,
 } from "@/lib/db/types";
+import { Prisma } from "@prisma/client";
 import type { QuoteFormData } from "@/types/lead";
 import { prisma } from "@/lib/db/prisma";
 
@@ -21,9 +22,10 @@ export class PrismaLeadRepository implements LeadRepository {
         contactPhone: input.contactPhone,
         notes: input.notes || null,
         locationSlug: input.locationSlug,
-        estimatedTotal: null,
-        requiresManualReview: false,
-        reviewReasons: [],
+        estimatedTotal: typeof input.estimatedTotal === "number" ? BigInt(input.estimatedTotal) : null,
+        requiresManualReview: input.requiresManualReview || false,
+        reviewReasons: input.reviewReasons || [],
+        metadata: (input.metadata || {}) as Prisma.InputJsonValue,
       },
       select: {
         id: true,
@@ -52,6 +54,9 @@ export class PrismaLeadRepository implements LeadRepository {
         notes: true,
         locationSlug: true,
         estimatedTotal: true,
+        requiresManualReview: true,
+        reviewReasons: true,
+        metadata: true,
         createdAt: true,
       },
     });
@@ -70,6 +75,10 @@ export class PrismaLeadRepository implements LeadRepository {
       contactPhone: record.contactPhone,
       notes: record.notes || "",
       locationSlug: record.locationSlug,
+      estimatedTotal: record.estimatedTotal ? Number(record.estimatedTotal) : undefined,
+      requiresManualReview: record.requiresManualReview,
+      reviewReasons: record.reviewReasons || [],
+      metadata: (record.metadata as Record<string, unknown>) || {},
     };
   }
 
@@ -86,6 +95,13 @@ export class PrismaLeadRepository implements LeadRepository {
         contactPhone: input.contactPhone,
         notes: input.notes || null,
         status: "pending",
+        metadata: (input.metadata || {
+          recurrenceType: input.recurrenceType || null,
+          bookingMode: input.bookingMode || "one-time",
+          boatLength: input.boatLength || null,
+          estimatedRecurringRate: input.estimatedRecurringRate ?? null,
+          quotedServices: input.quotedServices || [],
+        }) as Prisma.InputJsonValue,
       },
       select: {
         id: true,

@@ -66,6 +66,10 @@ export interface VinylConfig {
   customDesign: boolean;
 }
 
+export interface MaintenancePlanConfig {
+  cadence: "weekly" | "biweekly";
+}
+
 export interface ServiceSelections {
   gelcoat?: GelcoatConfig;
   exterior?: ExteriorConfig;
@@ -75,6 +79,8 @@ export interface ServiceSelections {
   wetSanding?: WetSandingConfig;
   bottomPainting?: BottomPaintingConfig;
   vinyl?: VinylConfig;
+  weeklyMaintenance?: MaintenancePlanConfig;
+  biweeklyMaintenance?: MaintenancePlanConfig;
 }
 
 export interface PricingResult {
@@ -461,6 +467,32 @@ export function calculateVinyl(length: number, config: VinylConfig): PricingResu
   return { subtotal, breakdown, requiresManualReview: false, reviewReasons: [] };
 }
 
+export function calculateWeeklyMaintenance(length: number): PricingResult {
+  const subtotal = length * 6;
+  return {
+    subtotal,
+    breakdown: [
+      `Weekly Service: ${length}ft × $6/ft = $${subtotal.toFixed(2)}`,
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning.",
+    ],
+    requiresManualReview: false,
+    reviewReasons: [],
+  };
+}
+
+export function calculateBiweeklyMaintenance(length: number): PricingResult {
+  const subtotal = length * 7;
+  return {
+    subtotal,
+    breakdown: [
+      `Bi-Weekly Service: ${length}ft × $7/ft = $${subtotal.toFixed(2)}`,
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning.",
+    ],
+    requiresManualReview: false,
+    reviewReasons: [],
+  };
+}
+
 export function calculateTotal(length: number, boatType: string, services: ServiceSelections): PricingResult {
   let grandTotal = 0;
   const allBreakdown: string[] = [];
@@ -525,6 +557,18 @@ export function calculateTotal(length: number, boatType: string, services: Servi
     const result = calculateVinyl(length, services.vinyl);
     grandTotal += result.subtotal;
     allBreakdown.push("--- Vinyl Services ---", ...result.breakdown);
+  }
+
+  if (services.weeklyMaintenance) {
+    const result = calculateWeeklyMaintenance(length);
+    grandTotal += result.subtotal;
+    allBreakdown.push("--- Weekly Service ---", ...result.breakdown);
+  }
+
+  if (services.biweeklyMaintenance) {
+    const result = calculateBiweeklyMaintenance(length);
+    grandTotal += result.subtotal;
+    allBreakdown.push("--- Bi-Weekly Service ---", ...result.breakdown);
   }
 
   return {

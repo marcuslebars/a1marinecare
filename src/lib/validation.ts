@@ -8,20 +8,31 @@ export const quoteSchema = z.object({
   contactName: z.string().min(2),
   contactEmail: z.string().email(),
   contactPhone: z.string().min(7),
-  notes: z.string().max(1200).optional().default(""),
+  notes: z.string().max(5000).optional().default(""),
   locationSlug: z.string().min(1),
+  estimatedTotal: z.number().int().nonnegative().optional(),
+  requiresManualReview: z.boolean().optional(),
+  reviewReasons: z.array(z.string()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const bookingSchema = z.object({
   quoteId: z.string().optional().nullable(),
   serviceSlug: z.string().min(1),
+  serviceDisplayName: z.string().min(2).optional(),
+  quotedServices: z.array(z.string()).optional(),
   locationSlug: z.string().min(1),
   date: z.string().min(1),
   timeSlot: z.string().min(1),
   contactName: z.string().min(2),
   contactEmail: z.string().email(),
   contactPhone: z.string().min(7),
-  notes: z.string().max(1200).optional().default(""),
+  notes: z.string().max(5000).optional().default(""),
+  boatLength: z.string().optional(),
+  recurrenceType: z.enum(["weekly", "biweekly"]).optional().nullable(),
+  bookingMode: z.enum(["one-time", "recurring"]).optional(),
+  estimatedRecurringRate: z.number().nonnegative().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const contactSchema = z.object({

@@ -16,6 +16,7 @@ export interface CalendarEventInput {
   serviceSlug: string;
   locationSlug: string;
   notes?: string;
+  recurrence?: string[];
 }
 
 async function getOAuth2Client() {
@@ -90,6 +91,7 @@ export async function createGoogleCalendarEvent(input: CalendarEventInput): Prom
           { method: "popup", minutes: 60 },
         ],
       },
+      recurrence: input.recurrence && input.recurrence.length > 0 ? input.recurrence : undefined,
     };
 
     console.log("[Google Calendar] Sending insert request to calendar API...");
@@ -154,6 +156,8 @@ export function estimateEventDuration(serviceSlug: string): number {
     "wet-sanding": 10,
     "bottom-painting": 6,
     "vinyl-removal": 4,
+    "weekly-maintenance-plan": 3,
+    "bi-weekly-maintenance-plan": 3,
   };
   return DURATIONS[serviceSlug] ?? 4;
 }

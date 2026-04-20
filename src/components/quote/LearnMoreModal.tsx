@@ -299,6 +299,38 @@ const SERVICE_DATA: Record<ServiceKey, ServiceData> = {
       </>
     ),
   },
+
+  weeklyMaintenance: {
+    title: "Weekly Service",
+    subtitle: "Premium recurring maintenance for owners who want a ready-to-enjoy boat every week",
+    overview:
+      "Weekly Service is a recurring maintenance plan designed to keep your boat presentable, fresh, and guest-ready throughout the season without booking full detailing every visit.",
+    render: () => (
+      <>
+        <SectionHeading>What's Included Each Visit</SectionHeading>
+        <BulletList items={["Pressure wash", "Wipe down", "Chrome polish", "Window cleaning"]} />
+        <SectionHeading>How Recurring Booking Works</SectionHeading>
+        <BulletList items={["Select your preferred start date", "Choose your preferred time window", "We create a recurring booking cadence for you", "Your Google Calendar booking is created as a recurring weekly event"]} />
+        <PricingNote>Weekly Service is priced at $6 per foot and is presented as a Maintenance Plan, not a one-time detailing package.</PricingNote>
+      </>
+    ),
+  },
+
+  biweeklyMaintenance: {
+    title: "Bi-Weekly Service",
+    subtitle: "Premium ongoing maintenance on an every-other-week schedule",
+    overview:
+      "Bi-Weekly Service is a recurring maintenance plan for owners who want consistent upkeep and presentation without committing to weekly visits.",
+    render: () => (
+      <>
+        <SectionHeading>What's Included Each Visit</SectionHeading>
+        <BulletList items={["Pressure wash", "Wipe down", "Chrome polish", "Window cleaning"]} />
+        <SectionHeading>How Recurring Booking Works</SectionHeading>
+        <BulletList items={["Select your preferred start date", "Choose your preferred time window", "We create the recurring cadence for you", "Your Google Calendar booking is created with an every-other-week recurrence rule"]} />
+        <PricingNote>Bi-Weekly Service is priced at $7 per foot and is presented as a Maintenance Plan, not a one-time detailing package.</PricingNote>
+      </>
+    ),
+  },
 };
 
 export default function LearnMoreModal({ open, onOpenChange, service }: LearnMoreModalProps) {

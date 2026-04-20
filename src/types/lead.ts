@@ -6,6 +6,8 @@ export type QuoteStepId =
   | "contact"
   | "summary";
 
+export type RecurrenceType = "weekly" | "biweekly";
+
 export type QuoteFormData = {
   boatLength: string;
   boatType: string;
@@ -16,6 +18,10 @@ export type QuoteFormData = {
   contactPhone: string;
   notes: string;
   locationSlug: string;
+  estimatedTotal?: number;
+  requiresManualReview?: boolean;
+  reviewReasons?: string[];
+  metadata?: Record<string, unknown>;
 };
 
 export type BookingFormData = {
@@ -28,6 +34,13 @@ export type BookingFormData = {
   contactEmail: string;
   contactPhone: string;
   notes: string;
+  boatLength?: string;
+  recurrenceType?: RecurrenceType | null;
+  bookingMode?: "one-time" | "recurring";
+  estimatedRecurringRate?: number;
+  serviceDisplayName?: string;
+  quotedServices?: string[];
+  metadata?: Record<string, unknown>;
 };
 
 export type LeadRecord = {

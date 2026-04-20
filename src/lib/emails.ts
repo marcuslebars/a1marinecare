@@ -15,16 +15,26 @@ export interface BookingEmailInput {
   contactEmail: string;
   contactPhone: string;
   notes?: string;
+  boatLength?: string;
+  recurrenceType?: "weekly" | "biweekly" | null;
+  estimatedRecurringRate?: number;
+  serviceDisplayName?: string;
+  quotedServices?: string[];
   calendarEventId?: string | null;
   calendarHtmlLink?: string | null;
   calendarId?: string;
 }
 
 function buildBusinessEmailContent(input: BookingEmailInput): { subject: string; html: string } {
-  const serviceDisplay = input.serviceSlug
+  const serviceDisplay = input.serviceDisplayName || input.serviceSlug
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
+  const recurrenceLabel = input.recurrenceType === "weekly"
+    ? "Weekly"
+    : input.recurrenceType === "biweekly"
+      ? "Bi-Weekly"
+      : null;
 
   const subject = `New Booking Request - ${input.contactName} - ${serviceDisplay}`;
 
@@ -98,6 +108,24 @@ function buildBusinessEmailContent(input: BookingEmailInput): { subject: string;
         <div class="label">Time Slot</div>
         <div class="value">${input.timeSlot}</div>
       </div>
+      ${recurrenceLabel ? `
+      <div class="field">
+        <div class="label">Recurring Cadence</div>
+        <div class="value">${recurrenceLabel}</div>
+      </div>
+      ` : ""}
+      ${input.boatLength ? `
+      <div class="field">
+        <div class="label">Boat Length</div>
+        <div class="value">${input.boatLength}ft</div>
+      </div>
+      ` : ""}
+      ${typeof input.estimatedRecurringRate === "number" ? `
+      <div class="field">
+        <div class="label">Calculated Recurring Rate</div>
+        <div class="value">$${input.estimatedRecurringRate.toFixed(2)} per visit</div>
+      </div>
+      ` : ""}
       ${input.quoteId ? `
       <div class="field">
         <div class="label">Quote ID</div>
@@ -105,6 +133,15 @@ function buildBusinessEmailContent(input: BookingEmailInput): { subject: string;
       </div>
       ` : ""}
     </div>
+
+    ${input.quotedServices && input.quotedServices.length > 0 ? `
+    <div class="section">
+      <div class="field">
+        <div class="label">Quoted Services</div>
+        <div class="value">${input.quotedServices.join("<br />")}</div>
+      </div>
+    </div>
+    ` : ""}
 
     ${input.notes ? `
     <div class="section">

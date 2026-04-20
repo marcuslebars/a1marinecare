@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { locations } from "@/content/site";
 import {
+  calculateBiweeklyMaintenance,
   calculateBottomPainting,
   calculateCeramic,
   calculateExterior,
@@ -22,6 +23,7 @@ import {
   calculateInterior,
   calculateTotal,
   calculateVinyl,
+  calculateWeeklyMaintenance,
   calculateWetSanding,
   type BottomPaintingConfig,
   type CeramicConfig,
@@ -67,6 +69,8 @@ const SERVICE_META: Record<ServiceKey, { title: string; description: string }> =
   wetSanding: { title: "Wet Sanding & Correction", description: "Precision wet sanding to remove deep scratches and imperfections." },
   bottomPainting: { title: "Bottom Painting", description: "Antifouling bottom paint to protect against marine growth." },
   vinyl: { title: "Vinyl Removal & Installation", description: "Professional vinyl graphics removal, installation, or both." },
+  weeklyMaintenance: { title: "Weekly Service", description: "Recurring wash-and-wipe maintenance at $6/ft for owners who want their boat ready every week." },
+  biweeklyMaintenance: { title: "Bi-Weekly Service", description: "Recurring maintenance at $7/ft with an every-other-week cadence for clean, consistent upkeep." },
 };
 
 const BOAT_TYPE_OPTIONS = [
@@ -107,9 +111,11 @@ export function QuoteFlow() {
   const [selectedServices, setSelectedServices] = useState<{
     gelcoat: boolean; exterior: boolean; interior: boolean; ceramic: boolean;
     graphene: boolean; wetSanding: boolean; bottomPainting: boolean; vinyl: boolean;
+    weeklyMaintenance: boolean; biweeklyMaintenance: boolean;
   }>({
     gelcoat: false, exterior: false, interior: false, ceramic: false,
     graphene: false, wetSanding: false, bottomPainting: false, vinyl: false,
+    weeklyMaintenance: false, biweeklyMaintenance: false,
   });
 
   const [gelcoatConfig, setGelcoatConfig] = useState<GelcoatConfig>({
@@ -147,6 +153,8 @@ export function QuoteFlow() {
   if (selectedServices.wetSanding) services.wetSanding = wetSandingConfig;
   if (selectedServices.bottomPainting) services.bottomPainting = bottomPaintingConfig;
   if (selectedServices.vinyl) services.vinyl = vinylConfig;
+  if (selectedServices.weeklyMaintenance) services.weeklyMaintenance = { cadence: "weekly" };
+  if (selectedServices.biweeklyMaintenance) services.biweeklyMaintenance = { cadence: "biweekly" };
 
   const estimate = boatDetails.length > 0 ? calculateTotal(boatDetails.length, boatDetails.type, services) : null;
 
@@ -190,6 +198,14 @@ export function QuoteFlow() {
       const r = calculateVinyl(boatDetails.length, vinylConfig);
       items.push({ name: "Vinyl Services", price: r.subtotal });
     }
+    if (selectedServices.weeklyMaintenance) {
+      const r = calculateWeeklyMaintenance(boatDetails.length);
+      items.push({ name: "Weekly Service", price: r.subtotal });
+    }
+    if (selectedServices.biweeklyMaintenance) {
+      const r = calculateBiweeklyMaintenance(boatDetails.length);
+      items.push({ name: "Bi-Weekly Service", price: r.subtotal });
+    }
     return items;
   }, [boatDetails.length, boatDetails.type, selectedServices, gelcoatConfig, exteriorConfig, interiorConfig, ceramicConfig, grapheneConfig, wetSandingConfig, bottomPaintingConfig, vinylConfig]);
 
@@ -228,7 +244,25 @@ export function QuoteFlow() {
   }, [estimate]);
 
   const toggleService = (key: ServiceKey) =>
-    setSelectedServices((prev) => ({ ...prev, [key]: !prev[key] }));
+    setSelectedServices((prev) => {
+      if (key === "weeklyMaintenance") {
+        return {
+          ...prev,
+          weeklyMaintenance: !prev.weeklyMaintenance,
+          biweeklyMaintenance: false,
+        };
+      }
+
+      if (key === "biweeklyMaintenance") {
+        return {
+          ...prev,
+          biweeklyMaintenance: !prev.biweeklyMaintenance,
+          weeklyMaintenance: false,
+        };
+      }
+
+      return { ...prev, [key]: !prev[key] };
+    });
 
   const canGoNext = () => {
     if (currentStep === 0) return boatDetails.length > 0 && boatDetails.type !== "";
@@ -271,6 +305,12 @@ export function QuoteFlow() {
       .slice(0, 4900);
 
     try {
+      const recurringPlan = selectedServices.weeklyMaintenance
+        ? { type: "weekly", name: "Weekly Service", ratePerFoot: 6 }
+        : selectedServices.biweeklyMaintenance
+          ? { type: "biweekly", name: "Bi-Weekly Service", ratePerFoot: 7 }
+          : null;
+
       const response = await fetch("/api/quotes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -287,6 +327,15 @@ export function QuoteFlow() {
           estimatedTotal: Math.round((estimate?.subtotal || 0) * 100),
           requiresManualReview: estimate?.requiresManualReview || false,
           reviewReasons: estimate?.reviewReasons || [],
+          metadata: {
+            maintenancePlan: recurringPlan
+              ? {
+                  ...recurringPlan,
+                  calculatedRecurringRate: Math.round(boatDetails.length * recurringPlan.ratePerFoot * 100),
+                  includes: ["pressure wash", "wipe down", "chrome polish", "window cleaning"],
+                }
+              : null,
+          },
         }),
       });
 
@@ -490,6 +539,10 @@ export function QuoteFlow() {
                 </div>
 
                 <div className="space-y-4">
+                  <div className="rounded-2xl border border-border/80 bg-card/70 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">One-Time Detailing Services</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Build your one-time detailing package below, then add a recurring Maintenance Plan separately if you would like ongoing upkeep.</p>
+                  </div>
                   <ServiceCard id="gelcoat" title={SERVICE_META.gelcoat.title} description={SERVICE_META.gelcoat.description} selected={selectedServices.gelcoat} onToggle={() => toggleService("gelcoat")} onLearnMore={() => openLearnMore("gelcoat")}>
                     <div className="space-y-4">
                       <div className="space-y-2">
@@ -608,6 +661,40 @@ export function QuoteFlow() {
                         </Select>
                       </div>
                       <OptionToggle id="customDesign" label="Custom Design (+$125)" checked={vinylConfig.customDesign} onChange={(c) => setVinylConfig({ ...vinylConfig, customDesign: c })} />
+                    </div>
+                  </ServiceCard>
+
+                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Maintenance Plans</p>
+                    <h3 className="mt-2 text-lg font-semibold text-foreground">Ongoing premium upkeep, kept separate from one-time detailing.</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Choose one recurring cadence below if you want dockside maintenance visits scheduled automatically after your selected start date.</p>
+                  </div>
+
+                  <ServiceCard id="weeklyMaintenance" title={SERVICE_META.weeklyMaintenance.title} description={SERVICE_META.weeklyMaintenance.description} selected={selectedServices.weeklyMaintenance} onToggle={() => toggleService("weeklyMaintenance")} onLearnMore={() => openLearnMore("weeklyMaintenance")}>
+                    <div className="space-y-3">
+                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm text-muted-foreground">
+                        <p className="font-medium text-foreground">Included each visit</p>
+                        <p className="mt-1">Pressure wash, wipe down, chrome polish, and window cleaning.</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        <span className="rounded-full border border-border px-3 py-1">$6 / ft</span>
+                        <span className="rounded-full border border-border px-3 py-1">Recurring weekly cadence</span>
+                        <span className="rounded-full border border-border px-3 py-1">Google Calendar recurring event</span>
+                      </div>
+                    </div>
+                  </ServiceCard>
+
+                  <ServiceCard id="biweeklyMaintenance" title={SERVICE_META.biweeklyMaintenance.title} description={SERVICE_META.biweeklyMaintenance.description} selected={selectedServices.biweeklyMaintenance} onToggle={() => toggleService("biweeklyMaintenance")} onLearnMore={() => openLearnMore("biweeklyMaintenance")}>
+                    <div className="space-y-3">
+                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm text-muted-foreground">
+                        <p className="font-medium text-foreground">Included each visit</p>
+                        <p className="mt-1">Pressure wash, wipe down, chrome polish, and window cleaning.</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        <span className="rounded-full border border-border px-3 py-1">$7 / ft</span>
+                        <span className="rounded-full border border-border px-3 py-1">Recurring bi-weekly cadence</span>
+                        <span className="rounded-full border border-border px-3 py-1">Google Calendar recurring event</span>
+                      </div>
                     </div>
                   </ServiceCard>
                 </div>

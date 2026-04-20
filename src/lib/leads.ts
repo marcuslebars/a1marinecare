@@ -5,6 +5,7 @@ import type { QuoteFormData } from "@/types/lead";
 import { createGoogleCalendarEvent, estimateEventDuration, buildEventTimes, type CalendarEventResult } from "@/lib/google-calendar";
 import { sendBookingNotificationEmail } from "@/lib/emails";
 import { prisma } from "@/lib/db/prisma";
+import { getRecurringServiceTypeBySlug, slugToServiceName } from "@/content/site";
 
 function getLeadRepository(): LeadRepository {
   if (process.env.DATABASE_URL) {
@@ -62,6 +63,12 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
     try {
       const durationHours = estimateEventDuration(payload.serviceSlug);
       const { startDateTime, endDateTime } = buildEventTimes(payload.date, payload.timeSlot, durationHours);
+      const recurrenceType = payload.recurrenceType || getRecurringServiceTypeBySlug(payload.serviceSlug);
+      const recurrence = recurrenceType === "weekly"
+        ? ["RRULE:FREQ=WEEKLY"]
+        : recurrenceType === "biweekly"
+          ? ["RRULE:FREQ=WEEKLY;INTERVAL=2"]
+          : undefined;
 
       console.log("[Google Calendar] Event payload:", {
         summary: `A1 Marine Care - ${payload.contactName}`,
@@ -71,7 +78,7 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
       });
 
       const calendarResult: CalendarEventResult = await createGoogleCalendarEvent({
-        summary: `A1 Marine Care - ${payload.contactName}`,
+        summary: `A1 Marine Care - ${payload.contactName} - ${payload.serviceDisplayName || slugToServiceName[payload.serviceSlug] || payload.serviceSlug}`,
         description: `Booking #${record.id}`,
         startDateTime,
         endDateTime,
@@ -84,6 +91,7 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
         serviceSlug: payload.serviceSlug,
         locationSlug: payload.locationSlug,
         notes: payload.notes,
+        recurrence,
       });
 
       calendarEventId = calendarResult.eventId;
@@ -119,6 +127,8 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
         bookingId: record.id,
         quoteId: payload.quoteId ?? null,
         serviceSlug: payload.serviceSlug,
+        serviceDisplayName: payload.serviceDisplayName || slugToServiceName[payload.serviceSlug] || payload.serviceSlug,
+        quotedServices: payload.quotedServices,
         locationSlug: payload.locationSlug,
         date: payload.date,
         timeSlot: payload.timeSlot,
@@ -126,6 +136,9 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
         contactEmail: payload.contactEmail,
         contactPhone: payload.contactPhone,
         notes: payload.notes,
+        boatLength: payload.boatLength,
+        recurrenceType: payload.recurrenceType || getRecurringServiceTypeBySlug(payload.serviceSlug),
+        estimatedRecurringRate: payload.estimatedRecurringRate,
         calendarEventId,
         calendarHtmlLink,
         calendarId: calendarIdUsed,

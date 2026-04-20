@@ -8,7 +8,9 @@ export type ServiceKey =
   | "graphene"
   | "wetSanding"
   | "bottomPainting"
-  | "vinyl";
+  | "vinyl"
+  | "weeklyMaintenance"
+  | "biweeklyMaintenance";
 
 interface ServiceCardProps {
   id: ServiceKey;

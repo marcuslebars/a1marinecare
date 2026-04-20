@@ -99,6 +99,24 @@ export const services: Service[] = [
     basePriceFrom: 399,
     duration: "4-8 hours",
   },
+  {
+    slug: "weekly-maintenance-plan",
+    name: "Weekly Service",
+    shortDescription: "Premium recurring wash-and-wipe maintenance for owners who want their boat ready every week.",
+    longDescription:
+      "A recurring weekly maintenance plan that keeps your boat presentation-ready with a pressure wash, wipe down, chrome polish, and window cleaning on a fixed weekly cadence.",
+    basePriceFrom: 120,
+    duration: "2-4 hours per visit",
+  },
+  {
+    slug: "bi-weekly-maintenance-plan",
+    name: "Bi-Weekly Service",
+    shortDescription: "Premium recurring maintenance visits on an every-other-week cadence.",
+    longDescription:
+      "A recurring bi-weekly maintenance plan for owners who want consistent upkeep with pressure washing, wipe down service, chrome polish, and window cleaning every other week.",
+    basePriceFrom: 140,
+    duration: "2-4 hours per visit",
+  },
 ];
 
 export const locations: Location[] = [
@@ -200,6 +218,8 @@ export const serviceNameToSlug: Record<string, string> = {
   "Wet Sanding / Paint Correction": "wet-sanding",
   "Bottom Painting": "bottom-painting",
   "Vinyl Removal / Installation": "vinyl-removal",
+  "Weekly Service": "weekly-maintenance-plan",
+  "Bi-Weekly Service": "bi-weekly-maintenance-plan",
 };
 
 export const slugToServiceName: Record<string, string> = {
@@ -211,7 +231,30 @@ export const slugToServiceName: Record<string, string> = {
   "wet-sanding": "Wet Sanding / Paint Correction",
   "bottom-painting": "Bottom Painting",
   "vinyl-removal": "Vinyl Removal / Installation",
+  "weekly-maintenance-plan": "Weekly Service",
+  "bi-weekly-maintenance-plan": "Bi-Weekly Service",
 };
+
+export type RecurrenceType = "weekly" | "biweekly";
+
+export const recurringServiceSlugs = ["weekly-maintenance-plan", "bi-weekly-maintenance-plan"] as const;
+const recurringServiceSlugSet = new Set<string>(recurringServiceSlugs);
+
+export function isRecurringServiceSlug(slug: string) {
+  return recurringServiceSlugSet.has(slug);
+}
+
+export function getRecurringServiceTypeBySlug(slug: string): RecurrenceType | null {
+  if (slug === "weekly-maintenance-plan") return "weekly";
+  if (slug === "bi-weekly-maintenance-plan") return "biweekly";
+  return null;
+}
+
+export function getRecurringServiceRate(slug: string): number | null {
+  if (slug === "weekly-maintenance-plan") return 6;
+  if (slug === "bi-weekly-maintenance-plan") return 7;
+  return null;
+}
 
 export function getServiceBySlug(slug: string) {
   return serviceMap.get(slug);
