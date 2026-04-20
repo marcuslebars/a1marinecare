@@ -51,7 +51,7 @@ export default function HomePage() {
             <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-white/78 md:text-xl md:leading-9">
               High-end dockside detailing, restoration, and protection for owners who want a clean finish and a sharp first impression all season.
             </p>
-            <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap">
               <Button asChild size="lg" className="h-16 min-w-[220px] px-10 text-lg font-semibold">
                 <Link href="/quote">Request a Quote</Link>
               </Button>
@@ -62,6 +62,25 @@ export default function HomePage() {
                 className="h-16 min-w-[220px] border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
               >
                 <Link href="/booking">Reserve Your Date</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-16 min-w-[220px] border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
+              >
+                <Link href="/preview">Preview Your Boat&apos;s Potential</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-16 min-w-[220px] border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
+              >
+                <Link href="/condition-report">
+                  <Scan className="mr-2 h-5 w-5" />
+                  Condition Report
+                </Link>
               </Button>
             </div>
           </div>
