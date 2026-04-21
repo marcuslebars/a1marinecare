@@ -121,11 +121,13 @@ async function generatePreviewWithModel(
       }
     );
 
-    if (imagePart) {
-      console.log("[Boat Preview] Image generated successfully with", model, "- size:", imagePart.inlineData.data.length, "chars");
+    const imageInlineData = imagePart?.inlineData;
+
+    if (imageInlineData?.data) {
+      console.log("[Boat Preview] Image generated successfully with", model, "- size:", imageInlineData.data.length, "chars");
       return {
         success: true,
-        image: `data:${imagePart.inlineData.mimeType || "image/png"};base64,${imagePart.inlineData.data}`,
+        image: `data:${imageInlineData.mimeType || "image/png"};base64,${imageInlineData.data}`,
         modelUsed: model,
         partTypes,
       };
