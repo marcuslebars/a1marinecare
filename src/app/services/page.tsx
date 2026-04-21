@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { services } from "@/content/site";
+import { getServiceStartingPriceLabel } from "@/lib/quote-pricing";
 import { absoluteUrl, buildDescription, buildTitle } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -63,7 +64,7 @@ export default function ServicesPage() {
                 <h2 className="text-xl font-semibold text-foreground">{service.name}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">{service.shortDescription}</p>
                 <div className="mt-4 flex items-center gap-2 text-sm font-medium text-primary">
-                  <span>From ${service.basePriceFrom} CAD</span>
+                  <span>{getServiceStartingPriceLabel(service.slug)}</span>
                   <span className="text-muted-foreground/50">•</span>
                   <span>{service.duration}</span>
                 </div>

@@ -90,6 +90,28 @@ export interface PricingResult {
   reviewReasons: string[];
 }
 
+export const SERVICE_STARTING_RATE_BY_SLUG = {
+  "boat-detailing": 20,
+  "gelcoat-restoration": 21,
+  "ceramic-coating": 35,
+  "interior-detailing": 18,
+  "graphene-coating": 40,
+  "wet-sanding": 45,
+  "bottom-painting": 30,
+  "vinyl-removal": 12,
+  "weekly-maintenance-plan": 6,
+  "bi-weekly-maintenance-plan": 7,
+} as const;
+
+export function getServiceStartingRateBySlug(slug: string): number | null {
+  return SERVICE_STARTING_RATE_BY_SLUG[slug as keyof typeof SERVICE_STARTING_RATE_BY_SLUG] ?? null;
+}
+
+export function getServiceStartingPriceLabel(slug: string): string {
+  const rate = getServiceStartingRateBySlug(slug);
+  return rate === null ? "Custom quote" : `From $${rate}/ft`;
+}
+
 const GELCOAT_RATES = {
   hull: [
     { max: 20, rate: 21 },

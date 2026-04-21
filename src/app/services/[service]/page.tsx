@@ -7,6 +7,7 @@ import { ArrowRight, Check, Sparkles, Shield, Star, Clock, Award, MapPin, Users 
 import { Button } from "@/components/ui/button";
 import { SchemaScript } from "@/components/site/schema-script";
 import { getServiceBySlug, locations, services } from "@/content/site";
+import { getServiceStartingPriceLabel } from "@/lib/quote-pricing";
 import { absoluteUrl, buildDescription, buildTitle } from "@/lib/seo";
 import { serviceSchema } from "@/lib/schema";
 
@@ -229,7 +230,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
             <div className="mt-8 flex flex-wrap gap-4">
               <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-5 py-2.5 text-sm font-medium text-white">
                 <Star className="w-4 h-4 text-primary" />
-                From ${service.basePriceFrom} CAD
+                {getServiceStartingPriceLabel(service.slug)}
               </span>
               <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-5 py-2.5 text-sm font-medium text-white">
                 <Clock className="w-4 h-4 text-primary" />
@@ -438,7 +439,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
                       )}
                       <div className="mt-6 pt-5 border-t border-white/10 flex items-center gap-2 text-sm text-white/50">
                         <Shield className="w-4 h-4" />
-                        From ${item.basePriceFrom}
+                        {getServiceStartingPriceLabel(item.slug)}
                       </div>
                     </Link>
                   );
