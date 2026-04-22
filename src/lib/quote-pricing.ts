@@ -97,7 +97,7 @@ export const SERVICE_STARTING_RATE_BY_SLUG = {
   "interior-detailing": 18,
   "graphene-coating": 40,
   "wet-sanding": 45,
-  "bottom-painting": 30,
+  "bottom-painting": 40,
   "vinyl-removal": 12,
   "weekly-maintenance-plan": 6,
   "bi-weekly-maintenance-plan": 7,
@@ -431,8 +431,8 @@ export function calculateBottomPainting(length: number, config: BottomPaintingCo
   const reviewReasons: string[] = [];
   let subtotal = 0;
 
-  const basePrice = length * 30;
-  breakdown.push(`Bottom Painting: ${length}ft × $30/ft = $${basePrice.toFixed(2)}`);
+  const basePrice = length * 40;
+  breakdown.push(`Bottom Painting: ${length}ft × $40/ft = $${basePrice.toFixed(2)}`);
   subtotal = basePrice;
 
   if (config.secondCoat) {

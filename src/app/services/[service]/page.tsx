@@ -52,7 +52,7 @@ const SERVICE_IMAGES: Record<string, string> = {
   "interior-detailing": "/images/services/interior-detailing.jpg",
   "graphene-coating": "/images/services/ceramic-coating.jpg",
   "wet-sanding": "/images/services/gelcoat-restoration.jpg",
-  "bottom-painting": "/images/services/exterior-detailing.jpg",
+  "bottom-painting": "/images/services/bottom-painting.jpg",
   "vinyl-removal": "/images/services/interior-detailing.jpg",
 };
 
