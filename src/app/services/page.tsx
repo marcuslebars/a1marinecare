@@ -24,7 +24,7 @@ const SERVICE_IMAGES: Record<string, string> = {
   "graphene-coating": "/images/services/ceramic-coating.jpg",
   "wet-sanding": "/images/services/gelcoat-restoration.jpg",
   "bottom-painting": "/images/services/bottom-painting.jpg",
-  "vinyl-removal": "/images/services/interior-detailing.jpg",
+  "vinyl-removal": "/images/services/vinyl-removal.jpg",
 };
 
 export default function ServicesPage() {
