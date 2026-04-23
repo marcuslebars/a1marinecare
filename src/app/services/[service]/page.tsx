@@ -6,6 +6,7 @@ import { ArrowRight, Check, Sparkles, Shield, Star, Clock, Award, MapPin, Users 
 
 import { Button } from "@/components/ui/button";
 import { SchemaScript } from "@/components/site/schema-script";
+import { TransformationSlider } from "@/components/transformation-slider";
 import { getServiceBySlug, locations, services } from "@/content/site";
 import { getServiceStartingPriceLabel } from "@/lib/quote-pricing";
 import { absoluteUrl, buildDescription, buildTitle } from "@/lib/seo";
@@ -174,6 +175,29 @@ const BEFORE_AFTER_IMAGES = [
 ];
 
 const SHOW_TRANSFORMATION_SLUGS = ["boat-detailing", "gelcoat-restoration", "ceramic-coating", "wet-sanding"];
+const SHOW_TRANSFORMATION_SLIDER_SLUGS = ["interior-detailing"];
+
+const TRANSFORMATION_SLIDER_CONTENT: Record<string, {
+  beforeImageSrc: string;
+  afterImageSrc: string;
+  beforeImageAlt: string;
+  afterImageAlt: string;
+  beforeHeadline: string;
+  afterHeadline: string;
+  beforeDescription: string;
+  afterDescription: string;
+}> = {
+  "interior-detailing": {
+    beforeImageSrc: "/images/before-after/interior-before.webp",
+    afterImageSrc: "/images/before-after/interior-after.webp",
+    beforeImageAlt: "Boat cockpit seating before interior detailing with visible mildew, staining, and surface buildup",
+    afterImageAlt: "Boat cockpit seating after interior detailing with bright, clean vinyl and restored appearance",
+    beforeHeadline: "Before Interior Cleaning",
+    afterHeadline: "After Interior Detailing",
+    beforeDescription: "Embedded mildew, staining, and grime make marine vinyl look neglected and uncomfortable to use.",
+    afterDescription: "Targeted cleaning restores a brighter finish, lifts surface contamination, and brings the seating area back to a fresh, ready-to-enjoy condition.",
+  },
+};
 
 export default async function ServicePage({ params }: ServicePageParams) {
   const { service: serviceSlug } = await params;
@@ -192,6 +216,8 @@ export default async function ServicePage({ params }: ServicePageParams) {
   const companionBenefits = COMPANION_SERVICE_BENEFITS[service.slug];
   const heroImage = SERVICE_IMAGES[service.slug];
   const showTransformation = SHOW_TRANSFORMATION_SLUGS.includes(service.slug);
+  const showTransformationSlider = SHOW_TRANSFORMATION_SLIDER_SLUGS.includes(service.slug);
+  const transformationSliderContent = TRANSFORMATION_SLIDER_CONTENT[service.slug];
   const visibleLocations = locations.slice(0, 4);
   const hiddenLocations = locations.slice(4);
 
@@ -312,6 +338,22 @@ export default async function ServicePage({ params }: ServicePageParams) {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+      )}
+
+      {showTransformationSlider && transformationSliderContent && (
+        <section className="bg-black py-20 md:py-28">
+          <div className="mb-10 px-4 text-center sm:px-6 lg:px-8">
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-primary/80">Interior Transformation</p>
+            <h2 className="mt-4 text-4xl font-black text-white md:text-6xl">See the cabin come back to life.</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/60 md:text-lg">
+              Drag the slider to compare the seating area before and after professional interior detailing.
+            </p>
+          </div>
+
+          <div className="page-shell">
+            <TransformationSlider {...transformationSliderContent} />
           </div>
         </section>
       )}

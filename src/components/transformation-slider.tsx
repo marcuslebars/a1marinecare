@@ -5,7 +5,33 @@ import { useCallback, useRef, useState } from "react";
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-export function TransformationSlider() {
+type TransformationSliderProps = {
+  beforeImageSrc?: string;
+  afterImageSrc?: string;
+  beforeImageAlt?: string;
+  afterImageAlt?: string;
+  beforeLabel?: string;
+  afterLabel?: string;
+  beforeHeadline?: string;
+  afterHeadline?: string;
+  beforeDescription?: string;
+  afterDescription?: string;
+  priority?: boolean;
+};
+
+export function TransformationSlider({
+  beforeImageSrc = "/images/before-after/chaparral-before.webp",
+  afterImageSrc = "/images/before-after/chaparral-after.webp",
+  beforeImageAlt = "Chaparral boat hull before detailing with a dull, oxidized finish",
+  afterImageAlt = "Chaparral boat hull after detailing with a restored, high-gloss finish",
+  beforeLabel = "Before",
+  afterLabel = "After",
+  beforeHeadline = "Before Correction",
+  afterHeadline = "After Restoration",
+  beforeDescription = "Oxidation softens the color and reflection, making the hull look tired and flat.",
+  afterDescription = "Correction and polishing restore depth, gloss, and a cleaner mirror-like finish.",
+  priority = true,
+}: TransformationSliderProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [position, setPosition] = useState(52);
   const [isDragging, setIsDragging] = useState(false);
@@ -48,10 +74,10 @@ export function TransformationSlider() {
     >
       <div className="absolute inset-0">
         <Image
-          src="/images/before-after/chaparral-after.webp"
-          alt="Chaparral boat hull before detailing with a dull, oxidized finish"
+          src={afterImageSrc}
+          alt={afterImageAlt}
           fill
-          priority
+          priority={priority}
           className="object-contain object-center"
           sizes="100vw"
         />
@@ -62,10 +88,10 @@ export function TransformationSlider() {
         style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
       >
         <Image
-          src="/images/before-after/chaparral-before.webp"
-          alt="Chaparral boat hull after detailing with a restored, high-gloss finish"
+          src={beforeImageSrc}
+          alt={beforeImageAlt}
           fill
-          priority
+          priority={priority}
           className="object-contain object-center"
           sizes="100vw"
         />
@@ -108,23 +134,23 @@ export function TransformationSlider() {
       </button>
 
       <div className="absolute left-4 top-4 z-20 rounded-full border border-white/20 bg-black/66 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white md:left-8 md:top-8">
-        Before
+        {beforeLabel}
       </div>
       <div className="absolute right-4 top-4 z-20 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_0_30px_rgba(255,255,255,0.12)] md:right-8 md:top-8">
-        After
+        {afterLabel}
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-20 grid gap-6 p-5 md:grid-cols-2 md:gap-10 md:p-8">
         <div className="max-w-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">Before Correction</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{beforeHeadline}</p>
           <p className="mt-2 text-sm leading-6 text-white/80 md:text-base">
-            Oxidation softens the color and reflection, making the hull look tired and flat.
+            {beforeDescription}
           </p>
         </div>
         <div className="max-w-sm md:justify-self-end md:text-right">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/68">After Restoration</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/68">{afterHeadline}</p>
           <p className="mt-2 text-sm leading-6 text-white/88 md:text-base">
-            Correction and polishing restore depth, gloss, and a cleaner mirror-like finish.
+            {afterDescription}
           </p>
         </div>
       </div>
