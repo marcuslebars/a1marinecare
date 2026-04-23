@@ -167,12 +167,33 @@ const COMPANION_SERVICE_BENEFITS: Record<string, { headline: string; benefits: s
   },
 };
 
-const BEFORE_AFTER_IMAGES = [
-  { src: "/images/before-after/results-candidate-1.jpg", label: "Before" },
-  { src: "/images/before-after/results-candidate-2.png", label: "After" },
-  { src: "/images/before-after/results-candidate-3.jpg", label: "Before" },
-  { src: "/images/before-after/results-candidate-4.jpg", label: "After" },
+type TransformationImage = {
+  src: string;
+  label: "Before" | "After";
+  alt: string;
+};
+
+const DEFAULT_BEFORE_AFTER_IMAGES: TransformationImage[] = [
+  { src: "/images/before-after/results-candidate-1.jpg", label: "Before", alt: "Boat before detailing" },
+  { src: "/images/before-after/results-candidate-2.png", label: "After", alt: "Boat after detailing" },
+  { src: "/images/before-after/results-candidate-3.jpg", label: "Before", alt: "Boat before detailing" },
+  { src: "/images/before-after/results-candidate-4.jpg", label: "After", alt: "Boat after detailing" },
 ];
+
+const TRANSFORMATION_IMAGES_BY_SLUG: Record<string, TransformationImage[]> = {
+  "boat-detailing": [
+    { src: "/images/before-after/regal-before.jpg", label: "Before", alt: "Regal boat stern before exterior detailing with reduced gloss and visible haze" },
+    { src: "/images/before-after/regal-after.jpg", label: "After", alt: "Regal boat stern after exterior detailing with restored gloss and sharp reflections" },
+    { src: "/images/before-after/cruisers-before.webp", label: "Before", alt: "Cruisers Yachts hull before exterior detailing with oxidation, staining, and dull finish" },
+    { src: "/images/before-after/cruisers-after.webp", label: "After", alt: "Cruisers Yachts hull after exterior detailing with brighter finish and restored reflection" },
+  ],
+  "gelcoat-restoration": [
+    { src: "/images/before-after/regal-before.jpg", label: "Before", alt: "Regal boat stern before gelcoat restoration with reduced gloss and visible haze" },
+    { src: "/images/before-after/regal-after.jpg", label: "After", alt: "Regal boat stern after gelcoat restoration with restored gloss and sharp reflections" },
+    { src: "/images/before-after/cruisers-before.webp", label: "Before", alt: "Cruisers Yachts hull before gelcoat restoration with oxidation, staining, and dull finish" },
+    { src: "/images/before-after/cruisers-after.webp", label: "After", alt: "Cruisers Yachts hull after gelcoat restoration with brighter finish and restored reflection" },
+  ],
+};
 
 const SHOW_TRANSFORMATION_SLUGS = ["boat-detailing", "gelcoat-restoration", "ceramic-coating", "wet-sanding"];
 const SHOW_TRANSFORMATION_SLIDER_SLUGS = ["interior-detailing"];
@@ -216,6 +237,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
   const companionBenefits = COMPANION_SERVICE_BENEFITS[service.slug];
   const heroImage = SERVICE_IMAGES[service.slug];
   const showTransformation = SHOW_TRANSFORMATION_SLUGS.includes(service.slug);
+  const showTransformationImages = TRANSFORMATION_IMAGES_BY_SLUG[service.slug] ?? DEFAULT_BEFORE_AFTER_IMAGES;
   const showTransformationSlider = SHOW_TRANSFORMATION_SLIDER_SLUGS.includes(service.slug);
   const transformationSliderContent = TRANSFORMATION_SLIDER_CONTENT[service.slug];
   const visibleLocations = locations.slice(0, 4);
@@ -314,7 +336,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-              {BEFORE_AFTER_IMAGES.map((img, i) => (
+              {showTransformationImages.map((img, i) => (
                 <div
                   key={i}
                   className={`relative ${i % 2 === 1 ? "md:mt-16" : ""}`}
@@ -322,7 +344,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
                   <div className="relative aspect-[16/10] overflow-hidden rounded-2xl shadow-2xl shadow-black/30">
                     <Image
                       src={img.src}
-                      alt={`Boat ${img.label.toLowerCase()} detailing`}
+                      alt={img.alt}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 50vw"
