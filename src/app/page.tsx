@@ -52,25 +52,25 @@ export default function HomePage() {
               High-end dockside detailing, restoration, and protection for owners who want a clean finish and a sharp first impression all season.
             </p>
             <div className="mt-12 flex flex-col items-center gap-4">
-              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Button asChild size="lg" className="h-16 min-w-[220px] px-10 text-lg font-semibold">
+              <div className="grid w-full max-w-[580px] gap-4 sm:grid-cols-2">
+                <Button asChild size="lg" className="h-16 w-full px-10 text-lg font-semibold">
                   <Link href="/quote">Request a Quote</Link>
                 </Button>
                 <Button
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-16 min-w-[220px] border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
+                  className="h-16 w-full border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
                 >
                   <Link href="/booking">Reserve Your Date</Link>
                 </Button>
               </div>
-              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <div className="grid w-full max-w-[580px] gap-4 sm:grid-cols-2">
                 <Button
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-16 min-w-[220px] border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
+                  className="h-16 w-full border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
                 >
                   <Link href="/preview">Preview Your Boat&apos;s Potential</Link>
                 </Button>
@@ -78,7 +78,7 @@ export default function HomePage() {
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-16 min-w-[220px] border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
+                  className="h-16 w-full border-white/30 bg-white/5 px-10 text-lg font-semibold text-white hover:border-white/60 hover:bg-white/10 hover:text-white"
                 >
                   <Link href="/condition-report">
                     <Scan className="mr-2 h-5 w-5" />
