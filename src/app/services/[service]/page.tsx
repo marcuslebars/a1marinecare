@@ -235,6 +235,8 @@ export default async function ServicePage({ params }: ServicePageParams) {
     subline: service.longDescription,
   };
   const companionBenefits = COMPANION_SERVICE_BENEFITS[service.slug];
+  const serviceBenefits = companionBenefits?.benefits ?? [];
+  const serviceBenefitsHeadline = companionBenefits?.headline ?? "Premium dockside marine care";
   const heroImage = SERVICE_IMAGES[service.slug];
   const showTransformation = SHOW_TRANSFORMATION_SLUGS.includes(service.slug);
   const showTransformationImages = TRANSFORMATION_IMAGES_BY_SLUG[service.slug] ?? DEFAULT_BEFORE_AFTER_IMAGES;
@@ -248,7 +250,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
       <SchemaScript schema={schema} />
 
       {/* HERO - Full-width cinematic */}
-      <section className="relative min-h-[85vh] flex items-center bg-surface-ocean overflow-hidden">
+      <section className="relative isolate min-h-[88vh] overflow-hidden bg-[#03111c]">
         <div className="absolute inset-0">
           {heroImage && (
             <Image
@@ -259,66 +261,121 @@ export default async function ServicePage({ params }: ServicePageParams) {
               priority
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#03111c]/95 via-[#03111c]/80 to-[#03111c]/60" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#03111c]/50 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.22),transparent_32%),radial-gradient(circle_at_85%_18%,rgba(59,130,246,0.22),transparent_24%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#03111c]/95 via-[#03111c]/84 to-[#03111c]/68" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#03111c] via-[#03111c]/35 to-transparent" />
         </div>
+        <div className="absolute left-[-6rem] top-24 h-56 w-56 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute bottom-[-5rem] right-[-3rem] h-64 w-64 rounded-full bg-sky-500/20 blur-3xl" />
+
         <div className="page-shell relative z-10 py-24 lg:py-32">
-          <div className="max-w-xl">
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary/80 mb-4">
-              {heroContent.eyebrow}
-            </p>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-white">
-              {heroContent.headline}
-              <br />
-              <span className="text-primary">Turn Heads</span> at the Dock.
-            </h1>
-            <p className="mt-6 text-lg text-white/70 leading-relaxed max-w-lg">
-              {heroContent.subline}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-5 py-2.5 text-sm font-medium text-white">
-                <Star className="w-4 h-4 text-primary" />
-                {getServiceStartingPriceLabel(service.slug)}
-              </span>
-              <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-5 py-2.5 text-sm font-medium text-white">
-                <Clock className="w-4 h-4 text-primary" />
-                {service.duration}
-              </span>
+          <div className="grid items-end gap-12 lg:grid-cols-[minmax(0,1.15fr)_24rem]">
+            <div className="max-w-3xl">
+              <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary/80 mb-4">
+                {heroContent.eyebrow}
+              </p>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.02] tracking-tight text-white">
+                {heroContent.headline}
+                <br />
+                <span className="text-primary">Turn Heads</span> at the Dock.
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/72 md:text-xl">
+                {heroContent.subline}
+              </p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <span className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-sm">
+                  <Star className="w-4 h-4 text-primary" />
+                  {getServiceStartingPriceLabel(service.slug)}
+                </span>
+                <span className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-sm">
+                  <Clock className="w-4 h-4 text-primary" />
+                  {service.duration}
+                </span>
+                <span className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-sm">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  Fully mobile dockside service
+                </span>
+              </div>
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Button asChild size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Link href="/quote">
+                    Get Your Quote <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="heroOutline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50">
+                  <Link href="/booking">
+                    Reserve Your Spot <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Button asChild size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/quote">
-                  Get Your Quote <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="heroOutline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50">
-                <Link href="/booking">
-                  Reserve Your Spot <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
+
+            <div className="rounded-[2rem] border border-white/12 bg-white/10 p-7 text-white shadow-2xl shadow-black/35 backdrop-blur-xl lg:block">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                <Award className="h-3.5 w-3.5" />
+                What owners notice most
+              </div>
+              <h2 className="mt-5 text-2xl font-semibold leading-tight">{serviceBenefitsHeadline}</h2>
+              <p className="mt-3 text-sm leading-6 text-white/65">
+                A higher-end finish starts with the details. Every service page now highlights the outcome, the convenience, and the confidence behind the work.
+              </p>
+              <div className="mt-6 space-y-4">
+                {serviceBenefits.slice(0, 3).map((benefit, index) => (
+                  <div key={index} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
+                    <div className="mt-0.5 rounded-full bg-primary/15 p-2">
+                      <Check className="h-4 w-4 text-primary" />
+                    </div>
+                    <p className="text-sm leading-6 text-white/80">{benefit}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
+                  <p className="text-white/45">Starting from</p>
+                  <p className="mt-1 font-semibold text-white">{getServiceStartingPriceLabel(service.slug)}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
+                  <p className="text-white/45">Typical pace</p>
+                  <p className="mt-1 font-semibold text-white">{service.duration}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* STATS BAR */}
-      <section className="bg-[#03111c]/95 backdrop-blur-md border-y border-white/10">
-        <div className="page-shell py-6">
-          <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-20">
-            <div className="flex items-center gap-3">
-              <Star className="w-5 h-5 fill-primary text-primary" />
-              <span className="text-xl font-semibold text-white">5.0</span>
-              <span className="text-sm text-white/50">average rating</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-primary" />
-              <span className="text-xl font-semibold text-white">500+</span>
-              <span className="text-sm text-white/50">boats detailed</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-primary" />
-              <span className="text-xl font-semibold text-white">Fully Mobile</span>
-              <span className="text-sm text-white/50">dockside service</span>
+      <section className="relative z-20 -mt-10 pb-14">
+        <div className="page-shell">
+          <div className="rounded-[2rem] border border-border/60 bg-background/90 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl">
+            <div className="grid gap-6 md:grid-cols-3 md:divide-x md:divide-border/60">
+              <div className="flex items-center gap-4 px-2 md:px-6">
+                <div className="rounded-2xl bg-primary/10 p-3">
+                  <Star className="w-5 h-5 fill-primary text-primary" />
+                </div>
+                <div>
+                  <p className="text-xl font-semibold text-foreground">5.0</p>
+                  <p className="text-sm text-muted-foreground">average rating from local boat owners</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 px-2 md:px-6">
+                <div className="rounded-2xl bg-primary/10 p-3">
+                  <Users className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xl font-semibold text-foreground">500+</p>
+                  <p className="text-sm text-muted-foreground">boats detailed across the region</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 px-2 md:px-6">
+                <div className="rounded-2xl bg-primary/10 p-3">
+                  <MapPin className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xl font-semibold text-foreground">Dockside service</p>
+                  <p className="text-sm text-muted-foreground">we come to your marina, driveway, or storage yard</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -326,31 +383,34 @@ export default async function ServicePage({ params }: ServicePageParams) {
 
       {/* VISUAL PROOF - Transformation section (only for relevant services) */}
       {showTransformation && (
-        <section className="py-24 bg-[#03111c]">
-          <div className="page-shell">
-            <div className="text-center mb-16">
-              <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80 mb-3">See the Difference</p>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Real Results. Visible Transformation.</h2>
-              <p className="mt-4 text-white/60 max-w-xl mx-auto text-lg">
+        <section className="relative overflow-hidden bg-gradient-to-b from-[#03111c] via-[#082033] to-[#03111c] py-24">
+          <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(45,212,191,0.18),transparent_55%)]" />
+          <div className="page-shell relative">
+            <div className="mb-16 text-center">
+              <p className="mb-3 text-sm font-medium uppercase tracking-[0.15em] text-primary/80">See the Difference</p>
+              <h2 className="text-4xl font-bold text-white md:text-5xl">Real Results. Visible Transformation.</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-white/60">
                 From oxidized gelcoat to deep, mirror-like gloss. This is the difference professional detailing makes.
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
               {showTransformationImages.map((img, i) => (
                 <div
                   key={i}
-                  className={`relative ${i % 2 === 1 ? "md:mt-16" : ""}`}
+                  className={`group relative ${i % 2 === 1 ? "md:mt-16" : ""}`}
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden rounded-2xl shadow-2xl shadow-black/30">
+                  <div className="absolute -inset-2 rounded-[2rem] bg-gradient-to-br from-primary/20 via-transparent to-sky-500/15 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="relative aspect-[16/10] overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl shadow-black/30">
                     <Image
                       src={img.src}
                       alt={img.alt}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent" />
                   </div>
-                  <div className={`absolute top-4 left-4 px-4 py-1.5 rounded-full text-sm font-semibold backdrop-blur-sm ${
+                  <div className={`absolute left-4 top-4 rounded-full px-4 py-1.5 text-sm font-semibold backdrop-blur-sm ${
                     img.label === "Before"
                       ? "bg-red-500/90 text-white"
                       : "bg-emerald-500/90 text-white"
@@ -365,8 +425,10 @@ export default async function ServicePage({ params }: ServicePageParams) {
       )}
 
       {showTransformationSlider && transformationSliderContent && (
-        <section className="bg-black py-20 md:py-28">
-          <div className="mb-10 px-4 text-center sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden bg-[linear-gradient(180deg,#020617_0%,#07111d_50%,#020617_100%)] py-20 md:py-28">
+          <div className="absolute left-10 top-12 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute bottom-0 right-10 h-48 w-48 rounded-full bg-sky-500/10 blur-3xl" />
+          <div className="relative mb-10 px-4 text-center sm:px-6 lg:px-8">
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-primary/80">Interior Transformation</p>
             <h2 className="mt-4 text-4xl font-black text-white md:text-6xl">See the cabin come back to life.</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/60 md:text-lg">
@@ -374,76 +436,156 @@ export default async function ServicePage({ params }: ServicePageParams) {
             </p>
           </div>
 
-          <div className="page-shell">
+          <div className="page-shell relative rounded-[2rem] border border-white/10 bg-white/5 p-4 backdrop-blur-sm md:p-6">
             <TransformationSlider {...transformationSliderContent} />
           </div>
         </section>
       )}
 
       {/* SERVICE DESCRIPTION */}
-      <section className="py-24 bg-background">
-        <div className="page-shell">
-          <div className="max-w-3xl mx-auto text-center">
-            <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80 mb-3">About This Service</p>
-            <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-6">{service.name}</h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">{service.longDescription}</p>
+      <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.08),transparent_28%),linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--muted)/0.18)_100%)] py-24">
+        <div className="absolute right-0 top-10 h-44 w-44 rounded-full bg-primary/10 blur-3xl" />
+        <div className="page-shell relative">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+            <div className="rounded-[2rem] border border-border/60 bg-background/85 p-8 shadow-xl shadow-black/5 backdrop-blur-sm md:p-10">
+              <p className="mb-3 text-sm font-medium uppercase tracking-[0.15em] text-primary/80">About This Service</p>
+              <h2 className="text-3xl font-semibold text-foreground md:text-4xl">{service.name}</h2>
+              <p className="mt-6 text-lg leading-relaxed text-muted-foreground">{service.longDescription}</p>
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-border/60 bg-card/70 p-5">
+                  <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                    <Shield className="h-4 w-4" />
+                    Investment clarity
+                  </div>
+                  <p className="mt-3 text-lg font-semibold text-foreground">{getServiceStartingPriceLabel(service.slug)}</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">Transparent pricing, clear scope, and no guesswork before the work begins.</p>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-card/70 p-5">
+                  <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                    <Clock className="h-4 w-4" />
+                    Timing
+                  </div>
+                  <p className="mt-3 text-lg font-semibold text-foreground">{service.duration}</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">Built around practical dockside scheduling so the service feels easy from start to finish.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-[#03111c] p-8 text-white shadow-2xl shadow-black/20 md:p-10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                What&apos;s included
+              </div>
+              <h3 className="mt-5 text-2xl font-semibold">{serviceBenefitsHeadline}</h3>
+              <p className="mt-3 text-sm leading-6 text-white/60">
+                Every visit is designed to improve appearance, preserve materials, and make ownership feel simpler.
+              </p>
+              <div className="mt-6 space-y-4">
+                {serviceBenefits.map((benefit, index) => (
+                  <div key={index} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                    <div className="rounded-full bg-primary/15 p-2">
+                      <Check className="h-4 w-4 text-primary" />
+                    </div>
+                    <p className="text-sm leading-6 text-white/80">{benefit}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* MID-PAGE CTA */}
-      <section className="py-24 bg-gradient-to-b from-[#03111c] to-surface-ocean">
-        <div className="page-shell text-center">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
-            <Award className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Takes Less Than a Minute</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold">Get Your {service.name} Quote</h2>
-          <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-lg">
-            Tell us about your vessel. We&apos;ll prepare a transparent, detailed quote with no obligation.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Button asChild size="lg" className="gap-2">
-              <Link href="/quote">
-                Get Your Quote <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="gap-2">
-              <Link href="/booking">
-                Reserve Your Spot <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
+      <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-surface-ocean/20 py-24">
+        <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_center,rgba(45,212,191,0.12),transparent_55%)]" />
+        <div className="page-shell relative">
+          <div className="grid gap-6 rounded-[2.25rem] border border-border/60 bg-card/70 p-8 shadow-2xl shadow-black/5 backdrop-blur-sm lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:p-10">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-5 py-2 text-sm font-medium text-primary">
+                <Award className="w-4 h-4 text-primary" />
+                Takes Less Than a Minute
+              </div>
+              <h2 className="mt-6 text-4xl font-bold tracking-tight text-foreground md:text-5xl">Get Your {service.name} Quote</h2>
+              <p className="mt-4 max-w-xl text-lg text-muted-foreground">
+                Tell us about your vessel. We&apos;ll prepare a transparent, detailed quote with no obligation and help you choose the right level of correction or protection.
+              </p>
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Button asChild size="lg" className="gap-2">
+                  <Link href="/quote">
+                    Get Your Quote <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="gap-2">
+                  <Link href="/booking">
+                    Reserve Your Spot <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div className="rounded-[2rem] bg-[#03111c] p-6 text-white shadow-xl shadow-black/25 md:p-8">
+              <p className="text-sm font-medium uppercase tracking-[0.16em] text-primary/80">Why book now</p>
+              <div className="mt-6 space-y-5">
+                <div className="flex items-start gap-3">
+                  <Clock className="mt-1 h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Fast, clear scheduling</p>
+                    <p className="mt-1 text-sm leading-6 text-white/60">Choose a date, request your service, and get a clear next step without the back-and-forth.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Shield className="mt-1 h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Professional-grade process</p>
+                    <p className="mt-1 text-sm leading-6 text-white/60">Every service is built around durable products, careful correction, and a finish that lasts longer.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-1 h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Convenient dockside delivery</p>
+                    <p className="mt-1 text-sm leading-6 text-white/60">We bring the detailing experience directly to your marina, lift, driveway, or storage location.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* PREMIUM LOCATIONS */}
-      <section className="py-24 bg-background">
-        <div className="page-shell">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-3">Service Area</h2>
-            <p className="text-muted-foreground text-lg">Premium dockside detailing across Ontario&apos;s finest waterways</p>
+      <section className="relative overflow-hidden bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--muted)/0.18)_100%)] py-24">
+        <div className="absolute left-0 top-20 h-40 w-40 rounded-full bg-sky-500/10 blur-3xl" />
+        <div className="page-shell relative">
+          <div className="mb-12 rounded-[2rem] border border-border/60 bg-background/80 p-8 shadow-xl shadow-black/5 backdrop-blur-sm">
+            <div className="max-w-3xl">
+              <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80">Where we work</p>
+              <h2 className="mt-3 text-3xl font-semibold text-foreground md:text-4xl">Service Area</h2>
+              <p className="mt-4 text-lg text-muted-foreground">Premium dockside detailing across Ontario&apos;s finest waterways, with a service experience designed to feel premium before we even touch the boat.</p>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             {visibleLocations.map((location) => (
               <Link
                 key={location.slug}
                 href={`/${service.slug}/${location.slug}`}
-                className="group p-8 rounded-2xl bg-card/80 hover:bg-card border border-transparent hover:border-primary/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5"
+                className="group rounded-[1.75rem] border border-border/60 bg-card/75 p-8 shadow-lg shadow-black/5 transition-all duration-500 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-transform duration-300 group-hover:scale-110">
                   <Sparkles className="w-6 h-6 text-primary" />
                 </div>
                 <p className="text-lg font-semibold text-foreground">{location.name}</p>
-                <p className="text-sm text-muted-foreground mt-1">{location.region}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{location.region}</p>
+                <div className="mt-6 flex items-center gap-2 text-sm font-medium text-primary">
+                  Explore service availability <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </div>
               </Link>
             ))}
           </div>
           {hiddenLocations.length > 0 && (
-            <details className="mt-8 group">
-              <summary className="cursor-pointer text-center text-sm text-muted-foreground hover:text-primary transition-colors list-none flex items-center justify-center gap-2">
+            <details className="group mt-8 rounded-[1.5rem] border border-border/60 bg-background/70 p-6 shadow-lg shadow-black/5 backdrop-blur-sm">
+              <summary className="list-none flex cursor-pointer items-center justify-center gap-2 text-center text-sm text-muted-foreground transition-colors hover:text-primary">
                 <span>View all {locations.length} service locations</span>
-                <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </summary>
@@ -452,7 +594,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
                   <Link
                     key={location.slug}
                     href={`/${service.slug}/${location.slug}`}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors px-3 py-1.5 rounded-full bg-card/50 hover:bg-card border border-border/50"
+                    className="rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-card hover:text-primary"
                   >
                     {location.name}
                   </Link>
@@ -465,11 +607,13 @@ export default async function ServicePage({ params }: ServicePageParams) {
 
       {/* COMPANION SERVICES */}
       {companionBenefits && (
-        <section className="py-24 bg-surface-ocean">
-          <div className="page-shell">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-semibold text-white mb-3">Complete the Detail</h2>
-              <p className="text-white/60 text-lg">Popular add-ons to maximise your boat&apos;s protection and appearance</p>
+        <section className="relative overflow-hidden bg-surface-ocean py-24">
+          <div className="absolute right-0 top-0 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
+          <div className="page-shell relative">
+            <div className="mb-16 text-center">
+              <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80">Enhance the finish</p>
+              <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Complete the Detail</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-white/60">Popular add-ons to maximise your boat&apos;s protection and appearance while keeping the design flow rich and easy to scan.</p>
             </div>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {services
@@ -480,19 +624,19 @@ export default async function ServicePage({ params }: ServicePageParams) {
                     <Link
                       key={item.slug}
                       href={`/services/${item.slug}`}
-                      className="group p-8 rounded-2xl bg-gradient-to-b from-card/90 to-card/60 backdrop-blur-sm border border-white/10 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-1"
+                      className="group rounded-[1.75rem] border border-white/10 bg-gradient-to-b from-card/90 to-card/55 p-8 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10"
                     >
-                      <div className="flex items-start justify-between mb-5">
+                      <div className="mb-5 flex items-start justify-between gap-4">
                         <h3 className="text-xl font-semibold text-foreground">{item.name}</h3>
-                        <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+                        <ArrowRight className="h-5 w-5 text-muted-foreground transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
                       </div>
                       {benefits ? (
                         <>
-                          <p className="text-sm font-medium text-primary mb-4">{benefits.headline}</p>
+                          <p className="mb-4 text-sm font-medium text-primary">{benefits.headline}</p>
                           <ul className="space-y-3">
                             {benefits.benefits.map((benefit, i) => (
                               <li key={i} className="flex items-start gap-3 text-sm text-white/70">
-                                <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                                 {benefit}
                               </li>
                             ))}
@@ -501,8 +645,8 @@ export default async function ServicePage({ params }: ServicePageParams) {
                       ) : (
                         <p className="text-sm text-white/60">{item.shortDescription}</p>
                       )}
-                      <div className="mt-6 pt-5 border-t border-white/10 flex items-center gap-2 text-sm text-white/50">
-                        <Shield className="w-4 h-4" />
+                      <div className="mt-6 flex items-center gap-2 border-t border-white/10 pt-5 text-sm text-white/50">
+                        <Shield className="h-4 w-4" />
                         {getServiceStartingPriceLabel(item.slug)}
                       </div>
                     </Link>
@@ -514,28 +658,31 @@ export default async function ServicePage({ params }: ServicePageParams) {
       )}
 
       {/* FINAL CTA */}
-      <section className="py-24 bg-[#03111c] text-white">
-        <div className="page-shell text-center">
-          <h2 className="text-4xl md:text-5xl font-bold">Ready to Transform Your Vessel?</h2>
-          <p className="mt-4 text-white/60 max-w-lg mx-auto text-lg">
-            Secure your preferred service date before the season fills up. Your boat deserves it.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Button asChild size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/quote">
-                Get Your Quote <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="heroOutline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50">
-              <Link href="/booking">
-                Reserve Your Spot <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="gap-2 border-white/20 bg-white/5 text-white hover:border-white/40 hover:bg-white/10">
-              <Link href="/preview">
-                Preview Your Boat <Sparkles className="w-4 h-4" />
-              </Link>
-            </Button>
+      <section className="relative overflow-hidden bg-[#03111c] py-24 text-white">
+        <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_center,rgba(45,212,191,0.16),transparent_55%)]" />
+        <div className="page-shell relative">
+          <div className="rounded-[2.5rem] border border-white/10 bg-white/5 px-8 py-12 text-center shadow-2xl shadow-black/25 backdrop-blur-sm md:px-12">
+            <h2 className="text-4xl font-bold md:text-5xl">Ready to Transform Your Vessel?</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-white/60">
+              Secure your preferred service date before the season fills up. Your boat deserves a finish that looks premium in every light.
+            </p>
+            <div className="mt-10 flex flex-wrap justify-center gap-4">
+              <Button asChild size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link href="/quote">
+                  Get Your Quote <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="heroOutline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50">
+                <Link href="/booking">
+                  Reserve Your Spot <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="gap-2 border-white/20 bg-white/5 text-white hover:border-white/40 hover:bg-white/10">
+                <Link href="/preview">
+                  Preview Your Boat <Sparkles className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
