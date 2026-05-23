@@ -52,3 +52,27 @@ model BookingRequest {
 
   @@map("booking_requests")
 }
+
+model LeadEvent {
+  id                 String   @id @default(uuid())
+  createdAt          DateTime @default(now()) @map("created_at")
+  source             String   @map("source")
+  customerName       String   @map("customer_name")
+  email              String   @map("email")
+  phone              String   @map("phone")
+  serviceInterest    String?  @map("service_interest")
+  boatLength         String?  @map("boat_length")
+  boatType           String?  @map("boat_type")
+  locationSlug       String?  @map("location_slug")
+  message            String?  @map("message")
+  status             String   @default("new") @map("status")
+  rawPayload         Json     @default("{}") @map("raw_payload")
+  notificationStatus String?  @map("notification_status")
+  resendEmailId      String?  @map("resend_email_id")
+  calendarEventId    String?  @map("calendar_event_id")
+  leadId             String?  @map("lead_id")
+  leadType           String?  @map("lead_type")
+  metadata           Json     @default("{}")
+
+  @@map("lead_events")
+}
