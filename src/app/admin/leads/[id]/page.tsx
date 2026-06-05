@@ -171,12 +171,12 @@ export default async function LeadDetailPage({
                   <span className={`font-medium ${lead.calendarSyncStatus === "failed" ? "text-red-400" : "text-yellow-400"}`}>{lead.calendarSyncStatus}</span>
                 </div>
               )}
-              {(lead.metadata as Record<string, unknown>)?.lastError && (
+              {(lead.metadata as Record<string, unknown>)?.lastError ? (
                 <div className="mt-2 rounded bg-red-500/10 p-2">
                   <div className="text-xs text-red-400">Last Error</div>
                   <div className="mt-1 text-xs text-red-300">{String((lead.metadata as Record<string, unknown>).lastError)}</div>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 

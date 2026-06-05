@@ -188,9 +188,9 @@ export default async function AdminLeadsPage({
                         {lead.resendEmailId && (
                           <div className="text-xs text-muted-foreground">{lead.resendEmailId}</div>
                         )}
-                        {(lead.metadata as Record<string, unknown>)?.lastError && (
+                        {(lead.metadata as Record<string, unknown>)?.lastError ? (
                           <div className="mt-1 text-xs text-red-400">Error: {String((lead.metadata as Record<string, unknown>).lastError)}</div>
-                        )}
+                        ) : null}
                       </td>
                     </tr>
                   ))
