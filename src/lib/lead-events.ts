@@ -60,6 +60,7 @@ export interface LeadEventRecord {
   notificationStatus: string | null;
   resendEmailId: string | null;
   calendarEventId: string | null;
+  calendarSyncStatus: string | null;
   leadId: string | null;
   leadType: string | null;
   metadata: Record<string, unknown>;
