@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "Unable to create booking" }, { status: 500 });
   }
 
-  let record: { id: string; createdAt: Date; googleCalendarEventId: string | null; googleCalendarHtmlLink: string | null };
+  let record: { id: string; createdAt: string; googleCalendarEventId: string | null; googleCalendarHtmlLink: string | null };
   try {
     record = await createBookingLead(parsed);
     console.log("[Booking Create] Booking created:", record.id);
