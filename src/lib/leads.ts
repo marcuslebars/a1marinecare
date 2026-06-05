@@ -116,11 +116,13 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
   }
 
   // Step 2: Email notification
-  if (process.env.RESEND_API_KEY) {
-    console.log("[Email] Sending booking notification...", {
-      bookingId: record.id,
-      to: process.env.BUSINESS_EMAIL || "contact@a1marinecare.ca",
-    });
+  if (!process.env.RESEND_API_KEY) {
+    console.log(JSON.stringify({ level: "email_skipped", source: "booking", reason: "RESEND_API_KEY not set", bookingId: record.id }));
+    emailStatus = "not_configured";
+  } else {
+    const toEmail = process.env.CONTACT_TO_EMAIL || process.env.BUSINESS_EMAIL || "contact@a1marinecare.ca";
+    const fromEmail = process.env.FROM_EMAIL || "A1 Marine Care <noreply@a1marinecare.ca>";
+    console.log(JSON.stringify({ level: "email_attempt", source: "booking", to: toEmail, from: fromEmail, bookingId: record.id }));
 
     try {
       const emailResult = await sendBookingNotificationEmail({
@@ -146,19 +148,16 @@ export async function createBookingLead(payload: Parameters<LeadRepository["crea
 
       if (emailResult.success) {
         emailStatus = "sent";
-        console.log(`[Email] Booking notification sent. Message ID: ${emailResult.messageId}`);
+        console.log(JSON.stringify({ level: "email_success", source: "booking", bookingId: record.id, resendId: emailResult.messageId }));
       } else {
-        emailStatus = `failed: ${emailResult.error}`;
-        console.error("[Email] Booking notification failed:", emailResult.error);
+        emailStatus = "failed";
+        console.error(JSON.stringify({ level: "email_failure", source: "booking", bookingId: record.id, error: emailResult.error }));
       }
     } catch (err) {
       emailStatus = "failed";
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[Email] Booking notification threw:", msg);
+      console.error(JSON.stringify({ level: "email_failure", source: "booking", bookingId: record.id, error: msg }));
     }
-  } else {
-    console.warn("[Email] Skipped - RESEND_API_KEY not set");
-    emailStatus = "not_configured";
   }
 
   // Step 3: Update booking record with sync statuses

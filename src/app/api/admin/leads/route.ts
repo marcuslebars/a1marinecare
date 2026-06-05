@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLeadEvents, updateLeadEventStatus, type LeadStatus } from "@/lib/lead-events";
+import { getLeadEvents, updateLeadEventStatus, isMissingTableError, type LeadStatus } from "@/lib/lead-events";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -33,14 +33,19 @@ export async function GET(request: NextRequest) {
         notificationStatus: lead.notificationStatus,
         resendEmailId: lead.resendEmailId,
         calendarEventId: lead.calendarEventId,
+        calendarSyncStatus: lead.calendarSyncStatus,
         leadId: lead.leadId,
         leadType: lead.leadType,
+        metadata: lead.metadata,
       })),
       total: result.total,
       limit,
       offset,
     });
   } catch (err) {
+    if (isMissingTableError(err)) {
+      return NextResponse.json({ error: "lead_events table missing. Run: npx prisma migrate deploy", code: "P2021", tableMissing: true }, { status: 503 });
+    }
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
@@ -59,6 +64,9 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, id, status });
   } catch (err) {
+    if (isMissingTableError(err)) {
+      return NextResponse.json({ error: "lead_events table missing. Run: npx prisma migrate deploy", code: "P2021", tableMissing: true }, { status: 503 });
+    }
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: msg }, { status: 500 });
   }

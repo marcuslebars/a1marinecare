@@ -6,6 +6,7 @@ export async function GET() {
     dbReachable: false,
     quoteLeadsTable: false,
     bookingRequestsTable: false,
+    leadEventsTable: false,
     errors: [] as string[],
   };
 
@@ -32,7 +33,14 @@ export async function GET() {
     checks.errors.push("booking_requests table missing. Run: npx prisma migrate deploy");
   }
 
-  const healthy = checks.dbReachable && checks.quoteLeadsTable && checks.bookingRequestsTable;
+  try {
+    await prisma.$queryRaw`SELECT 1 FROM "lead_events" LIMIT 1`;
+    checks.leadEventsTable = true;
+  } catch {
+    checks.errors.push("lead_events table missing. Run: npx prisma migrate deploy");
+  }
+
+  const healthy = checks.dbReachable && checks.quoteLeadsTable && checks.bookingRequestsTable && checks.leadEventsTable;
 
   if (!healthy) {
     console.error("[Health] DB check failed:", checks.errors);

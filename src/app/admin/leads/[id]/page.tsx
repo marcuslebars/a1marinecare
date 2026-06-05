@@ -165,6 +165,18 @@ export default async function LeadDetailPage({
                   <span className="font-mono text-xs">{lead.calendarEventId}</span>
                 </div>
               )}
+              {lead.calendarSyncStatus && lead.calendarSyncStatus !== "synced" && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Calendar Status</span>
+                  <span className={`font-medium ${lead.calendarSyncStatus === "failed" ? "text-red-400" : "text-yellow-400"}`}>{lead.calendarSyncStatus}</span>
+                </div>
+              )}
+              {(lead.metadata as Record<string, unknown>)?.lastError && (
+                <div className="mt-2 rounded bg-red-500/10 p-2">
+                  <div className="text-xs text-red-400">Last Error</div>
+                  <div className="mt-1 text-xs text-red-300">{String((lead.metadata as Record<string, unknown>).lastError)}</div>
+                </div>
+              )}
             </div>
           </div>
 

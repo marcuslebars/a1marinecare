@@ -1,8 +1,6 @@
 import { Resend } from "resend";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL || "contact@a1marinecare.ca";
-const FROM_EMAIL = process.env.FROM_EMAIL || "A1 Marine Care <noreply@a1marinecare.ca>";
 
 export interface BookingEmailInput {
   bookingId: string;
@@ -177,6 +175,9 @@ function buildBusinessEmailContent(input: BookingEmailInput): { subject: string;
 }
 
 export async function sendBookingNotificationEmail(input: BookingEmailInput): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const toEmail = process.env.CONTACT_TO_EMAIL || process.env.BUSINESS_EMAIL || "contact@a1marinecare.ca";
+  const fromEmail = process.env.FROM_EMAIL || "A1 Marine Care <noreply@a1marinecare.ca>";
+
   if (!RESEND_API_KEY) {
     console.warn("[Email] RESEND_API_KEY not set - skipping email notification");
     return { success: false, error: "RESEND_API_KEY not configured" };
@@ -185,27 +186,57 @@ export async function sendBookingNotificationEmail(input: BookingEmailInput): Pr
   try {
     const { subject, html } = buildBusinessEmailContent(input);
 
-    console.log(`[Email] Sending booking notification to ${BUSINESS_EMAIL}...`);
+    console.log(JSON.stringify({
+      level: "email_attempt",
+      source: "booking",
+      to: toEmail,
+      from: fromEmail,
+      subject,
+      bookingId: input.bookingId,
+    }));
 
     const resend = new Resend(RESEND_API_KEY);
     const response = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: BUSINESS_EMAIL,
+      from: fromEmail,
+      to: toEmail,
       replyTo: input.contactEmail,
       subject,
       html,
     });
 
     if (response.error) {
-      console.error("[Email] Resend error:", response.error);
+      console.error(JSON.stringify({
+        level: "email_failure",
+        source: "booking",
+        to: toEmail,
+        from: fromEmail,
+        subject,
+        bookingId: input.bookingId,
+        error: response.error,
+      }));
       return { success: false, error: response.error.message };
     }
 
-    console.log(`[Email] Booking notification sent successfully. Message ID: ${response.data?.id}`);
+    console.log(JSON.stringify({
+      level: "email_success",
+      source: "booking",
+      to: toEmail,
+      from: fromEmail,
+      subject,
+      bookingId: input.bookingId,
+      resendId: response.data?.id,
+    }));
     return { success: true, messageId: response.data?.id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[Email] Failed to send booking notification:", msg);
+    console.error(JSON.stringify({
+      level: "email_failure",
+      source: "booking",
+      to: toEmail,
+      from: fromEmail,
+      subject: "booking-notification",
+      error: msg,
+    }));
     return { success: false, error: msg };
   }
 }

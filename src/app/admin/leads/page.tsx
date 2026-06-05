@@ -30,6 +30,13 @@ const NOTIFICATION_COLORS: Record<string, string> = {
   not_configured: "text-gray-400",
 };
 
+const NOTIFICATION_LABELS: Record<string, string> = {
+  pending: "Pending",
+  sent: "Sent",
+  failed: "Failed",
+  not_configured: "Not Configured",
+};
+
 function formatDate(date: Date | string) {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-CA", {
@@ -176,10 +183,13 @@ export default async function AdminLeadsPage({
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-medium ${NOTIFICATION_COLORS[lead.notificationStatus ?? "pending"] ?? ""}`}>
-                          {lead.notificationStatus ?? "pending"}
+                          {NOTIFICATION_LABELS[lead.notificationStatus ?? "pending"] ?? lead.notificationStatus ?? "pending"}
                         </span>
                         {lead.resendEmailId && (
                           <div className="text-xs text-muted-foreground">{lead.resendEmailId}</div>
+                        )}
+                        {(lead.metadata as Record<string, unknown>)?.lastError && (
+                          <div className="mt-1 text-xs text-red-400">Error: {String((lead.metadata as Record<string, unknown>).lastError)}</div>
                         )}
                       </td>
                     </tr>
