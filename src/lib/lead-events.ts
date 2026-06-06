@@ -116,7 +116,7 @@ export async function updateLeadEventNotification(
     data: {
       notificationStatus: status,
       resendEmailId: resendEmailId ?? null,
-      metadata: error ? { ...existingMeta, lastError: error } : existingMeta,
+      metadata: (error ? { ...existingMeta, lastError: error } : existingMeta) as Prisma.InputJsonValue,
     },
   });
 }
@@ -214,12 +214,12 @@ export async function sendLeadNotificationEmail(
   const apiKey = process.env.RESEND_API_KEY;
   const toEmail = process.env.CONTACT_TO_EMAIL || process.env.BUSINESS_EMAIL || "contact@a1marinecare.ca";
   const fromEmail = process.env.FROM_EMAIL || "A1 Marine Care <noreply@a1marinecare.ca>";
-  const leadRecord = await prisma.leadEvent.findUnique({ where: { id: leadEventId }, select: { source: true } });
+  const leadRecord = leadEventId ? await prisma.leadEvent.findUnique({ where: { id: leadEventId }, select: { source: true } }) : null;
   const source = leadRecord?.source ?? "contact";
 
   if (!apiKey) {
     console.log(JSON.stringify({ level: "email_skipped", source, reason: "RESEND_API_KEY not set", to: toEmail, from: fromEmail }));
-    await updateLeadEventNotification(leadEventId, "not_configured");
+    if (leadEventId) await updateLeadEventNotification(leadEventId, "not_configured").catch(() => {});
     return { success: false, error: "RESEND_API_KEY not configured" };
   }
 
@@ -237,17 +237,17 @@ export async function sendLeadNotificationEmail(
 
     if (response.error) {
       console.error(JSON.stringify({ level: "email_failure", source, to: toEmail, from: fromEmail, subject: input.subject, leadEventId, error: response.error }));
-      await updateLeadEventNotification(leadEventId, "failed", undefined, response.error.message);
+      if (leadEventId) await updateLeadEventNotification(leadEventId, "failed", undefined, response.error.message).catch(() => {});
       return { success: false, error: response.error.message };
     }
 
     console.log(JSON.stringify({ level: "email_success", source, to: toEmail, from: fromEmail, subject: input.subject, leadEventId, resendId: response.data?.id }));
-    await updateLeadEventNotification(leadEventId, "sent", response.data?.id);
+    if (leadEventId) await updateLeadEventNotification(leadEventId, "sent", response.data?.id).catch(() => {});
     return { success: true, messageId: response.data?.id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(JSON.stringify({ level: "email_failure", source, to: toEmail, from: fromEmail, subject: input.subject, leadEventId, error: msg }));
-    await updateLeadEventNotification(leadEventId, "failed", undefined, msg);
+    if (leadEventId) await updateLeadEventNotification(leadEventId, "failed", undefined, msg).catch(() => {});
     return { success: false, error: msg };
   }
 }

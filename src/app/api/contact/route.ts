@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "Invalid request data." }, { status: 400 });
   }
 
-  let leadEventId: string;
+  let leadEventId: string | null = null;
   try {
     const leadEvent = await createLeadEvent({
       source: "contact",
@@ -42,12 +42,11 @@ export async function POST(request: Request) {
     console.log("[Contact API] Lead saved:", leadEventId);
   } catch (err) {
     if (isMissingTableError(err)) {
-      console.error("[Contact API] lead_events table missing. Run: npx prisma migrate deploy");
-      return NextResponse.json({ success: false, error: "Service temporarily unavailable. Please contact us directly." }, { status: 503 });
+      console.warn("[Contact API] lead_events table unavailable. Proceeding without lead tracking.");
+    } else {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[Contact API] LeadEvent DB save failed:", msg);
     }
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[Contact API] DB save failed:", msg);
-    return NextResponse.json({ success: false, error: "Could not save your submission. Please try again." }, { status: 500 });
   }
 
   const timestampIso = new Date().toISOString();
@@ -55,7 +54,7 @@ export async function POST(request: Request) {
   const serviceLabel = formatServiceLabel(parsed.serviceInterest);
   const safeMessageHtml = escapeHtml(parsed.message).replace(/\n/g, "<br />");
 
-  const emailResult = await sendLeadNotificationEmail(leadEventId, {
+  const emailResult = await sendLeadNotificationEmail(leadEventId ?? "", {
     subject: `New Contact Inquiry: ${parsed.subject}`,
     html: `
       <div style="margin:0;padding:32px;background:#02070c;font-family:Inter,Arial,sans-serif;color:#e5edf5;">

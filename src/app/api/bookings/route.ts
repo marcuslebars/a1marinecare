@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     contactName: string;
     contactEmail: string;
     contactPhone: string;
-    notes?: string;
+    notes: string;
     boatLength?: string;
     recurrenceType?: "weekly" | "biweekly" | null;
     bookingMode?: "one-time" | "recurring";
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "Invalid request data." }, { status: 400 });
   }
 
-  let leadEventId: string;
+  let leadEventId: string | null = null;
   try {
     const leadEvent = await createLeadEvent({
       source: "booking",
@@ -51,12 +51,11 @@ export async function POST(request: Request) {
     console.log("[Booking Create] Lead saved:", leadEventId);
   } catch (err) {
     if (isMissingTableError(err)) {
-      console.error("[Booking Create] lead_events table missing. Run: npx prisma migrate deploy");
-      return NextResponse.json({ success: false, error: "Service temporarily unavailable. Please try again later." }, { status: 503 });
+      console.warn("[Booking Create] lead_events table unavailable. Proceeding without lead tracking.");
+    } else {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[Booking Create] LeadEvent DB save failed:", msg);
     }
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[Booking Create] LeadEvent DB save failed:", msg);
-    return NextResponse.json({ success: false, error: "Unable to create booking" }, { status: 500 });
   }
 
   let record: { id: string; createdAt: string; googleCalendarEventId: string | null; googleCalendarHtmlLink: string | null };
