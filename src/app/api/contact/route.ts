@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createLeadEvent, sendLeadNotificationEmail, isMissingTableError } from "@/lib/lead-events";
 import { contactSchema } from "@/lib/validation";
+import { sendToCrm } from "@/lib/crm-webhook";
 
 export const runtime = "nodejs";
 
@@ -116,6 +117,16 @@ export async function POST(request: Request) {
   } else {
     console.log(JSON.stringify({ level: "email_success", source: "contact", leadEventId, resendId: emailResult.messageId }));
   }
+
+  // Forward to CRM (fire-and-forget — never blocks the response)
+  sendToCrm({
+    source: "contact",
+    name: parsed.fullName,
+    email: parsed.email,
+    phone: parsed.phone,
+    service: parsed.serviceInterest,
+    message: parsed.message,
+  });
 
   return NextResponse.json({ success: true, submittedAt: timestampIso });
 }

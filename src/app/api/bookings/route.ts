@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createLeadEvent, isMissingTableError } from "@/lib/lead-events";
 import { createBookingLead } from "@/lib/leads";
 import { bookingSchema } from "@/lib/validation";
+import { sendToCrm } from "@/lib/crm-webhook";
 
 export async function POST(request: Request) {
   let payload: Record<string, unknown>;
@@ -67,6 +68,20 @@ export async function POST(request: Request) {
     console.error("[Booking Create] Booking creation failed:", msg);
     return NextResponse.json({ success: false, error: "Unable to create booking" }, { status: 500 });
   }
+
+  // Forward to CRM (fire-and-forget — never blocks the response)
+  sendToCrm({
+    source: "booking",
+    name: parsed.contactName,
+    email: parsed.contactEmail,
+    phone: parsed.contactPhone,
+    service: parsed.serviceSlug,
+    boatLength: parsed.boatLength,
+    marina: parsed.locationSlug,
+    date: parsed.date,
+    timeSlot: parsed.timeSlot,
+    notes: parsed.notes,
+  });
 
   return NextResponse.json({
     success: true,

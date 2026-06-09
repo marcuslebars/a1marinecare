@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createLeadEvent, sendLeadNotificationEmail } from "@/lib/lead-events";
 import { createQuoteLead } from "@/lib/leads";
 import { quoteSchema } from "@/lib/validation";
+import { sendToCrm } from "@/lib/crm-webhook";
 
 export async function POST(request: Request) {
   try {
@@ -85,6 +86,19 @@ export async function POST(request: Request) {
           </div>
         </div>
       `,
+    });
+
+    // Forward to CRM (fire-and-forget — never blocks the response)
+    sendToCrm({
+      source: "quote",
+      name: parsed.contactName,
+      email: parsed.contactEmail,
+      phone: parsed.contactPhone,
+      service: parsed.services?.join(", "),
+      boatLength: parsed.boatLength,
+      boatType: parsed.boatType,
+      marina: parsed.locationSlug,
+      notes: parsed.notes,
     });
 
     return NextResponse.json({
