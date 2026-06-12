@@ -7,15 +7,14 @@ import {
   getAllPreviewServices,
 } from "@/lib/preview-prompts";
 
-const GEMINI_API_VERSION = "v1beta";
-
-const PRIMARY_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+// Correct stable model names as per https://ai.google.dev/gemini-api/docs/models
+const PRIMARY_IMAGE_MODEL = "gemini-3.1-flash-image";
 const FALLBACK_IMAGE_MODEL = "gemini-2.5-flash-image";
 
 const VALID_IMAGE_MODELS = [
   "gemini-2.5-flash-image",
-  "gemini-3.1-flash-image-preview",
-  "gemini-3-pro-image-preview",
+  "gemini-3.1-flash-image",
+  "gemini-3-pro-image",
 ] as const;
 
 const KNOWN_BAD_MODELS = [
@@ -24,6 +23,9 @@ const KNOWN_BAD_MODELS = [
   "gemini-3.1-pro-preview",
   "gemini-3.0-pro-exp",
   "gemini-3.0-flash-exp",
+  // Old incorrect names that had wrong suffixes
+  "gemini-3.1-flash-image-preview",
+  "gemini-3-pro-image-preview",
 ];
 
 function isValidImageModel(model: string): model is (typeof VALID_IMAGE_MODELS)[number] {
@@ -65,7 +67,6 @@ async function generatePreviewWithModel(
 ): Promise<GenerateContentResult> {
   console.log("[Boat Preview] Attempting with model:", model);
   console.log("[Boat Preview] API client:", "@google/genai");
-  console.log("[Boat Preview] API version:", GEMINI_API_VERSION);
   console.log("[Boat Preview] API method:", "ai.models.generateContent");
 
   const contents = [
@@ -83,12 +84,15 @@ async function generatePreviewWithModel(
     },
   ];
 
-  console.log("[Boat Preview] Request payload fields:", ["contents"]);
+  console.log("[Boat Preview] Request payload fields:", ["contents", "config.responseModalities"]);
 
   try {
     const data = await ai.models.generateContent({
       model,
       contents,
+      config: {
+        responseModalities: ["TEXT", "IMAGE"],
+      },
     });
 
     const hasCandidates = Boolean(data.candidates?.length);
@@ -176,10 +180,7 @@ export async function POST(request: Request) {
     const model = getEffectiveModel();
     const prompt = getPreviewPrompt(service);
     const compressedImage = await compressImage(imageBase64);
-    const ai = new GoogleGenAI({
-      apiKey,
-      apiVersion: GEMINI_API_VERSION,
-    });
+    const ai = new GoogleGenAI({ apiKey });
 
     const imageData = compressedImage.includes(",")
       ? compressedImage.split(",")[1]
