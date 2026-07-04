@@ -159,6 +159,7 @@ const SERVICE_DATA: Record<ServiceKey, ServiceData> = {
         </div>
         <BowriderCallout />
         <SectionHeading>Available Add-Ons</SectionHeading>
+        {/* PRICE-COPY: editorial add-on pricing (headline figures & ranges, intentionally distinct from the engine's exact charges) — review on rate change. See PRICE-COPY-INVENTORY.md */}
         <BulletList
           items={[
             "Arch / Radar Arch — $175",
@@ -182,6 +183,7 @@ const SERVICE_DATA: Record<ServiceKey, ServiceData> = {
     render: () => (
       <>
         <SectionHeading>Service Tiers</SectionHeading>
+        {/* PRICE-COPY: editorial tier-multiplier labels — mirror CARE.exterior.tierMultipliers; review on rate change. See PRICE-COPY-INVENTORY.md */}
         <div className="grid grid-cols-1 gap-3">
           <TierCard name="Refresh" multiplier="1.0x" description="A light exterior clean and polish to maintain an already well-kept boat." includes={["Exterior wash & dry", "Light hand polish", "Spray sealant finish"]} bestFor="Well-maintained boats that need a quick touch-up" />
           <TierCard name="Standard" multiplier="1.2x" description="A thorough exterior detail with decontamination and hand polish." includes={["Full wash & clay bar treatment", "Hand polish with sealant", "Chrome & metal brightening"]} bestFor="Boats with light oxidation or seasonal build-up" />
@@ -203,6 +205,7 @@ const SERVICE_DATA: Record<ServiceKey, ServiceData> = {
     render: () => (
       <>
         <SectionHeading>Service Tiers</SectionHeading>
+        {/* PRICE-COPY: editorial tier-multiplier labels — mirror CARE.interior.tierMultipliers; review on rate change. See PRICE-COPY-INVENTORY.md */}
         <div className="grid grid-cols-1 gap-3">
           <TierCard name="Refresh" multiplier="1.0x" description="A light interior clean for boats in good condition." includes={["Vacuum all surfaces", "Wipe-down of hard surfaces", "Surface sanitisation"]} bestFor="Recently cleaned boats or quick seasonal prep" />
           <TierCard name="Standard" multiplier="1.25x" description="Full interior detail including upholstery and surface treatment." includes={["Full vacuum & dusting", "Upholstery cleaning", "Surface treatment & conditioning"]} bestFor="Boats with normal wear and light soiling" />
@@ -311,6 +314,7 @@ const SERVICE_DATA: Record<ServiceKey, ServiceData> = {
         <BulletList items={["Pressure wash", "Wipe down", "Chrome polish", "Window cleaning"]} />
         <SectionHeading>How Recurring Booking Works</SectionHeading>
         <BulletList items={["Select your preferred start date", "Choose your preferred time window", "We create a recurring booking cadence for you", "Your Google Calendar booking is created as a recurring weekly event"]} />
+        {/* PRICE-COPY: editorial — mirrors CARE.weeklyMaintenance.ratePerFoot; review on rate change. See PRICE-COPY-INVENTORY.md */}
         <PricingNote>Weekly Service is priced at $6 per foot and is presented as a Maintenance Plan, not a one-time detailing package.</PricingNote>
       </>
     ),
@@ -327,6 +331,7 @@ const SERVICE_DATA: Record<ServiceKey, ServiceData> = {
         <BulletList items={["Pressure wash", "Wipe down", "Chrome polish", "Window cleaning"]} />
         <SectionHeading>How Recurring Booking Works</SectionHeading>
         <BulletList items={["Select your preferred start date", "Choose your preferred time window", "We create the recurring cadence for you", "Your Google Calendar booking is created with an every-other-week recurrence rule"]} />
+        {/* PRICE-COPY: editorial — mirrors CARE.biweeklyMaintenance.ratePerFoot; review on rate change. See PRICE-COPY-INVENTORY.md */}
         <PricingNote>Bi-Weekly Service is priced at $7 per foot and is presented as a Maintenance Plan, not a one-time detailing package.</PricingNote>
       </>
     ),
