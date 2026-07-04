@@ -1,3 +1,5 @@
+import { CARE } from "./pricing-config";
+
 export interface BoatDetails {
   length: number;
   type: string;
@@ -90,70 +92,18 @@ export interface PricingResult {
   reviewReasons: string[];
 }
 
-export const SERVICE_STARTING_RATE_BY_SLUG = {
-  "boat-detailing": 20,
-  "gelcoat-restoration": 21,
-  "ceramic-coating": 35,
-  "interior-detailing": 18,
-  "graphene-coating": 40,
-  "wet-sanding": 45,
-  "bottom-painting": 40,
-  "vinyl-removal": 12,
-  "weekly-maintenance-plan": 6,
-  "bi-weekly-maintenance-plan": 7,
-} as const;
+// All prices are sourced from pricing.config.json via the CARE loader — this
+// module holds the formulas and the customer-facing breakdown copy only.
+export const SERVICE_STARTING_RATE_BY_SLUG: Record<string, number> = CARE.startingRatesBySlug;
 
 export function getServiceStartingRateBySlug(slug: string): number | null {
-  return SERVICE_STARTING_RATE_BY_SLUG[slug as keyof typeof SERVICE_STARTING_RATE_BY_SLUG] ?? null;
+  return SERVICE_STARTING_RATE_BY_SLUG[slug] ?? null;
 }
 
 export function getServiceStartingPriceLabel(slug: string): string {
   const rate = getServiceStartingRateBySlug(slug);
   return rate === null ? "Custom quote" : `From $${rate}/ft`;
 }
-
-const GELCOAT_RATES = {
-  hull: [
-    { max: 20, rate: 21 },
-    { max: 25, rate: 23 },
-    { max: 30, rate: 25 },
-    { max: 35, rate: 27 },
-    { max: 40, rate: 30 },
-    { max: 45, rate: 34 },
-    { max: Infinity, rate: 36 },
-  ],
-  topsides: [
-    { max: 20, rate: 24 },
-    { max: 25, rate: 26 },
-    { max: 30, rate: 28 },
-    { max: 35, rate: 31 },
-    { max: 40, rate: 34 },
-    { max: 45, rate: 37 },
-    { max: Infinity, rate: 40 },
-  ],
-} as const;
-
-const TIER_MULTIPLIERS = {
-  refresh: 1.0,
-  standard: 1.2,
-  deep: 1.4,
-  restoration: 1.6,
-} as const;
-
-const INTERIOR_TIER_MULTIPLIERS = {
-  refresh: 1.0,
-  standard: 1.25,
-  deep: 1.5,
-  restoration: 1.75,
-} as const;
-
-const INTERIOR_BOAT_TYPE_MULTIPLIERS: Record<string, number> = {
-  "Open Bow / Bowrider": 1.0,
-  "Cuddy Cabin": 1.1,
-  "Cruiser (Single Cabin)": 1.25,
-  "Express Cruiser": 1.35,
-  "Yacht / Multi-Cabin": 1.6,
-};
 
 function getBoatTypeDisplayName(shortValue: string): string {
   const mapping: Record<string, string> = {
@@ -171,15 +121,15 @@ function getBoatTypeDisplayName(shortValue: string): string {
 }
 
 function getGelcoatRate(length: number, area: "hull" | "topsides"): number {
-  const rates = GELCOAT_RATES[area];
+  const bands = CARE.gelcoat.rateBands[area];
 
-  for (const tier of rates) {
-    if (length <= tier.max) {
-      return tier.rate;
+  for (const band of bands) {
+    if (band.maxFt === null || length <= band.maxFt) {
+      return band.rate;
     }
   }
 
-  return rates[rates.length - 1].rate;
+  return bands[bands.length - 1].rate;
 }
 
 export function calculateGelcoat(length: number, config: GelcoatConfig): PricingResult {
@@ -207,34 +157,34 @@ export function calculateGelcoat(length: number, config: GelcoatConfig): Pricing
     baseServiceSubtotal = hullPrice + topsidesPrice;
   } else if (config.area === "bowrider") {
     const hullPrice = length * hullRate;
-    const adjustedTopsidesPrice = length * topsidesRate * 0.6;
+    const adjustedTopsidesPrice = length * topsidesRate * CARE.gelcoat.bowriderTopsidesFactor;
     breakdown.push(`Hull: ${length}ft × $${hullRate}/ft = $${hullPrice.toFixed(2)}`);
     breakdown.push(
-      `Topsides (Bowrider 40% reduction): ${length}ft × $${topsidesRate}/ft × 0.6 = $${adjustedTopsidesPrice.toFixed(2)}`,
+      `Topsides (Bowrider 40% reduction): ${length}ft × $${topsidesRate}/ft × ${CARE.gelcoat.bowriderTopsidesFactor} = $${adjustedTopsidesPrice.toFixed(2)}`,
     );
     baseServiceSubtotal = hullPrice + adjustedTopsidesPrice;
   }
 
   let oxidationCharge = 0;
   if (config.heavyOxidation) {
-    oxidationCharge = baseServiceSubtotal * 0.2;
-    breakdown.push(`Heavy Oxidation Surcharge (+20%): $${oxidationCharge.toFixed(2)}`);
+    oxidationCharge = baseServiceSubtotal * (CARE.gelcoat.heavyOxidationSurchargePct / 100);
+    breakdown.push(`Heavy Oxidation Surcharge (+${CARE.gelcoat.heavyOxidationSurchargePct}%): $${oxidationCharge.toFixed(2)}`);
   }
 
   subtotal = baseServiceSubtotal + oxidationCharge;
 
   if (config.radarArch) {
-    subtotal += 175;
-    breakdown.push("Arch / Radar Arch: $175.00");
+    subtotal += CARE.gelcoat.addons.radarArch;
+    breakdown.push(`Arch / Radar Arch: $${CARE.gelcoat.addons.radarArch.toFixed(2)}`);
   }
 
   if (config.hardTop) {
-    subtotal += 475;
-    breakdown.push("Hard Top: $475.00");
+    subtotal += CARE.gelcoat.addons.hardTop;
+    breakdown.push(`Hard Top: $${CARE.gelcoat.addons.hardTop.toFixed(2)}`);
   }
 
   if (config.spotWetSanding > 0) {
-    const sandingCost = config.spotWetSanding * 125;
+    const sandingCost = config.spotWetSanding * CARE.gelcoat.spotWetSandingPerArea;
     subtotal += sandingCost;
     breakdown.push(`Spot Wet Sanding (${config.spotWetSanding} areas): $${sandingCost.toFixed(2)}`);
   }
@@ -251,8 +201,8 @@ export function calculateExterior(length: number, config: ExteriorConfig): Prici
   const breakdown: string[] = [];
   let subtotal = 0;
 
-  const baseRate = 20;
-  const multiplier = TIER_MULTIPLIERS[config.tier];
+  const baseRate = CARE.exterior.baseRatePerFoot;
+  const multiplier = CARE.exterior.tierMultipliers[config.tier];
   const basePrice = length * baseRate * multiplier;
 
   breakdown.push(
@@ -261,23 +211,23 @@ export function calculateExterior(length: number, config: ExteriorConfig): Prici
   subtotal = basePrice;
 
   if (config.teakCleaning) {
-    subtotal += 225;
-    breakdown.push("Teak Cleaning: $225.00");
+    subtotal += CARE.exterior.addons.teakCleaning;
+    breakdown.push(`Teak Cleaning: $${CARE.exterior.addons.teakCleaning.toFixed(2)}`);
   }
 
   if (config.canvasCleaning) {
-    subtotal += 150;
-    breakdown.push("Canvas Cleaning: $150.00");
+    subtotal += CARE.exterior.addons.canvasCleaning;
+    breakdown.push(`Canvas Cleaning: $${CARE.exterior.addons.canvasCleaning.toFixed(2)}`);
   }
 
   if (config.fenderCleaning) {
-    subtotal += 60;
-    breakdown.push("Fender Cleaning: $60.00");
+    subtotal += CARE.exterior.addons.fenderCleaning;
+    breakdown.push(`Fender Cleaning: $${CARE.exterior.addons.fenderCleaning.toFixed(2)}`);
   }
 
   if (config.exteriorOzone) {
-    subtotal += 100;
-    breakdown.push("Exterior Ozone: $100.00");
+    subtotal += CARE.exterior.addons.exteriorOzone;
+    breakdown.push(`Exterior Ozone: $${CARE.exterior.addons.exteriorOzone.toFixed(2)}`);
   }
 
   return { subtotal, breakdown, requiresManualReview: false, reviewReasons: [] };
@@ -290,8 +240,8 @@ export function calculateInterior(length: number, boatType: string, config: Inte
 
   const boatTypeDisplay = getBoatTypeDisplayName(boatType);
 
-  if (length > 45) {
-    reviewReasons.push("Boat over 45ft requires manual review");
+  if (length > CARE.interior.manualReview.maxLengthFt) {
+    reviewReasons.push(`Boat over ${CARE.interior.manualReview.maxLengthFt}ft requires manual review`);
   }
 
   if (config.tier === "restoration") {
@@ -306,45 +256,45 @@ export function calculateInterior(length: number, boatType: string, config: Inte
     return { subtotal: 0, breakdown, requiresManualReview: true, reviewReasons };
   }
 
-  const baseRate = 18;
-  const tierMultiplier = INTERIOR_TIER_MULTIPLIERS[config.tier];
-  const boatTypeMultiplier = INTERIOR_BOAT_TYPE_MULTIPLIERS[boatTypeDisplay] || 1.0;
+  const baseRate = CARE.interior.baseRatePerFoot;
+  const tierMultiplier = CARE.interior.tierMultipliers[config.tier];
+  const boatTypeMultiplier = CARE.interior.boatTypeMultipliers[boatTypeDisplay] || 1.0;
   const calculatedBase = length * baseRate * boatTypeMultiplier * tierMultiplier;
 
   let interiorAddOnsTotal = 0;
 
   if (config.moldRemediation) {
-    interiorAddOnsTotal += 295;
-    breakdown.push("Advanced Mold & Mildew Remediation: $295.00");
+    interiorAddOnsTotal += CARE.interior.addons.moldRemediation;
+    breakdown.push(`Advanced Mold & Mildew Remediation: $${CARE.interior.addons.moldRemediation.toFixed(2)}`);
   }
 
   if (config.petHairRemoval) {
-    interiorAddOnsTotal += 150;
-    breakdown.push("Heavy Pet Hair Removal: $150.00");
+    interiorAddOnsTotal += CARE.interior.addons.petHairRemoval;
+    breakdown.push(`Heavy Pet Hair Removal: $${CARE.interior.addons.petHairRemoval.toFixed(2)}`);
   }
 
   if (config.mattressShampoo) {
-    interiorAddOnsTotal += 175;
-    breakdown.push("Cabin Mattress / Cushion Shampoo: $175.00");
+    interiorAddOnsTotal += CARE.interior.addons.mattressShampoo;
+    breakdown.push(`Cabin Mattress / Cushion Shampoo: $${CARE.interior.addons.mattressShampoo.toFixed(2)}`);
   }
 
   if (config.headDeepClean) {
-    interiorAddOnsTotal += 125;
-    breakdown.push("Head (Bathroom) Deep Clean: $125.00");
+    interiorAddOnsTotal += CARE.interior.addons.headDeepClean;
+    breakdown.push(`Head (Bathroom) Deep Clean: $${CARE.interior.addons.headDeepClean.toFixed(2)}`);
   }
 
   if (config.galleyDeepClean) {
-    interiorAddOnsTotal += 175;
-    breakdown.push("Galley Deep Clean: $175.00");
+    interiorAddOnsTotal += CARE.interior.addons.galleyDeepClean;
+    breakdown.push(`Galley Deep Clean: $${CARE.interior.addons.galleyDeepClean.toFixed(2)}`);
   }
 
   if (config.ozoneInterior) {
-    interiorAddOnsTotal += 195;
-    breakdown.push("Ozone Odor Treatment: $195.00");
+    interiorAddOnsTotal += CARE.interior.addons.ozoneInterior;
+    breakdown.push(`Ozone Odor Treatment: $${CARE.interior.addons.ozoneInterior.toFixed(2)}`);
   }
 
-  const lowEstimate = calculatedBase * 0.85 + interiorAddOnsTotal;
-  const highEstimate = calculatedBase * 1.15 + interiorAddOnsTotal;
+  const lowEstimate = calculatedBase * CARE.interior.estimateRange.low + interiorAddOnsTotal;
+  const highEstimate = calculatedBase * CARE.interior.estimateRange.high + interiorAddOnsTotal;
 
   breakdown.unshift(
     `Interior ${config.tier.charAt(0).toUpperCase() + config.tier.slice(1)} (${boatTypeDisplay}): $${lowEstimate.toFixed(0)} – $${highEstimate.toFixed(0)}`,
@@ -359,24 +309,24 @@ export function calculateCeramic(length: number, config: CeramicConfig): Pricing
   const breakdown: string[] = [];
   let subtotal = 0;
 
-  const basePrice = length * 35;
-  breakdown.push(`Ceramic Coating: ${length}ft × $35/ft = $${basePrice.toFixed(2)}`);
+  const basePrice = length * CARE.ceramic.baseRatePerFoot;
+  breakdown.push(`Ceramic Coating: ${length}ft × $${CARE.ceramic.baseRatePerFoot}/ft = $${basePrice.toFixed(2)}`);
   subtotal = basePrice;
 
   if (config.secondLayer) {
-    const secondLayerCost = length * 8;
+    const secondLayerCost = length * CARE.ceramic.perFootAddons.secondLayer;
     subtotal += secondLayerCost;
-    breakdown.push(`Second Layer: ${length}ft × $8/ft = $${secondLayerCost.toFixed(2)}`);
+    breakdown.push(`Second Layer: ${length}ft × $${CARE.ceramic.perFootAddons.secondLayer}/ft = $${secondLayerCost.toFixed(2)}`);
   }
 
   if (config.teakCeramic) {
-    subtotal += 300;
-    breakdown.push("Teak Ceramic: $300.00");
+    subtotal += CARE.ceramic.addons.teakCeramic;
+    breakdown.push(`Teak Ceramic: $${CARE.ceramic.addons.teakCeramic.toFixed(2)}`);
   }
 
   if (config.interiorCeramic) {
-    subtotal += 150;
-    breakdown.push("Interior Ceramic: $150.00");
+    subtotal += CARE.ceramic.addons.interiorCeramic;
+    breakdown.push(`Interior Ceramic: $${CARE.ceramic.addons.interiorCeramic.toFixed(2)}`);
   }
 
   return { subtotal, breakdown, requiresManualReview: false, reviewReasons: [] };
@@ -386,19 +336,19 @@ export function calculateGraphene(length: number, config: GrapheneConfig): Prici
   const breakdown: string[] = [];
   let subtotal = 0;
 
-  const basePrice = length * 40;
-  breakdown.push(`Graphene Coating: ${length}ft × $40/ft = $${basePrice.toFixed(2)}`);
+  const basePrice = length * CARE.graphene.baseRatePerFoot;
+  breakdown.push(`Graphene Coating: ${length}ft × $${CARE.graphene.baseRatePerFoot}/ft = $${basePrice.toFixed(2)}`);
   subtotal = basePrice;
 
   if (config.secondLayer) {
-    const secondLayerCost = length * 10;
+    const secondLayerCost = length * CARE.graphene.perFootAddons.secondLayer;
     subtotal += secondLayerCost;
-    breakdown.push(`Second Layer: ${length}ft × $10/ft = $${secondLayerCost.toFixed(2)}`);
+    breakdown.push(`Second Layer: ${length}ft × $${CARE.graphene.perFootAddons.secondLayer}/ft = $${secondLayerCost.toFixed(2)}`);
   }
 
   if (config.teakGraphene) {
-    subtotal += 350;
-    breakdown.push("Teak Graphene: $350.00");
+    subtotal += CARE.graphene.addons.teakGraphene;
+    breakdown.push(`Teak Graphene: $${CARE.graphene.addons.teakGraphene.toFixed(2)}`);
   }
 
   return { subtotal, breakdown, requiresManualReview: false, reviewReasons: [] };
@@ -408,17 +358,17 @@ export function calculateWetSanding(length: number, config: WetSandingConfig): P
   const breakdown: string[] = [];
   let subtotal = 0;
 
-  const basePrice = length * 45;
-  breakdown.push(`Wet Sanding & Paint/Gelcoat Correction: ${length}ft × $45/ft = $${basePrice.toFixed(2)}`);
+  const basePrice = length * CARE.wetSanding.baseRatePerFoot;
+  breakdown.push(`Wet Sanding & Paint/Gelcoat Correction: ${length}ft × $${CARE.wetSanding.baseRatePerFoot}/ft = $${basePrice.toFixed(2)}`);
   subtotal = basePrice;
 
   if (config.deepScratchRepair) {
-    subtotal += 275;
-    breakdown.push("Deep Scratch Repair: $275.00");
+    subtotal += CARE.wetSanding.addons.deepScratchRepair;
+    breakdown.push(`Deep Scratch Repair: $${CARE.wetSanding.addons.deepScratchRepair.toFixed(2)}`);
   }
 
   if (config.spotWetSanding > 0) {
-    const sandingCost = config.spotWetSanding * 125;
+    const sandingCost = config.spotWetSanding * CARE.wetSanding.spotWetSandingPerArea;
     subtotal += sandingCost;
     breakdown.push(`Spot Wet Sanding (${config.spotWetSanding} areas): $${sandingCost.toFixed(2)}`);
   }
@@ -431,25 +381,25 @@ export function calculateBottomPainting(length: number, config: BottomPaintingCo
   const reviewReasons: string[] = [];
   let subtotal = 0;
 
-  const basePrice = length * 40;
-  breakdown.push(`Bottom Painting: ${length}ft × $40/ft = $${basePrice.toFixed(2)}`);
+  const basePrice = length * CARE.bottomPainting.baseRatePerFoot;
+  breakdown.push(`Bottom Painting: ${length}ft × $${CARE.bottomPainting.baseRatePerFoot}/ft = $${basePrice.toFixed(2)}`);
   subtotal = basePrice;
 
   if (config.secondCoat) {
-    const secondCoatCost = length * 12;
+    const secondCoatCost = length * CARE.bottomPainting.perFootAddons.secondCoat;
     subtotal += secondCoatCost;
-    breakdown.push(`2nd Coat: ${length}ft × $12/ft = $${secondCoatCost.toFixed(2)}`);
+    breakdown.push(`2nd Coat: ${length}ft × $${CARE.bottomPainting.perFootAddons.secondCoat}/ft = $${secondCoatCost.toFixed(2)}`);
   }
 
   if (config.oldPaintRemoval) {
-    const removalCost = length * 18;
+    const removalCost = length * CARE.bottomPainting.perFootAddons.oldPaintRemoval;
     subtotal += removalCost;
-    breakdown.push(`Old Paint Removal: ${length}ft × $18/ft = $${removalCost.toFixed(2)}`);
+    breakdown.push(`Old Paint Removal: ${length}ft × $${CARE.bottomPainting.perFootAddons.oldPaintRemoval}/ft = $${removalCost.toFixed(2)}`);
   }
 
   if (config.heavyGrowthRemoval) {
-    subtotal += 250;
-    breakdown.push("Heavy Growth Removal: $250.00");
+    subtotal += CARE.bottomPainting.addons.heavyGrowthRemoval;
+    breakdown.push(`Heavy Growth Removal: $${CARE.bottomPainting.addons.heavyGrowthRemoval.toFixed(2)}`);
   }
 
   if (config.blisterRepair) {
@@ -468,11 +418,7 @@ export function calculateVinyl(length: number, config: VinylConfig): PricingResu
   const breakdown: string[] = [];
   let subtotal = 0;
 
-  const rates = {
-    removal: 12,
-    install: 15,
-    both: 24,
-  } as const;
+  const rates = CARE.vinyl.ratesPerFoot;
 
   const basePrice = length * rates[config.service];
   const serviceName =
@@ -482,19 +428,19 @@ export function calculateVinyl(length: number, config: VinylConfig): PricingResu
   subtotal = basePrice;
 
   if (config.customDesign) {
-    subtotal += 125;
-    breakdown.push("Custom Design: $125.00");
+    subtotal += CARE.vinyl.addons.customDesign;
+    breakdown.push(`Custom Design: $${CARE.vinyl.addons.customDesign.toFixed(2)}`);
   }
 
   return { subtotal, breakdown, requiresManualReview: false, reviewReasons: [] };
 }
 
 export function calculateWeeklyMaintenance(length: number): PricingResult {
-  const subtotal = length * 6;
+  const subtotal = length * CARE.weeklyMaintenance.ratePerFoot;
   return {
     subtotal,
     breakdown: [
-      `Weekly Service: ${length}ft × $6/ft = $${subtotal.toFixed(2)}`,
+      `Weekly Service: ${length}ft × $${CARE.weeklyMaintenance.ratePerFoot}/ft = $${subtotal.toFixed(2)}`,
       "Includes: pressure wash, wipe down, chrome polish, and window cleaning.",
     ],
     requiresManualReview: false,
@@ -503,11 +449,11 @@ export function calculateWeeklyMaintenance(length: number): PricingResult {
 }
 
 export function calculateBiweeklyMaintenance(length: number): PricingResult {
-  const subtotal = length * 7;
+  const subtotal = length * CARE.biweeklyMaintenance.ratePerFoot;
   return {
     subtotal,
     breakdown: [
-      `Bi-Weekly Service: ${length}ft × $7/ft = $${subtotal.toFixed(2)}`,
+      `Bi-Weekly Service: ${length}ft × $${CARE.biweeklyMaintenance.ratePerFoot}/ft = $${subtotal.toFixed(2)}`,
       "Includes: pressure wash, wipe down, chrome polish, and window cleaning.",
     ],
     requiresManualReview: false,

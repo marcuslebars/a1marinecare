@@ -1,0 +1,188 @@
+{
+  "_meta": {
+    "description": "Single source of truth for all A1 pricing. Organized by service line so each site consumes only its slice: the Marine Care site uses marine_care + coatings; the Marine Storage site uses storage.",
+    "units": "marine_care and coatings amounts are in whole CAD dollars (matching the live Marine Care quote tool's exact values and display units). storage amounts are in integer CAD cents (fields suffixed *Cents), per the authoritative storage data."
+  },
+  "marine_care": {
+    "amountsIn": "CAD dollars",
+    "startingRatesBySlug": {
+      "boat-detailing": 20,
+      "gelcoat-restoration": 21,
+      "ceramic-coating": 35,
+      "interior-detailing": 18,
+      "graphene-coating": 40,
+      "wet-sanding": 45,
+      "bottom-painting": 40,
+      "vinyl-removal": 12,
+      "weekly-maintenance-plan": 6,
+      "bi-weekly-maintenance-plan": 7
+    },
+    "services": {
+      "gelcoat": {
+        "label": "Gelcoat Restoration",
+        "rateBands": {
+          "hull": [
+            { "maxFt": 20, "rate": 21 },
+            { "maxFt": 25, "rate": 23 },
+            { "maxFt": 30, "rate": 25 },
+            { "maxFt": 35, "rate": 27 },
+            { "maxFt": 40, "rate": 30 },
+            { "maxFt": 45, "rate": 34 },
+            { "maxFt": null, "rate": 36 }
+          ],
+          "topsides": [
+            { "maxFt": 20, "rate": 24 },
+            { "maxFt": 25, "rate": 26 },
+            { "maxFt": 30, "rate": 28 },
+            { "maxFt": 35, "rate": 31 },
+            { "maxFt": 40, "rate": 34 },
+            { "maxFt": 45, "rate": 37 },
+            { "maxFt": null, "rate": 40 }
+          ]
+        },
+        "bowriderTopsidesFactor": 0.6,
+        "heavyOxidationSurchargePct": 20,
+        "addons": {
+          "radarArch": 175,
+          "hardTop": 475
+        },
+        "spotWetSandingPerArea": 125
+      },
+      "exterior": {
+        "label": "Exterior Detailing",
+        "baseRatePerFoot": 20,
+        "tierMultipliers": {
+          "refresh": 1.0,
+          "standard": 1.2,
+          "deep": 1.4,
+          "restoration": 1.6
+        },
+        "addons": {
+          "teakCleaning": 225,
+          "canvasCleaning": 150,
+          "fenderCleaning": 60,
+          "exteriorOzone": 100
+        }
+      },
+      "interior": {
+        "label": "Interior Detailing",
+        "baseRatePerFoot": 18,
+        "tierMultipliers": {
+          "refresh": 1.0,
+          "standard": 1.25,
+          "deep": 1.5,
+          "restoration": 1.75
+        },
+        "boatTypeMultipliers": {
+          "Open Bow / Bowrider": 1.0,
+          "Cuddy Cabin": 1.1,
+          "Cruiser (Single Cabin)": 1.25,
+          "Express Cruiser": 1.35,
+          "Yacht / Multi-Cabin": 1.6
+        },
+        "estimateRange": {
+          "low": 0.85,
+          "high": 1.15
+        },
+        "addons": {
+          "moldRemediation": 295,
+          "petHairRemoval": 150,
+          "mattressShampoo": 175,
+          "headDeepClean": 125,
+          "galleyDeepClean": 175,
+          "ozoneInterior": 195
+        },
+        "manualReview": {
+          "maxLengthFt": 45
+        }
+      },
+      "wetSanding": {
+        "label": "Wet Sanding & Paint/Gelcoat Correction",
+        "baseRatePerFoot": 45,
+        "addons": {
+          "deepScratchRepair": 275
+        },
+        "spotWetSandingPerArea": 125
+      },
+      "bottomPainting": {
+        "label": "Bottom Painting",
+        "baseRatePerFoot": 40,
+        "perFootAddons": {
+          "secondCoat": 12,
+          "oldPaintRemoval": 18
+        },
+        "addons": {
+          "heavyGrowthRemoval": 250
+        }
+      },
+      "vinyl": {
+        "label": "Vinyl Services",
+        "ratesPerFoot": {
+          "removal": 12,
+          "install": 15,
+          "both": 24
+        },
+        "addons": {
+          "customDesign": 125
+        }
+      },
+      "weeklyMaintenance": {
+        "label": "Weekly Service",
+        "ratePerFoot": 6
+      },
+      "biweeklyMaintenance": {
+        "label": "Bi-Weekly Service",
+        "ratePerFoot": 7
+      }
+    }
+  },
+  "coatings": {
+    "amountsIn": "CAD dollars",
+    "services": {
+      "ceramic": {
+        "label": "Ceramic Coating",
+        "baseRatePerFoot": 35,
+        "perFootAddons": {
+          "secondLayer": 8
+        },
+        "addons": {
+          "teakCeramic": 300,
+          "interiorCeramic": 150
+        }
+      },
+      "graphene": {
+        "label": "Graphene Coating",
+        "baseRatePerFoot": 40,
+        "perFootAddons": {
+          "secondLayer": 10
+        },
+        "addons": {
+          "teakGraphene": 350
+        }
+      }
+    }
+  },
+  "storage": {
+    "currency": "CAD",
+    "services": {
+      "outdoor_storage": { "type": "per_foot", "rateCents": 4600, "minimumCents": 69000, "label": "Outdoor winter storage (season)", "hullSurchargeEligible": true },
+      "shrink_wrap": { "type": "per_foot", "rateCents": 1800, "minimumCents": 27000, "label": "Shrink wrapping", "hullSurchargeEligible": true },
+      "winterization_outboard": { "type": "flat_per_engine", "rateCents": 22500, "additionalEngineMultiplier": 0.75, "label": "Winterization — outboard" },
+      "winterization_sterndrive": { "type": "flat_per_engine", "rateCents": 35000, "additionalEngineMultiplier": 0.75, "label": "Winterization — sterndrive" },
+      "winterization_inboard": { "type": "flat_per_engine", "rateCents": 39500, "additionalEngineMultiplier": 0.75, "label": "Winterization — inboard" },
+      "fall_detail": { "type": "per_foot", "rateCents": 2400, "minimumCents": 36000, "label": "Fall detail (wash & wax)", "hullSurchargeEligible": false },
+      "spring_commissioning": { "type": "flat", "rateCents": 26500, "label": "Spring commissioning" },
+      "ceramic_upgrade": { "type": "per_foot", "rateCents": 8500, "minimumCents": 0, "label": "Winter ceramic coating upgrade", "maxLengthFt": 26, "upsellOnly": true, "hullSurchargeEligible": false }
+    },
+    "hullSurcharges": {
+      "pontoon": { "perFootCents": 800 },
+      "tritoon": { "perFootCents": 1000 }
+    },
+    "bundles": {
+      "winter_ready": { "label": "Winter Ready", "services": ["outdoor_storage", "shrink_wrap"], "discountPct": 8 },
+      "winter_ready_plus": { "label": "Winter Ready Plus", "services": ["outdoor_storage", "shrink_wrap", "winterization_*"], "discountPct": 10 },
+      "full_care": { "label": "Full Care", "services": ["outdoor_storage", "shrink_wrap", "winterization_*", "fall_detail", "spring_commissioning"], "discountPct": 12 }
+    },
+    "notes": "winterization_* resolves to whichever winterization service matches the customer's engine type. Bundle discount applies to combined eligible total. Ceramic upgrade is never included in bundle discounts."
+  }
+}
