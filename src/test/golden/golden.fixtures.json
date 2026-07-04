@@ -1,0 +1,2500 @@
+{
+  "gelcoat/hull/base/L14": {
+    "subtotal": 294,
+    "breakdown": [
+      "Hull: 14ft × $21/ft = $294.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L14": {
+    "subtotal": 336,
+    "breakdown": [
+      "Topsides: 14ft × $24/ft = $336.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L14": {
+    "subtotal": 630,
+    "breakdown": [
+      "Hull: 14ft × $21/ft = $294.00",
+      "Topsides: 14ft × $24/ft = $336.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L14": {
+    "subtotal": 495.6,
+    "breakdown": [
+      "Hull: 14ft × $21/ft = $294.00",
+      "Topsides (Bowrider 40% reduction): 14ft × $24/ft × 0.6 = $201.60"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L16": {
+    "subtotal": 336,
+    "breakdown": [
+      "Hull: 16ft × $21/ft = $336.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L16": {
+    "subtotal": 384,
+    "breakdown": [
+      "Topsides: 16ft × $24/ft = $384.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L16": {
+    "subtotal": 720,
+    "breakdown": [
+      "Hull: 16ft × $21/ft = $336.00",
+      "Topsides: 16ft × $24/ft = $384.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L16": {
+    "subtotal": 566.4,
+    "breakdown": [
+      "Hull: 16ft × $21/ft = $336.00",
+      "Topsides (Bowrider 40% reduction): 16ft × $24/ft × 0.6 = $230.40"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L18": {
+    "subtotal": 378,
+    "breakdown": [
+      "Hull: 18ft × $21/ft = $378.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L18": {
+    "subtotal": 432,
+    "breakdown": [
+      "Topsides: 18ft × $24/ft = $432.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L18": {
+    "subtotal": 810,
+    "breakdown": [
+      "Hull: 18ft × $21/ft = $378.00",
+      "Topsides: 18ft × $24/ft = $432.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L18": {
+    "subtotal": 637.2,
+    "breakdown": [
+      "Hull: 18ft × $21/ft = $378.00",
+      "Topsides (Bowrider 40% reduction): 18ft × $24/ft × 0.6 = $259.20"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L20": {
+    "subtotal": 420,
+    "breakdown": [
+      "Hull: 20ft × $21/ft = $420.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L20": {
+    "subtotal": 480,
+    "breakdown": [
+      "Topsides: 20ft × $24/ft = $480.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L20": {
+    "subtotal": 900,
+    "breakdown": [
+      "Hull: 20ft × $21/ft = $420.00",
+      "Topsides: 20ft × $24/ft = $480.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L20": {
+    "subtotal": 708,
+    "breakdown": [
+      "Hull: 20ft × $21/ft = $420.00",
+      "Topsides (Bowrider 40% reduction): 20ft × $24/ft × 0.6 = $288.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L22": {
+    "subtotal": 506,
+    "breakdown": [
+      "Hull: 22ft × $23/ft = $506.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L22": {
+    "subtotal": 572,
+    "breakdown": [
+      "Topsides: 22ft × $26/ft = $572.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L22": {
+    "subtotal": 1078,
+    "breakdown": [
+      "Hull: 22ft × $23/ft = $506.00",
+      "Topsides: 22ft × $26/ft = $572.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L22": {
+    "subtotal": 849.2,
+    "breakdown": [
+      "Hull: 22ft × $23/ft = $506.00",
+      "Topsides (Bowrider 40% reduction): 22ft × $26/ft × 0.6 = $343.20"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L24": {
+    "subtotal": 552,
+    "breakdown": [
+      "Hull: 24ft × $23/ft = $552.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L24": {
+    "subtotal": 624,
+    "breakdown": [
+      "Topsides: 24ft × $26/ft = $624.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L24": {
+    "subtotal": 1176,
+    "breakdown": [
+      "Hull: 24ft × $23/ft = $552.00",
+      "Topsides: 24ft × $26/ft = $624.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L24": {
+    "subtotal": 926.4,
+    "breakdown": [
+      "Hull: 24ft × $23/ft = $552.00",
+      "Topsides (Bowrider 40% reduction): 24ft × $26/ft × 0.6 = $374.40"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L26": {
+    "subtotal": 650,
+    "breakdown": [
+      "Hull: 26ft × $25/ft = $650.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L26": {
+    "subtotal": 728,
+    "breakdown": [
+      "Topsides: 26ft × $28/ft = $728.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L26": {
+    "subtotal": 1378,
+    "breakdown": [
+      "Hull: 26ft × $25/ft = $650.00",
+      "Topsides: 26ft × $28/ft = $728.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L26": {
+    "subtotal": 1086.8,
+    "breakdown": [
+      "Hull: 26ft × $25/ft = $650.00",
+      "Topsides (Bowrider 40% reduction): 26ft × $28/ft × 0.6 = $436.80"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L28": {
+    "subtotal": 700,
+    "breakdown": [
+      "Hull: 28ft × $25/ft = $700.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L28": {
+    "subtotal": 784,
+    "breakdown": [
+      "Topsides: 28ft × $28/ft = $784.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L28": {
+    "subtotal": 1484,
+    "breakdown": [
+      "Hull: 28ft × $25/ft = $700.00",
+      "Topsides: 28ft × $28/ft = $784.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L28": {
+    "subtotal": 1170.4,
+    "breakdown": [
+      "Hull: 28ft × $25/ft = $700.00",
+      "Topsides (Bowrider 40% reduction): 28ft × $28/ft × 0.6 = $470.40"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L30": {
+    "subtotal": 750,
+    "breakdown": [
+      "Hull: 30ft × $25/ft = $750.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L30": {
+    "subtotal": 840,
+    "breakdown": [
+      "Topsides: 30ft × $28/ft = $840.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L30": {
+    "subtotal": 1590,
+    "breakdown": [
+      "Hull: 30ft × $25/ft = $750.00",
+      "Topsides: 30ft × $28/ft = $840.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L30": {
+    "subtotal": 1254,
+    "breakdown": [
+      "Hull: 30ft × $25/ft = $750.00",
+      "Topsides (Bowrider 40% reduction): 30ft × $28/ft × 0.6 = $504.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/base/L34": {
+    "subtotal": 918,
+    "breakdown": [
+      "Hull: 34ft × $27/ft = $918.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/topsides/base/L34": {
+    "subtotal": 1054,
+    "breakdown": [
+      "Topsides: 34ft × $31/ft = $1054.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/base/L34": {
+    "subtotal": 1972,
+    "breakdown": [
+      "Hull: 34ft × $27/ft = $918.00",
+      "Topsides: 34ft × $31/ft = $1054.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/base/L34": {
+    "subtotal": 1550.4,
+    "breakdown": [
+      "Hull: 34ft × $27/ft = $918.00",
+      "Topsides (Bowrider 40% reduction): 34ft × $31/ft × 0.6 = $632.40"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/radarArch/L24": {
+    "subtotal": 727,
+    "breakdown": [
+      "Hull: 24ft × $23/ft = $552.00",
+      "Arch / Radar Arch: $175.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/hardTop/L24": {
+    "subtotal": 1027,
+    "breakdown": [
+      "Hull: 24ft × $23/ft = $552.00",
+      "Hard Top: $475.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/heavyOx/L24": {
+    "subtotal": 662.4,
+    "breakdown": [
+      "Hull: 24ft × $23/ft = $552.00",
+      "Heavy Oxidation Surcharge (+20%): $110.40"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/hull/spot2/L24": {
+    "subtotal": 802,
+    "breakdown": [
+      "Hull: 24ft × $23/ft = $552.00",
+      "Spot Wet Sanding (2 areas): $250.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/fullboat/allOn/L30": {
+    "subtotal": 2933,
+    "breakdown": [
+      "Hull: 30ft × $25/ft = $750.00",
+      "Topsides: 30ft × $28/ft = $840.00",
+      "Heavy Oxidation Surcharge (+20%): $318.00",
+      "Arch / Radar Arch: $175.00",
+      "Hard Top: $475.00",
+      "Spot Wet Sanding (3 areas): $375.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "gelcoat/bowrider/heavyOx/L22": {
+    "subtotal": 1019.0400000000001,
+    "breakdown": [
+      "Hull: 22ft × $23/ft = $506.00",
+      "Topsides (Bowrider 40% reduction): 22ft × $26/ft × 0.6 = $343.20",
+      "Heavy Oxidation Surcharge (+20%): $169.84"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L14": {
+    "subtotal": 280,
+    "breakdown": [
+      "Exterior Refresh: 14ft × $20/ft × 1 = $280.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L14": {
+    "subtotal": 336,
+    "breakdown": [
+      "Exterior Standard: 14ft × $20/ft × 1.2 = $336.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L14": {
+    "subtotal": 392,
+    "breakdown": [
+      "Exterior Deep: 14ft × $20/ft × 1.4 = $392.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L14": {
+    "subtotal": 448,
+    "breakdown": [
+      "Exterior Restoration: 14ft × $20/ft × 1.6 = $448.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L16": {
+    "subtotal": 320,
+    "breakdown": [
+      "Exterior Refresh: 16ft × $20/ft × 1 = $320.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L16": {
+    "subtotal": 384,
+    "breakdown": [
+      "Exterior Standard: 16ft × $20/ft × 1.2 = $384.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L16": {
+    "subtotal": 448,
+    "breakdown": [
+      "Exterior Deep: 16ft × $20/ft × 1.4 = $448.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L16": {
+    "subtotal": 512,
+    "breakdown": [
+      "Exterior Restoration: 16ft × $20/ft × 1.6 = $512.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L18": {
+    "subtotal": 360,
+    "breakdown": [
+      "Exterior Refresh: 18ft × $20/ft × 1 = $360.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L18": {
+    "subtotal": 432,
+    "breakdown": [
+      "Exterior Standard: 18ft × $20/ft × 1.2 = $432.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L18": {
+    "subtotal": 503.99999999999994,
+    "breakdown": [
+      "Exterior Deep: 18ft × $20/ft × 1.4 = $504.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L18": {
+    "subtotal": 576,
+    "breakdown": [
+      "Exterior Restoration: 18ft × $20/ft × 1.6 = $576.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L20": {
+    "subtotal": 400,
+    "breakdown": [
+      "Exterior Refresh: 20ft × $20/ft × 1 = $400.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L20": {
+    "subtotal": 480,
+    "breakdown": [
+      "Exterior Standard: 20ft × $20/ft × 1.2 = $480.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L20": {
+    "subtotal": 560,
+    "breakdown": [
+      "Exterior Deep: 20ft × $20/ft × 1.4 = $560.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L20": {
+    "subtotal": 640,
+    "breakdown": [
+      "Exterior Restoration: 20ft × $20/ft × 1.6 = $640.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L22": {
+    "subtotal": 440,
+    "breakdown": [
+      "Exterior Refresh: 22ft × $20/ft × 1 = $440.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L22": {
+    "subtotal": 528,
+    "breakdown": [
+      "Exterior Standard: 22ft × $20/ft × 1.2 = $528.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L22": {
+    "subtotal": 616,
+    "breakdown": [
+      "Exterior Deep: 22ft × $20/ft × 1.4 = $616.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L22": {
+    "subtotal": 704,
+    "breakdown": [
+      "Exterior Restoration: 22ft × $20/ft × 1.6 = $704.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L24": {
+    "subtotal": 480,
+    "breakdown": [
+      "Exterior Refresh: 24ft × $20/ft × 1 = $480.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L24": {
+    "subtotal": 576,
+    "breakdown": [
+      "Exterior Standard: 24ft × $20/ft × 1.2 = $576.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L24": {
+    "subtotal": 672,
+    "breakdown": [
+      "Exterior Deep: 24ft × $20/ft × 1.4 = $672.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L24": {
+    "subtotal": 768,
+    "breakdown": [
+      "Exterior Restoration: 24ft × $20/ft × 1.6 = $768.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L26": {
+    "subtotal": 520,
+    "breakdown": [
+      "Exterior Refresh: 26ft × $20/ft × 1 = $520.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L26": {
+    "subtotal": 624,
+    "breakdown": [
+      "Exterior Standard: 26ft × $20/ft × 1.2 = $624.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L26": {
+    "subtotal": 728,
+    "breakdown": [
+      "Exterior Deep: 26ft × $20/ft × 1.4 = $728.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L26": {
+    "subtotal": 832,
+    "breakdown": [
+      "Exterior Restoration: 26ft × $20/ft × 1.6 = $832.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L28": {
+    "subtotal": 560,
+    "breakdown": [
+      "Exterior Refresh: 28ft × $20/ft × 1 = $560.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L28": {
+    "subtotal": 672,
+    "breakdown": [
+      "Exterior Standard: 28ft × $20/ft × 1.2 = $672.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L28": {
+    "subtotal": 784,
+    "breakdown": [
+      "Exterior Deep: 28ft × $20/ft × 1.4 = $784.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L28": {
+    "subtotal": 896,
+    "breakdown": [
+      "Exterior Restoration: 28ft × $20/ft × 1.6 = $896.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L30": {
+    "subtotal": 600,
+    "breakdown": [
+      "Exterior Refresh: 30ft × $20/ft × 1 = $600.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L30": {
+    "subtotal": 720,
+    "breakdown": [
+      "Exterior Standard: 30ft × $20/ft × 1.2 = $720.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L30": {
+    "subtotal": 840,
+    "breakdown": [
+      "Exterior Deep: 30ft × $20/ft × 1.4 = $840.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L30": {
+    "subtotal": 960,
+    "breakdown": [
+      "Exterior Restoration: 30ft × $20/ft × 1.6 = $960.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/refresh/base/L34": {
+    "subtotal": 680,
+    "breakdown": [
+      "Exterior Refresh: 34ft × $20/ft × 1 = $680.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/base/L34": {
+    "subtotal": 816,
+    "breakdown": [
+      "Exterior Standard: 34ft × $20/ft × 1.2 = $816.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/deep/base/L34": {
+    "subtotal": 951.9999999999999,
+    "breakdown": [
+      "Exterior Deep: 34ft × $20/ft × 1.4 = $952.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/base/L34": {
+    "subtotal": 1088,
+    "breakdown": [
+      "Exterior Restoration: 34ft × $20/ft × 1.6 = $1088.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/teak/L20": {
+    "subtotal": 705,
+    "breakdown": [
+      "Exterior Standard: 20ft × $20/ft × 1.2 = $480.00",
+      "Teak Cleaning: $225.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/canvas/L20": {
+    "subtotal": 630,
+    "breakdown": [
+      "Exterior Standard: 20ft × $20/ft × 1.2 = $480.00",
+      "Canvas Cleaning: $150.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/fender/L20": {
+    "subtotal": 540,
+    "breakdown": [
+      "Exterior Standard: 20ft × $20/ft × 1.2 = $480.00",
+      "Fender Cleaning: $60.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/standard/ozone/L20": {
+    "subtotal": 580,
+    "breakdown": [
+      "Exterior Standard: 20ft × $20/ft × 1.2 = $480.00",
+      "Exterior Ozone: $100.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "exterior/restoration/allOn/L24": {
+    "subtotal": 1303,
+    "breakdown": [
+      "Exterior Restoration: 24ft × $20/ft × 1.6 = $768.00",
+      "Teak Cleaning: $225.00",
+      "Canvas Cleaning: $150.00",
+      "Fender Cleaning: $60.00",
+      "Exterior Ozone: $100.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L14": {
+    "subtotal": 315,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $268 – $362"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L14": {
+    "subtotal": 346.50000000000006,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $295 – $398"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L14": {
+    "subtotal": 393.75,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $335 – $453"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L14": {
+    "subtotal": 425.25000000000006,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $361 – $489"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L14": {
+    "subtotal": 504.00000000000006,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $428 – $580"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L14": {
+    "subtotal": 315,
+    "breakdown": [
+      "Interior Standard (Sailboat): $268 – $362"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L14": {
+    "subtotal": 315,
+    "breakdown": [
+      "Interior Standard (Pontoon): $268 – $362"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L14": {
+    "subtotal": 315,
+    "breakdown": [
+      "Interior Standard (Other): $268 – $362"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L16": {
+    "subtotal": 360,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $306 – $414"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L16": {
+    "subtotal": 396,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $337 – $455"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L16": {
+    "subtotal": 450,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $383 – $518"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L16": {
+    "subtotal": 486,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $413 – $559"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L16": {
+    "subtotal": 576,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $490 – $662"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L16": {
+    "subtotal": 360,
+    "breakdown": [
+      "Interior Standard (Sailboat): $306 – $414"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L16": {
+    "subtotal": 360,
+    "breakdown": [
+      "Interior Standard (Pontoon): $306 – $414"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L16": {
+    "subtotal": 360,
+    "breakdown": [
+      "Interior Standard (Other): $306 – $414"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L18": {
+    "subtotal": 405,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $344 – $466"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L18": {
+    "subtotal": 445.50000000000006,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $379 – $512"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L18": {
+    "subtotal": 506.25,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $430 – $582"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L18": {
+    "subtotal": 546.75,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $465 – $629"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L18": {
+    "subtotal": 648,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $551 – $745"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L18": {
+    "subtotal": 405,
+    "breakdown": [
+      "Interior Standard (Sailboat): $344 – $466"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L18": {
+    "subtotal": 405,
+    "breakdown": [
+      "Interior Standard (Pontoon): $344 – $466"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L18": {
+    "subtotal": 405,
+    "breakdown": [
+      "Interior Standard (Other): $344 – $466"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L20": {
+    "subtotal": 450,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $383 – $518"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L20": {
+    "subtotal": 495.00000000000006,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $421 – $569"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L20": {
+    "subtotal": 562.5,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $478 – $647"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L20": {
+    "subtotal": 607.5000000000001,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $516 – $699"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L20": {
+    "subtotal": 720,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $612 – $828"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L20": {
+    "subtotal": 450,
+    "breakdown": [
+      "Interior Standard (Sailboat): $383 – $518"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L20": {
+    "subtotal": 450,
+    "breakdown": [
+      "Interior Standard (Pontoon): $383 – $518"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L20": {
+    "subtotal": 450,
+    "breakdown": [
+      "Interior Standard (Other): $383 – $518"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L22": {
+    "subtotal": 495,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $421 – $569"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L22": {
+    "subtotal": 544.5,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $463 – $626"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L22": {
+    "subtotal": 618.75,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $526 – $712"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L22": {
+    "subtotal": 668.25,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $568 – $768"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L22": {
+    "subtotal": 792,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $673 – $911"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L22": {
+    "subtotal": 495,
+    "breakdown": [
+      "Interior Standard (Sailboat): $421 – $569"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L22": {
+    "subtotal": 495,
+    "breakdown": [
+      "Interior Standard (Pontoon): $421 – $569"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L22": {
+    "subtotal": 495,
+    "breakdown": [
+      "Interior Standard (Other): $421 – $569"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L24": {
+    "subtotal": 540,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $459 – $621"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L24": {
+    "subtotal": 594,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $505 – $683"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L24": {
+    "subtotal": 675,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $574 – $776"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L24": {
+    "subtotal": 729,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $620 – $838"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L24": {
+    "subtotal": 864,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $734 – $994"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L24": {
+    "subtotal": 540,
+    "breakdown": [
+      "Interior Standard (Sailboat): $459 – $621"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L24": {
+    "subtotal": 540,
+    "breakdown": [
+      "Interior Standard (Pontoon): $459 – $621"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L24": {
+    "subtotal": 540,
+    "breakdown": [
+      "Interior Standard (Other): $459 – $621"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L26": {
+    "subtotal": 585,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $497 – $673"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L26": {
+    "subtotal": 643.5000000000001,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $547 – $740"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L26": {
+    "subtotal": 731.25,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $622 – $841"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L26": {
+    "subtotal": 789.7500000000001,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $671 – $908"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L26": {
+    "subtotal": 936.0000000000001,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $796 – $1076"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L26": {
+    "subtotal": 585,
+    "breakdown": [
+      "Interior Standard (Sailboat): $497 – $673"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L26": {
+    "subtotal": 585,
+    "breakdown": [
+      "Interior Standard (Pontoon): $497 – $673"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L26": {
+    "subtotal": 585,
+    "breakdown": [
+      "Interior Standard (Other): $497 – $673"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L28": {
+    "subtotal": 630,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $536 – $725"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L28": {
+    "subtotal": 693.0000000000001,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $589 – $797"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L28": {
+    "subtotal": 787.5,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $669 – $906"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L28": {
+    "subtotal": 850.5000000000001,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $723 – $978"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L28": {
+    "subtotal": 1008.0000000000001,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $857 – $1159"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L28": {
+    "subtotal": 630,
+    "breakdown": [
+      "Interior Standard (Sailboat): $536 – $725"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L28": {
+    "subtotal": 630,
+    "breakdown": [
+      "Interior Standard (Pontoon): $536 – $725"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L28": {
+    "subtotal": 630,
+    "breakdown": [
+      "Interior Standard (Other): $536 – $725"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L30": {
+    "subtotal": 675,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $574 – $776"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L30": {
+    "subtotal": 742.5,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $631 – $854"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L30": {
+    "subtotal": 843.75,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $717 – $970"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L30": {
+    "subtotal": 911.25,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $775 – $1048"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L30": {
+    "subtotal": 1080,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $918 – $1242"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L30": {
+    "subtotal": 675,
+    "breakdown": [
+      "Interior Standard (Sailboat): $574 – $776"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L30": {
+    "subtotal": 675,
+    "breakdown": [
+      "Interior Standard (Pontoon): $574 – $776"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L30": {
+    "subtotal": 675,
+    "breakdown": [
+      "Interior Standard (Other): $574 – $776"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/bowrider/standard/base/L34": {
+    "subtotal": 765,
+    "breakdown": [
+      "Interior Standard (Open Bow / Bowrider): $650 – $880"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cuddy/standard/base/L34": {
+    "subtotal": 841.5,
+    "breakdown": [
+      "Interior Standard (Cuddy Cabin): $715 – $968"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/base/L34": {
+    "subtotal": 956.25,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $813 – $1100"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/standard/base/L34": {
+    "subtotal": 1032.75,
+    "breakdown": [
+      "Interior Standard (Express Cruiser): $878 – $1188"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/yacht/standard/base/L34": {
+    "subtotal": 1224,
+    "breakdown": [
+      "Interior Standard (Yacht / Multi-Cabin): $1040 – $1408"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/sailboat/standard/base/L34": {
+    "subtotal": 765,
+    "breakdown": [
+      "Interior Standard (Sailboat): $650 – $880"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/pontoon/standard/base/L34": {
+    "subtotal": 765,
+    "breakdown": [
+      "Interior Standard (Pontoon): $650 – $880"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/other/standard/base/L34": {
+    "subtotal": 765,
+    "breakdown": [
+      "Interior Standard (Other): $650 – $880"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/refresh/L24": {
+    "subtotal": 540,
+    "breakdown": [
+      "Interior Refresh (Cruiser (Single Cabin)): $459 – $621"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/L24": {
+    "subtotal": 675,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $574 – $776"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/deep/L24": {
+    "subtotal": 810,
+    "breakdown": [
+      "Interior Deep (Cruiser (Single Cabin)): $689 – $931"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/restoration/L24": {
+    "subtotal": 0,
+    "breakdown": [],
+    "requiresManualReview": true,
+    "reviewReasons": [
+      "Restoration tier requires manual review"
+    ]
+  },
+  "interior/cruiser/standard/mold/L26": {
+    "subtotal": 1026.25,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $917 – $1136",
+      "Advanced Mold & Mildew Remediation: $295.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/pet/L26": {
+    "subtotal": 881.25,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $772 – $991",
+      "Heavy Pet Hair Removal: $150.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/mattress/L26": {
+    "subtotal": 906.25,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $797 – $1016",
+      "Cabin Mattress / Cushion Shampoo: $175.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/head/L26": {
+    "subtotal": 856.25,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $747 – $966",
+      "Head (Bathroom) Deep Clean: $125.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/standard/galley/L26": {
+    "subtotal": 906.25,
+    "breakdown": [
+      "Interior Standard (Cruiser (Single Cabin)): $797 – $1016",
+      "Galley Deep Clean: $175.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/deep/ozone+addons/L26": {
+    "subtotal": 1492.5,
+    "breakdown": [
+      "Interior Deep (Cruiser (Single Cabin)): $1361 – $1624",
+      "Advanced Mold & Mildew Remediation: $295.00",
+      "Head (Bathroom) Deep Clean: $125.00",
+      "Ozone Odor Treatment: $195.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/express/deep/allAddons/L28": {
+    "subtotal": 2135.6000000000004,
+    "breakdown": [
+      "Interior Deep (Express Cruiser): $1983 – $2289",
+      "Advanced Mold & Mildew Remediation: $295.00",
+      "Heavy Pet Hair Removal: $150.00",
+      "Cabin Mattress / Cushion Shampoo: $175.00",
+      "Head (Bathroom) Deep Clean: $125.00",
+      "Galley Deep Clean: $175.00",
+      "Ozone Odor Treatment: $195.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "interior/cruiser/review-over45/L48": {
+    "subtotal": 0,
+    "breakdown": [],
+    "requiresManualReview": true,
+    "reviewReasons": [
+      "Boat over 45ft requires manual review"
+    ]
+  },
+  "interior/cruiser/review-restoration/L24": {
+    "subtotal": 0,
+    "breakdown": [],
+    "requiresManualReview": true,
+    "reviewReasons": [
+      "Restoration tier requires manual review"
+    ]
+  },
+  "interior/yacht/review-deep/L30": {
+    "subtotal": 0,
+    "breakdown": [],
+    "requiresManualReview": true,
+    "reviewReasons": [
+      "Yacht with Deep Clean or Restoration requires manual review"
+    ]
+  },
+  "ceramic/base/L14": {
+    "subtotal": 490,
+    "breakdown": [
+      "Ceramic Coating: 14ft × $35/ft = $490.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L16": {
+    "subtotal": 560,
+    "breakdown": [
+      "Ceramic Coating: 16ft × $35/ft = $560.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L18": {
+    "subtotal": 630,
+    "breakdown": [
+      "Ceramic Coating: 18ft × $35/ft = $630.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L20": {
+    "subtotal": 700,
+    "breakdown": [
+      "Ceramic Coating: 20ft × $35/ft = $700.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L22": {
+    "subtotal": 770,
+    "breakdown": [
+      "Ceramic Coating: 22ft × $35/ft = $770.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L24": {
+    "subtotal": 840,
+    "breakdown": [
+      "Ceramic Coating: 24ft × $35/ft = $840.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L26": {
+    "subtotal": 910,
+    "breakdown": [
+      "Ceramic Coating: 26ft × $35/ft = $910.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L28": {
+    "subtotal": 980,
+    "breakdown": [
+      "Ceramic Coating: 28ft × $35/ft = $980.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L30": {
+    "subtotal": 1050,
+    "breakdown": [
+      "Ceramic Coating: 30ft × $35/ft = $1050.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/base/L34": {
+    "subtotal": 1190,
+    "breakdown": [
+      "Ceramic Coating: 34ft × $35/ft = $1190.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/secondLayer/L30": {
+    "subtotal": 1290,
+    "breakdown": [
+      "Ceramic Coating: 30ft × $35/ft = $1050.00",
+      "Second Layer: 30ft × $8/ft = $240.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "ceramic/allOn/L24": {
+    "subtotal": 1482,
+    "breakdown": [
+      "Ceramic Coating: 24ft × $35/ft = $840.00",
+      "Second Layer: 24ft × $8/ft = $192.00",
+      "Teak Ceramic: $300.00",
+      "Interior Ceramic: $150.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L14": {
+    "subtotal": 560,
+    "breakdown": [
+      "Graphene Coating: 14ft × $40/ft = $560.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L16": {
+    "subtotal": 640,
+    "breakdown": [
+      "Graphene Coating: 16ft × $40/ft = $640.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L18": {
+    "subtotal": 720,
+    "breakdown": [
+      "Graphene Coating: 18ft × $40/ft = $720.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L20": {
+    "subtotal": 800,
+    "breakdown": [
+      "Graphene Coating: 20ft × $40/ft = $800.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L22": {
+    "subtotal": 880,
+    "breakdown": [
+      "Graphene Coating: 22ft × $40/ft = $880.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L24": {
+    "subtotal": 960,
+    "breakdown": [
+      "Graphene Coating: 24ft × $40/ft = $960.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L26": {
+    "subtotal": 1040,
+    "breakdown": [
+      "Graphene Coating: 26ft × $40/ft = $1040.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L28": {
+    "subtotal": 1120,
+    "breakdown": [
+      "Graphene Coating: 28ft × $40/ft = $1120.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L30": {
+    "subtotal": 1200,
+    "breakdown": [
+      "Graphene Coating: 30ft × $40/ft = $1200.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/base/L34": {
+    "subtotal": 1360,
+    "breakdown": [
+      "Graphene Coating: 34ft × $40/ft = $1360.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "graphene/allOn/L24": {
+    "subtotal": 1550,
+    "breakdown": [
+      "Graphene Coating: 24ft × $40/ft = $960.00",
+      "Second Layer: 24ft × $10/ft = $240.00",
+      "Teak Graphene: $350.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L14": {
+    "subtotal": 630,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 14ft × $45/ft = $630.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L16": {
+    "subtotal": 720,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 16ft × $45/ft = $720.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L18": {
+    "subtotal": 810,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 18ft × $45/ft = $810.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L20": {
+    "subtotal": 900,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 20ft × $45/ft = $900.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L22": {
+    "subtotal": 990,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 22ft × $45/ft = $990.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L24": {
+    "subtotal": 1080,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 24ft × $45/ft = $1080.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L26": {
+    "subtotal": 1170,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 26ft × $45/ft = $1170.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L28": {
+    "subtotal": 1260,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 28ft × $45/ft = $1260.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L30": {
+    "subtotal": 1350,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 30ft × $45/ft = $1350.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/base/L34": {
+    "subtotal": 1530,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 34ft × $45/ft = $1530.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/deep+spot2/L24": {
+    "subtotal": 1605,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 24ft × $45/ft = $1080.00",
+      "Deep Scratch Repair: $275.00",
+      "Spot Wet Sanding (2 areas): $250.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "wetSanding/spot3/L30": {
+    "subtotal": 1725,
+    "breakdown": [
+      "Wet Sanding & Paint/Gelcoat Correction: 30ft × $45/ft = $1350.00",
+      "Spot Wet Sanding (3 areas): $375.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L14": {
+    "subtotal": 560,
+    "breakdown": [
+      "Bottom Painting: 14ft × $40/ft = $560.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L16": {
+    "subtotal": 640,
+    "breakdown": [
+      "Bottom Painting: 16ft × $40/ft = $640.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L18": {
+    "subtotal": 720,
+    "breakdown": [
+      "Bottom Painting: 18ft × $40/ft = $720.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L20": {
+    "subtotal": 800,
+    "breakdown": [
+      "Bottom Painting: 20ft × $40/ft = $800.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L22": {
+    "subtotal": 880,
+    "breakdown": [
+      "Bottom Painting: 22ft × $40/ft = $880.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L24": {
+    "subtotal": 960,
+    "breakdown": [
+      "Bottom Painting: 24ft × $40/ft = $960.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L26": {
+    "subtotal": 1040,
+    "breakdown": [
+      "Bottom Painting: 26ft × $40/ft = $1040.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L28": {
+    "subtotal": 1120,
+    "breakdown": [
+      "Bottom Painting: 28ft × $40/ft = $1120.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L30": {
+    "subtotal": 1200,
+    "breakdown": [
+      "Bottom Painting: 30ft × $40/ft = $1200.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/base/L34": {
+    "subtotal": 1360,
+    "breakdown": [
+      "Bottom Painting: 34ft × $40/ft = $1360.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/secondCoat/L24": {
+    "subtotal": 1248,
+    "breakdown": [
+      "Bottom Painting: 24ft × $40/ft = $960.00",
+      "2nd Coat: 24ft × $12/ft = $288.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/oldPaint/L24": {
+    "subtotal": 1392,
+    "breakdown": [
+      "Bottom Painting: 24ft × $40/ft = $960.00",
+      "Old Paint Removal: 24ft × $18/ft = $432.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/heavyGrowth/L24": {
+    "subtotal": 1210,
+    "breakdown": [
+      "Bottom Painting: 24ft × $40/ft = $960.00",
+      "Heavy Growth Removal: $250.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "bottomPainting/blister-review/L24": {
+    "subtotal": 960,
+    "breakdown": [
+      "Bottom Painting: 24ft × $40/ft = $960.00"
+    ],
+    "requiresManualReview": true,
+    "reviewReasons": [
+      "Blister repair requires manual review"
+    ]
+  },
+  "bottomPainting/allOn+blister/L30": {
+    "subtotal": 2350,
+    "breakdown": [
+      "Bottom Painting: 30ft × $40/ft = $1200.00",
+      "2nd Coat: 30ft × $12/ft = $360.00",
+      "Old Paint Removal: 30ft × $18/ft = $540.00",
+      "Heavy Growth Removal: $250.00"
+    ],
+    "requiresManualReview": true,
+    "reviewReasons": [
+      "Blister repair requires manual review"
+    ]
+  },
+  "vinyl/removal/base/L14": {
+    "subtotal": 168,
+    "breakdown": [
+      "Vinyl Removal Only: 14ft × $12/ft = $168.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L14": {
+    "subtotal": 210,
+    "breakdown": [
+      "Vinyl Install Only: 14ft × $15/ft = $210.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L14": {
+    "subtotal": 336,
+    "breakdown": [
+      "Vinyl Removal + Install: 14ft × $24/ft = $336.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L16": {
+    "subtotal": 192,
+    "breakdown": [
+      "Vinyl Removal Only: 16ft × $12/ft = $192.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L16": {
+    "subtotal": 240,
+    "breakdown": [
+      "Vinyl Install Only: 16ft × $15/ft = $240.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L16": {
+    "subtotal": 384,
+    "breakdown": [
+      "Vinyl Removal + Install: 16ft × $24/ft = $384.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L18": {
+    "subtotal": 216,
+    "breakdown": [
+      "Vinyl Removal Only: 18ft × $12/ft = $216.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L18": {
+    "subtotal": 270,
+    "breakdown": [
+      "Vinyl Install Only: 18ft × $15/ft = $270.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L18": {
+    "subtotal": 432,
+    "breakdown": [
+      "Vinyl Removal + Install: 18ft × $24/ft = $432.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L20": {
+    "subtotal": 240,
+    "breakdown": [
+      "Vinyl Removal Only: 20ft × $12/ft = $240.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L20": {
+    "subtotal": 300,
+    "breakdown": [
+      "Vinyl Install Only: 20ft × $15/ft = $300.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L20": {
+    "subtotal": 480,
+    "breakdown": [
+      "Vinyl Removal + Install: 20ft × $24/ft = $480.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L22": {
+    "subtotal": 264,
+    "breakdown": [
+      "Vinyl Removal Only: 22ft × $12/ft = $264.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L22": {
+    "subtotal": 330,
+    "breakdown": [
+      "Vinyl Install Only: 22ft × $15/ft = $330.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L22": {
+    "subtotal": 528,
+    "breakdown": [
+      "Vinyl Removal + Install: 22ft × $24/ft = $528.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L24": {
+    "subtotal": 288,
+    "breakdown": [
+      "Vinyl Removal Only: 24ft × $12/ft = $288.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L24": {
+    "subtotal": 360,
+    "breakdown": [
+      "Vinyl Install Only: 24ft × $15/ft = $360.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L24": {
+    "subtotal": 576,
+    "breakdown": [
+      "Vinyl Removal + Install: 24ft × $24/ft = $576.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L26": {
+    "subtotal": 312,
+    "breakdown": [
+      "Vinyl Removal Only: 26ft × $12/ft = $312.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L26": {
+    "subtotal": 390,
+    "breakdown": [
+      "Vinyl Install Only: 26ft × $15/ft = $390.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L26": {
+    "subtotal": 624,
+    "breakdown": [
+      "Vinyl Removal + Install: 26ft × $24/ft = $624.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L28": {
+    "subtotal": 336,
+    "breakdown": [
+      "Vinyl Removal Only: 28ft × $12/ft = $336.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L28": {
+    "subtotal": 420,
+    "breakdown": [
+      "Vinyl Install Only: 28ft × $15/ft = $420.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L28": {
+    "subtotal": 672,
+    "breakdown": [
+      "Vinyl Removal + Install: 28ft × $24/ft = $672.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L30": {
+    "subtotal": 360,
+    "breakdown": [
+      "Vinyl Removal Only: 30ft × $12/ft = $360.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L30": {
+    "subtotal": 450,
+    "breakdown": [
+      "Vinyl Install Only: 30ft × $15/ft = $450.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L30": {
+    "subtotal": 720,
+    "breakdown": [
+      "Vinyl Removal + Install: 30ft × $24/ft = $720.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/removal/base/L34": {
+    "subtotal": 408,
+    "breakdown": [
+      "Vinyl Removal Only: 34ft × $12/ft = $408.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/install/base/L34": {
+    "subtotal": 510,
+    "breakdown": [
+      "Vinyl Install Only: 34ft × $15/ft = $510.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/base/L34": {
+    "subtotal": 816,
+    "breakdown": [
+      "Vinyl Removal + Install: 34ft × $24/ft = $816.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "vinyl/both/customDesign/L24": {
+    "subtotal": 701,
+    "breakdown": [
+      "Vinyl Removal + Install: 24ft × $24/ft = $576.00",
+      "Custom Design: $125.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L14": {
+    "subtotal": 84,
+    "breakdown": [
+      "Weekly Service: 14ft × $6/ft = $84.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L16": {
+    "subtotal": 96,
+    "breakdown": [
+      "Weekly Service: 16ft × $6/ft = $96.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L18": {
+    "subtotal": 108,
+    "breakdown": [
+      "Weekly Service: 18ft × $6/ft = $108.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L20": {
+    "subtotal": 120,
+    "breakdown": [
+      "Weekly Service: 20ft × $6/ft = $120.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L22": {
+    "subtotal": 132,
+    "breakdown": [
+      "Weekly Service: 22ft × $6/ft = $132.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L24": {
+    "subtotal": 144,
+    "breakdown": [
+      "Weekly Service: 24ft × $6/ft = $144.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L26": {
+    "subtotal": 156,
+    "breakdown": [
+      "Weekly Service: 26ft × $6/ft = $156.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L28": {
+    "subtotal": 168,
+    "breakdown": [
+      "Weekly Service: 28ft × $6/ft = $168.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L30": {
+    "subtotal": 180,
+    "breakdown": [
+      "Weekly Service: 30ft × $6/ft = $180.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "weekly/L34": {
+    "subtotal": 204,
+    "breakdown": [
+      "Weekly Service: 34ft × $6/ft = $204.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L14": {
+    "subtotal": 98,
+    "breakdown": [
+      "Bi-Weekly Service: 14ft × $7/ft = $98.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L16": {
+    "subtotal": 112,
+    "breakdown": [
+      "Bi-Weekly Service: 16ft × $7/ft = $112.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L18": {
+    "subtotal": 126,
+    "breakdown": [
+      "Bi-Weekly Service: 18ft × $7/ft = $126.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L20": {
+    "subtotal": 140,
+    "breakdown": [
+      "Bi-Weekly Service: 20ft × $7/ft = $140.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L22": {
+    "subtotal": 154,
+    "breakdown": [
+      "Bi-Weekly Service: 22ft × $7/ft = $154.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L24": {
+    "subtotal": 168,
+    "breakdown": [
+      "Bi-Weekly Service: 24ft × $7/ft = $168.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L26": {
+    "subtotal": 182,
+    "breakdown": [
+      "Bi-Weekly Service: 26ft × $7/ft = $182.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L28": {
+    "subtotal": 196,
+    "breakdown": [
+      "Bi-Weekly Service: 28ft × $7/ft = $196.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L30": {
+    "subtotal": 210,
+    "breakdown": [
+      "Bi-Weekly Service: 30ft × $7/ft = $210.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "biweekly/L34": {
+    "subtotal": 238,
+    "breakdown": [
+      "Bi-Weekly Service: 34ft × $7/ft = $238.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "total/ext+int+ceramic/cruiser/L30": {
+    "subtotal": 2613.75,
+    "breakdown": [
+      "--- Exterior Detailing ---",
+      "Exterior Standard: 30ft × $20/ft × 1.2 = $720.00",
+      "--- Interior Detailing ---",
+      "Interior Standard (Cruiser (Single Cabin)): $717 – $970",
+      "--- Ceramic Coating ---",
+      "Ceramic Coating: 30ft × $35/ft = $1050.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "total/gelcoat-fullboat+wet+bottom/bowrider/L26": {
+    "subtotal": 4175,
+    "breakdown": [
+      "--- Gelcoat Restoration ---",
+      "Hull: 26ft × $25/ft = $650.00",
+      "Topsides: 26ft × $28/ft = $728.00",
+      "--- Wet Sanding & Paint/Gelcoat Correction ---",
+      "Wet Sanding & Paint/Gelcoat Correction: 26ft × $45/ft = $1170.00",
+      "Deep Scratch Repair: $275.00",
+      "--- Bottom Painting ---",
+      "Bottom Painting: 26ft × $40/ft = $1040.00",
+      "2nd Coat: 26ft × $12/ft = $312.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "total/graphene+vinyl-both/other/L22": {
+    "subtotal": 1753,
+    "breakdown": [
+      "--- Graphene Coating ---",
+      "Graphene Coating: 22ft × $40/ft = $880.00",
+      "Second Layer: 22ft × $10/ft = $220.00",
+      "--- Vinyl Services ---",
+      "Vinyl Removal + Install: 22ft × $24/ft = $528.00",
+      "Custom Design: $125.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "total/weeklyOnly/pontoon/L20": {
+    "subtotal": 120,
+    "breakdown": [
+      "--- Weekly Service ---",
+      "Weekly Service: 20ft × $6/ft = $120.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "total/biweeklyOnly/pontoon/L20": {
+    "subtotal": 140,
+    "breakdown": [
+      "--- Bi-Weekly Service ---",
+      "Bi-Weekly Service: 20ft × $7/ft = $140.00",
+      "Includes: pressure wash, wipe down, chrome polish, and window cleaning."
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "total/interior-restoration-review+exterior/cruiser/L24": {
+    "subtotal": 480,
+    "breakdown": [
+      "--- Exterior Detailing ---",
+      "Exterior Refresh: 24ft × $20/ft × 1 = $480.00",
+      "--- Interior Detailing ---"
+    ],
+    "requiresManualReview": true,
+    "reviewReasons": [
+      "Restoration tier requires manual review"
+    ]
+  },
+  "total/gelcoat-allOn+exterior-allOn+interior-addons/express/L28": {
+    "subtotal": 5445.3,
+    "breakdown": [
+      "--- Gelcoat Restoration ---",
+      "Hull: 28ft × $25/ft = $700.00",
+      "Topsides: 28ft × $28/ft = $784.00",
+      "Heavy Oxidation Surcharge (+20%): $296.80",
+      "Arch / Radar Arch: $175.00",
+      "Hard Top: $475.00",
+      "Spot Wet Sanding (2 areas): $250.00",
+      "--- Exterior Detailing ---",
+      "Exterior Deep: 28ft × $20/ft × 1.4 = $784.00",
+      "Teak Cleaning: $225.00",
+      "Canvas Cleaning: $150.00",
+      "Fender Cleaning: $60.00",
+      "Exterior Ozone: $100.00",
+      "--- Interior Detailing ---",
+      "Interior Standard (Express Cruiser): $1318 – $1573",
+      "Advanced Mold & Mildew Remediation: $295.00",
+      "Head (Bathroom) Deep Clean: $125.00",
+      "Galley Deep Clean: $175.00"
+    ],
+    "requiresManualReview": false,
+    "reviewReasons": []
+  },
+  "total/ceramic+graphene+bottom-blister-review/yacht/L34": {
+    "subtotal": 4832,
+    "breakdown": [
+      "--- Ceramic Coating ---",
+      "Ceramic Coating: 34ft × $35/ft = $1190.00",
+      "Second Layer: 34ft × $8/ft = $272.00",
+      "Teak Ceramic: $300.00",
+      "--- Graphene Coating ---",
+      "Graphene Coating: 34ft × $40/ft = $1360.00",
+      "Teak Graphene: $350.00",
+      "--- Bottom Painting ---",
+      "Bottom Painting: 34ft × $40/ft = $1360.00"
+    ],
+    "requiresManualReview": true,
+    "reviewReasons": [
+      "Blister repair requires manual review"
+    ]
+  }
+}
