@@ -1,0 +1,5 @@
+Image findings for homepage redesign
+
+1. /public/images/before-after/results-candidate-2.png shows a real boat with A1 staff actively polishing the hull. It feels authentic and service-led, making it useful for the transformation section or a supporting proof image.
+2. /public/images/marinas/marina-1.jpg is a wide, premium marina shot with multiple high-end boats and strong symmetry. It is well suited for a cinematic background section such as the service-area banner or a final CTA.
+3. The redesign should lean on dark gradient overlays because both images are bright daylight shots and need contrast for premium, high-end typography.

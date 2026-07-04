@@ -1,0 +1,266 @@
+import { NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
+
+import {
+  isValidPreviewService,
+  getPreviewPrompt,
+  getAllPreviewServices,
+} from "@/lib/preview-prompts";
+
+// Correct stable model names as per https://ai.google.dev/gemini-api/docs/models
+const PRIMARY_IMAGE_MODEL = "gemini-3.1-flash-image";
+const FALLBACK_IMAGE_MODEL = "gemini-2.5-flash-image";
+
+const VALID_IMAGE_MODELS = [
+  "gemini-2.5-flash-image",
+  "gemini-3.1-flash-image",
+  "gemini-3-pro-image",
+] as const;
+
+const KNOWN_BAD_MODELS = [
+  "gemini-2.0-flash-preview-image-generation",
+  "gemini-1.5-flash",
+  "gemini-3.1-pro-preview",
+  "gemini-3.0-pro-exp",
+  "gemini-3.0-flash-exp",
+  // Old incorrect names that had wrong suffixes
+  "gemini-3.1-flash-image-preview",
+  "gemini-3-pro-image-preview",
+];
+
+function isValidImageModel(model: string): model is (typeof VALID_IMAGE_MODELS)[number] {
+  return (VALID_IMAGE_MODELS as readonly string[]).includes(model);
+}
+
+function getEffectiveModel(): string {
+  const envModel = process.env.GEMINI_IMAGE_MODEL;
+  if (envModel && isValidImageModel(envModel)) {
+    console.log("[Boat Preview] Using env model:", envModel);
+    return envModel;
+  }
+  if (envModel && KNOWN_BAD_MODELS.includes(envModel)) {
+    console.warn(`[Boat Preview] Env model "${envModel}" is not valid for image generation. Using ${PRIMARY_IMAGE_MODEL} instead.`);
+  } else if (envModel) {
+    console.warn(`[Boat Preview] Env model "${envModel}" is unsupported. Allowed image models: ${VALID_IMAGE_MODELS.join(", ")}. Using ${PRIMARY_IMAGE_MODEL}.`);
+  }
+  console.log("[Boat Preview] Using default model:", PRIMARY_IMAGE_MODEL);
+  return PRIMARY_IMAGE_MODEL;
+}
+
+async function compressImage(base64: string, _maxWidth = 1024): Promise<string> {
+  return base64;
+}
+
+/** Detect whether an error is a Gemini API quota/rate-limit (HTTP 429) error */
+function isQuotaError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const err = error as Record<string, unknown>;
+  // SDK wraps the HTTP status on the error object
+  if (err.status === 429) return true;
+  // Also check the message string for RESOURCE_EXHAUSTED / quota keywords
+  const msg = String(err.message ?? "");
+  return msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota") || msg.includes("429");
+}
+
+interface GenerateContentResult {
+  success: boolean;
+  image?: string;
+  error?: string;
+  errorCode?: "quota_exceeded" | "sdk_error" | "invalid_response" | "no_image";
+  modelUsed?: string;
+  partTypes?: string[];
+}
+
+async function generatePreviewWithModel(
+  ai: GoogleGenAI,
+  model: string,
+  prompt: string,
+  imageData: string
+): Promise<GenerateContentResult> {
+  console.log("[Boat Preview] Attempting with model:", model);
+  console.log("[Boat Preview] API client:", "@google/genai");
+  console.log("[Boat Preview] API method:", "ai.models.generateContent");
+
+  const contents = [
+    {
+      role: "user",
+      parts: [
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: imageData,
+          },
+        },
+      ],
+    },
+  ];
+
+  console.log("[Boat Preview] Request payload fields:", ["contents", "config.responseModalities"]);
+
+  try {
+    const data = await ai.models.generateContent({
+      model,
+      contents,
+      config: {
+        responseModalities: ["TEXT", "IMAGE"],
+      },
+    });
+
+    const hasCandidates = Boolean(data.candidates?.length);
+    console.log("[Boat Preview] Candidates exist:", hasCandidates);
+
+    if (!data.candidates?.[0]?.content?.parts) {
+      console.error("[Boat Preview] Invalid response structure from", model);
+      return { success: false, error: "Invalid response structure", errorCode: "invalid_response", modelUsed: model };
+    }
+
+    const parts = data.candidates[0].content.parts;
+    const partTypes = parts.map((part: { inlineData?: unknown; text?: unknown }) => {
+      if (part.inlineData) return "inlineData";
+      if (part.text) return "text";
+      return "unknown";
+    });
+    const hasInlineImageData = parts.some((part: { inlineData?: { data?: string } }) => {
+      const inlineBytes = part.inlineData?.data;
+      return typeof inlineBytes === "string" && inlineBytes.length > 0;
+    });
+
+    console.log("[Boat Preview] Response from", model + ":");
+    console.log("- Part types:", partTypes);
+    console.log("- Has inlineData image bytes:", hasInlineImageData);
+
+    const imagePart = parts.find(
+      (part: { inlineData?: { mimeType?: string; data?: string } }) => {
+        const inlineBytes = part.inlineData?.data;
+        return typeof inlineBytes === "string" && inlineBytes.length > 0;
+      }
+    );
+
+    const imageInlineData = imagePart?.inlineData;
+
+    if (imageInlineData?.data) {
+      console.log("[Boat Preview] Image generated successfully with", model, "- size:", imageInlineData.data.length, "chars");
+      return {
+        success: true,
+        image: `data:${imageInlineData.mimeType || "image/png"};base64,${imageInlineData.data}`,
+        modelUsed: model,
+        partTypes,
+      };
+    }
+
+    const textPart = parts.find((part: { text?: string }) => part.text);
+    if (textPart) {
+      console.log("[Boat Preview]", model, "returned text only:", (textPart as { text: string }).text.slice(0, 200));
+    }
+
+    return { success: false, error: "No image bytes in response", errorCode: "no_image", modelUsed: model, partTypes };
+  } catch (error) {
+    console.error(`[Boat Preview] ${model} SDK error (full object):`, error);
+    if (isQuotaError(error)) {
+      console.error(`[Boat Preview] ${model} quota/rate-limit exceeded (HTTP 429)`);
+      return { success: false, error: "quota_exceeded", errorCode: "quota_exceeded", modelUsed: model };
+    }
+    return { success: false, error: "Gemini SDK error", errorCode: "sdk_error", modelUsed: model };
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const formData = await request.formData();
+    const imageBase64 = formData.get("image") as string;
+    const service = formData.get("service") as string;
+
+    if (!imageBase64) {
+      return NextResponse.json(
+        { success: false, error: "No image provided" },
+        { status: 400 }
+      );
+    }
+
+    if (!service || !isValidPreviewService(service)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid service selection" },
+        { status: 400 }
+      );
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: "Gemini API not configured" },
+        { status: 500 }
+      );
+    }
+
+    const model = getEffectiveModel();
+    const prompt = getPreviewPrompt(service);
+    const compressedImage = await compressImage(imageBase64);
+    const ai = new GoogleGenAI({ apiKey });
+
+    const imageData = compressedImage.includes(",")
+      ? compressedImage.split(",")[1]
+      : compressedImage;
+
+    console.log("[Boat Preview] ========== REQUEST START ==========");
+    console.log("[Boat Preview] Service:", service);
+    console.log("[Boat Preview] Model:", model);
+    console.log("[Boat Preview] Prompt length:", prompt.length, "chars");
+    console.log("[Boat Preview] Image data length:", imageData.length, "chars");
+    console.log("[Boat Preview] ===================================");
+
+    let result = await generatePreviewWithModel(ai, model, prompt, imageData);
+
+    // Only try fallback if the failure was not a quota error (quota errors affect all models equally)
+    if (!result.success && result.errorCode !== "quota_exceeded" && model !== FALLBACK_IMAGE_MODEL) {
+      console.log("[Boat Preview] Initial model failed, trying fallback...");
+      console.log("[Boat Preview] Fallback model:", FALLBACK_IMAGE_MODEL);
+      result = await generatePreviewWithModel(ai, FALLBACK_IMAGE_MODEL, prompt, imageData);
+    }
+
+    if (result.success && result.image) {
+      return NextResponse.json({
+        success: true,
+        image: result.image,
+        modelUsed: result.modelUsed,
+      });
+    }
+
+    // Return a specific, user-friendly error for quota exhaustion
+    if (result.errorCode === "quota_exceeded") {
+      console.error("[Boat Preview] Quota exceeded — Gemini API free tier does not support image generation models. Upgrade to a paid plan.");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "The AI preview service is temporarily unavailable due to high demand. Please try again in a few minutes.",
+          errorCode: "quota_exceeded",
+        },
+        { status: 503 }
+      );
+    }
+
+    console.log("[Boat Preview] All models failed to generate image");
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Image preview could not be generated right now. Please try again.",
+      },
+      { status: 500 }
+    );
+  } catch (error) {
+    console.error("[Boat Preview] Unexpected error:", error);
+    return NextResponse.json(
+      { success: false, error: "Image preview could not be generated right now. Please try again." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    availableServices: getAllPreviewServices(),
+    primaryModel: PRIMARY_IMAGE_MODEL,
+    fallbackModel: FALLBACK_IMAGE_MODEL,
+    validImageModels: VALID_IMAGE_MODELS,
+  });
+}

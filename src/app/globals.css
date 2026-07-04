@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 215 30% 7%;
+    --foreground: 210 18% 94%;
+
+    --card: 214 22% 11%;
+    --card-foreground: 210 18% 94%;
+
+    --popover: 214 22% 11%;
+    --popover-foreground: 210 18% 94%;
+
+    --primary: 180 100% 50%;
+    --primary-foreground: 215 30% 7%;
+
+    --secondary: 214 18% 16%;
+    --secondary-foreground: 210 18% 92%;
+
+    --muted: 214 16% 14%;
+    --muted-foreground: 210 10% 70%;
+
+    --accent: 180 100% 50%;
+    --accent-foreground: 215 30% 7%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 15% 25%;
+    --input: 214 15% 25%;
+    --ring: 180 100% 50%;
+
+    --radius: 0.85rem;
+
+    --surface-ocean: linear-gradient(135deg, hsl(214 28% 13%) 0%, hsl(205 30% 16%) 50%, hsl(197 34% 19%) 100%);
+    --surface-deep: linear-gradient(140deg, hsl(219 36% 6%) 0%, hsl(211 40% 9%) 48%, hsl(198 44% 12%) 100%);
+    --hero-overlay: linear-gradient(160deg, hsl(220 40% 4% / 0.86) 0%, hsl(208 48% 8% / 0.72) 60%, hsl(195 52% 12% / 0.62) 100%);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .surface-panel {
+    @apply rounded-2xl border border-border/80 bg-card/90 shadow-[0_20px_50px_-28px_rgba(0,0,0,0.8)];
+  }
+
+  .section-space {
+    @apply py-16 md:py-20;
+  }
+}
+
+@layer utilities {
+  .bg-surface-ocean {
+    background: var(--surface-ocean);
+  }
+
+  .bg-surface-deep {
+    background: var(--surface-deep);
+  }
+
+  .bg-hero-overlay {
+    background: var(--hero-overlay);
+  }
+}
