@@ -15,6 +15,7 @@
     "db:deploy": "prisma migrate deploy && npm run build"
   },
   "dependencies": {
+    "@a1/pricing-engine": "git+https://github.com/marcuslebars/a1-pricing-engine.git#v1.0.1",
     "@google/genai": "^1.50.1",
     "@hookform/resolvers": "^3.10.0",
     "@prisma/client": "^6.0.0",
