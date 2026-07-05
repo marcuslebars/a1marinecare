@@ -56,6 +56,7 @@ export function ContactPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitFallback, setSubmitFallback] = useState(false);
 
   const regionList = useMemo(() => {
     return locations
@@ -68,6 +69,7 @@ export function ContactPageContent() {
     setFormData((previous) => ({ ...previous, [key]: value }));
     setErrors((previous) => ({ ...previous, [key]: undefined }));
     setSubmitError("");
+    setSubmitFallback(false);
   }
 
   function validateForm() {
@@ -90,27 +92,41 @@ export function ContactPageContent() {
 
     setIsSubmitting(true);
     setSubmitError("");
+    setSubmitFallback(false);
 
+    const maxAttempts = 3;
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const response = await fetch("/api/contact", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+          });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Unable to send your message right now.");
+          if (response.ok) {
+            const data = await response.json().catch(() => ({ success: true }));
+            if (data.success) {
+              setSubmitSuccess(true);
+              setFormData(INITIAL_FORM);
+              setErrors({});
+              return;
+            }
+            // 200 without success — treat as transient and retry.
+          } else if (response.status >= 400 && response.status < 500) {
+            // Validation/client error — show it inline; retrying won't help.
+            const data = await response.json().catch(() => ({}));
+            setSubmitError(data.error || "Please check your details and try again.");
+            return;
+          }
+          // 5xx — fall through to retry.
+        } catch {
+          // Network error — fall through to retry.
+        }
+        if (attempt < maxAttempts) await new Promise((resolve) => setTimeout(resolve, attempt * 800));
       }
-
-      setSubmitSuccess(true);
-      setFormData(INITIAL_FORM);
-      setErrors({});
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Unable to send your message right now.");
+      // Every attempt failed — never a fake success; show a direct-contact fallback.
+      setSubmitFallback(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -190,6 +206,23 @@ export function ContactPageContent() {
             ) : (
               <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                 <input type="hidden" name="source" value={formData.source} />
+
+                {submitFallback && (
+                  <div className="rounded-2xl border border-amber-400/25 bg-amber-500/10 p-5">
+                    <p className="text-sm font-semibold text-amber-100">We couldn&apos;t send your message just now.</p>
+                    <p className="mt-1 text-sm text-amber-100/80">
+                      Please reach us directly and we&apos;ll get right back to you — your message hasn&apos;t been sent yet.
+                    </p>
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-6">
+                      <a href={`tel:${company.phone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center gap-2 text-base font-semibold text-white hover:text-primary">
+                        <Phone className="h-4 w-4 text-primary" /> {company.phone}
+                      </a>
+                      <a href={`mailto:${company.email}`} className="inline-flex items-center gap-2 text-base font-semibold text-white hover:text-primary">
+                        <Mail className="h-4 w-4 text-primary" /> {company.email}
+                      </a>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="space-y-2">
