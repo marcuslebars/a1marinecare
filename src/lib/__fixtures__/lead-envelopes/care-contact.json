@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "source": "a1marinecare-contact",
+  "sourceSite": "a1marinecare",
+  "formType": "contact",
+  "receivedAt": "2026-07-10T14:03:00.000Z",
+  "contact": { "name": "Jane Boater", "email": "jane@example.com", "phone": "705-555-0101" },
+  "message": "Service: Full exterior detail\n\nLooking for a quote on my 28ft cruiser.",
+  "meta": { "site": "a1marinecare.ca" }
+}

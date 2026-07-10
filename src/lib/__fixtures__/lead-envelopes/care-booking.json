@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "source": "a1marinecare-booking",
+  "sourceSite": "a1marinecare",
+  "formType": "booking",
+  "receivedAt": "2026-07-10T16:00:00.000Z",
+  "contact": { "name": "Sam Rivera", "email": "sam@example.com", "phone": "705-555-0177" },
+  "message": "Service: Spring detailing\n\nBefore launch.",
+  "asset": { "lengthFt": 22, "marina": "Queen's Cove" },
+  "meta": { "site": "a1marinecare.ca", "preferredDate": "2026-05-01", "preferredTime": "09:00" }
+}
