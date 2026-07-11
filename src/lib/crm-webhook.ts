@@ -7,6 +7,8 @@
  * and a failure here never breaks the user-facing flow.
  */
 
+import { buildCareEnvelope, forwardToEmpireVu } from "./empirevu";
+
 const CRM_WEBHOOK_BASE = process.env.CRM_WEBHOOK_URL ?? "https://leads.a1marinecare.ca";
 const CRM_WEBHOOK_SECRET = process.env.CRM_WEBHOOK_SECRET ?? "";
 
@@ -52,6 +54,12 @@ type CrmWebhookPayload = ContactWebhookPayload | BookingWebhookPayload | QuoteWe
  * This is fire-and-forget — errors are logged but never thrown.
  */
 export function sendToCrm(payload: CrmWebhookPayload): void {
+  // Additive dual-send: the SAME lead to EmpireVu's canonical intake, best-effort
+  // and independent of the legacy webhook below. Env-gated (EMPIREVU_INTAKE_URL /
+  // EMPIREVU_INTAKE_SECRET) — a no-op until configured; an EmpireVu outage never
+  // affects the legacy delivery.
+  void forwardToEmpireVu(buildCareEnvelope(payload, new Date().toISOString()));
+
   const endpoint = `${CRM_WEBHOOK_BASE}/api/webhook/${payload.source}`;
 
   const headers: Record<string, string> = {

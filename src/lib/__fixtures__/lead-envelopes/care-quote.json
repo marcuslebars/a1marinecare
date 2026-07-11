@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "source": "a1marinecare-quote",
+  "sourceSite": "a1marinecare",
+  "formType": "quote",
+  "receivedAt": "2026-07-10T15:00:00.000Z",
+  "contact": { "name": "Dana Fisher", "email": "dana@example.com", "phone": "705-555-0143" },
+  "message": "Service: Gelcoat restoration\n\nQuote for full exterior.",
+  "asset": { "type": "Sailboat", "lengthFt": 32, "marina": "Queen's Cove" },
+  "meta": { "site": "a1marinecare.ca" }
+}
