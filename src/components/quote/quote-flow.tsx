@@ -35,6 +35,7 @@ import {
   type VinylConfig,
   type WetSandingConfig,
 } from "@/lib/quote-pricing";
+import { CARE } from "@/lib/pricing-config";
 import { Anchor, ArrowLeft, ArrowRight, Loader2, Mail, MapPin, Phone, Ruler, Ship, User, Waves } from "lucide-react";
 
 import ProgressBar from "@/components/quote/ProgressBar";
@@ -46,6 +47,7 @@ import AnimatedPrice from "@/components/quote/AnimatedPrice";
 import LearnMoreModal from "@/components/quote/LearnMoreModal";
 import { LocationCombobox } from "@/components/quote/LocationCombobox";
 
+// PRICE-COPY: editorial tier-multiplier labels — mirror CARE.exterior.tierMultipliers; review on rate change.
 const EXTERIOR_TIERS = [
   { value: "refresh", label: "Refresh", multiplier: "1.0x", description: "Quick maintenance clean for well-kept boats" },
   { value: "standard", label: "Standard", multiplier: "1.2x", description: "Full wash, clay bar, and hand polish with sealant" },
@@ -53,6 +55,7 @@ const EXTERIOR_TIERS = [
   { value: "restoration", label: "Restoration", multiplier: "1.6x", description: "Complete exterior revival for neglected surfaces" },
 ];
 
+// PRICE-COPY: editorial tier-multiplier labels — mirror CARE.interior.tierMultipliers; review on rate change.
 const INTERIOR_TIERS = [
   { value: "refresh", label: "Refresh", multiplier: "1.0x", description: "Light vacuum, wipe-down, and surface sanitisation" },
   { value: "standard", label: "Standard", multiplier: "1.25x", description: "Full vacuum, upholstery cleaning, and treatment" },
@@ -69,8 +72,8 @@ const SERVICE_META: Record<ServiceKey, { title: string; description: string }> =
   wetSanding: { title: "Wet Sanding & Correction", description: "Precision wet sanding to remove deep scratches and imperfections." },
   bottomPainting: { title: "Bottom Painting", description: "Antifouling bottom paint to protect against marine growth." },
   vinyl: { title: "Vinyl Removal & Installation", description: "Professional vinyl graphics removal, installation, or both." },
-  weeklyMaintenance: { title: "Weekly Service", description: "Recurring wash-and-wipe maintenance at $6/ft for owners who want their boat ready every week." },
-  biweeklyMaintenance: { title: "Bi-Weekly Service", description: "Recurring maintenance at $7/ft with an every-other-week cadence for clean, consistent upkeep." },
+  weeklyMaintenance: { title: "Weekly Service", description: `Recurring wash-and-wipe maintenance at $${CARE.weeklyMaintenance.ratePerFoot}/ft for owners who want their boat ready every week.` },
+  biweeklyMaintenance: { title: "Bi-Weekly Service", description: `Recurring maintenance at $${CARE.biweeklyMaintenance.ratePerFoot}/ft with an every-other-week cadence for clean, consistent upkeep.` },
 };
 
 const BOAT_TYPE_OPTIONS = [
@@ -306,9 +309,9 @@ export function QuoteFlow() {
 
     try {
       const recurringPlan = selectedServices.weeklyMaintenance
-        ? { type: "weekly", name: "Weekly Service", ratePerFoot: 6 }
+        ? { type: "weekly", name: "Weekly Service", ratePerFoot: CARE.weeklyMaintenance.ratePerFoot }
         : selectedServices.biweeklyMaintenance
-          ? { type: "biweekly", name: "Bi-Weekly Service", ratePerFoot: 7 }
+          ? { type: "biweekly", name: "Bi-Weekly Service", ratePerFoot: CARE.biweeklyMaintenance.ratePerFoot }
           : null;
 
       const response = await fetch("/api/quotes", {
@@ -558,14 +561,14 @@ export function QuoteFlow() {
                         </Select>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <OptionToggle id="radarArch" label="Radar Arch (+$175)" checked={gelcoatConfig.radarArch} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, radarArch: c })} />
-                        <OptionToggle id="hardTop" label="Hard Top (+$475)" checked={gelcoatConfig.hardTop} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, hardTop: c })} />
-                        <OptionToggle id="heavyOxidation" label="Heavy Oxidation (+20%)" checked={gelcoatConfig.heavyOxidation} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, heavyOxidation: c })} />
+                        <OptionToggle id="radarArch" label={`Radar Arch (+$${CARE.gelcoat.addons.radarArch})`} checked={gelcoatConfig.radarArch} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, radarArch: c })} />
+                        <OptionToggle id="hardTop" label={`Hard Top (+$${CARE.gelcoat.addons.hardTop})`} checked={gelcoatConfig.hardTop} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, hardTop: c })} />
+                        <OptionToggle id="heavyOxidation" label={`Heavy Oxidation (+${CARE.gelcoat.heavyOxidationSurchargePct}%)`} checked={gelcoatConfig.heavyOxidation} onChange={(c) => setGelcoatConfig({ ...gelcoatConfig, heavyOxidation: c })} />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-muted-foreground text-sm">Spot Wet Sanding Areas</Label>
                         <Input type="number" min="0" placeholder="0" value={gelcoatConfig.spotWetSanding || ""} onChange={(e) => setGelcoatConfig({ ...gelcoatConfig, spotWetSanding: parseInt(e.target.value) || 0 })} className="h-10 rounded-xl w-32" />
-                        <p className="text-xs text-muted-foreground/80">$125 per area</p>
+                        <p className="text-xs text-muted-foreground/80">{`$${CARE.gelcoat.spotWetSandingPerArea} per area`}</p>
                       </div>
                     </div>
                   </ServiceCard>
@@ -577,10 +580,10 @@ export function QuoteFlow() {
                         <TierSelector tiers={EXTERIOR_TIERS} selected={exteriorConfig.tier} onSelect={(v) => setExteriorConfig({ ...exteriorConfig, tier: v as any })} />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <OptionToggle id="teakCleaning" label="Teak Cleaning (+$225)" checked={exteriorConfig.teakCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, teakCleaning: c })} />
-                        <OptionToggle id="canvasCleaning" label="Canvas Cleaning (+$150)" checked={exteriorConfig.canvasCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, canvasCleaning: c })} />
-                        <OptionToggle id="fenderCleaning" label="Fender Cleaning (+$60)" checked={exteriorConfig.fenderCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, fenderCleaning: c })} />
-                        <OptionToggle id="exteriorOzone" label="Exterior Ozone (+$100)" checked={exteriorConfig.exteriorOzone} onChange={(c) => setExteriorConfig({ ...exteriorConfig, exteriorOzone: c })} />
+                        <OptionToggle id="teakCleaning" label={`Teak Cleaning (+$${CARE.exterior.addons.teakCleaning})`} checked={exteriorConfig.teakCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, teakCleaning: c })} />
+                        <OptionToggle id="canvasCleaning" label={`Canvas Cleaning (+$${CARE.exterior.addons.canvasCleaning})`} checked={exteriorConfig.canvasCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, canvasCleaning: c })} />
+                        <OptionToggle id="fenderCleaning" label={`Fender Cleaning (+$${CARE.exterior.addons.fenderCleaning})`} checked={exteriorConfig.fenderCleaning} onChange={(c) => setExteriorConfig({ ...exteriorConfig, fenderCleaning: c })} />
+                        <OptionToggle id="exteriorOzone" label={`Exterior Ozone (+$${CARE.exterior.addons.exteriorOzone})`} checked={exteriorConfig.exteriorOzone} onChange={(c) => setExteriorConfig({ ...exteriorConfig, exteriorOzone: c })} />
                       </div>
                     </div>
                   </ServiceCard>
@@ -598,15 +601,15 @@ export function QuoteFlow() {
                         </p>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <OptionToggle id="moldRemediation" label="Mold & Mildew Remediation (+$295)" checked={interiorConfig.moldRemediation} onChange={(c) => setInteriorConfig({ ...interiorConfig, moldRemediation: c })} />
-                        <OptionToggle id="petHairRemoval" label="Heavy Pet Hair Removal (+$150)" checked={interiorConfig.petHairRemoval} onChange={(c) => setInteriorConfig({ ...interiorConfig, petHairRemoval: c })} />
+                        <OptionToggle id="moldRemediation" label={`Mold & Mildew Remediation (+$${CARE.interior.addons.moldRemediation})`} checked={interiorConfig.moldRemediation} onChange={(c) => setInteriorConfig({ ...interiorConfig, moldRemediation: c })} />
+                        <OptionToggle id="petHairRemoval" label={`Heavy Pet Hair Removal (+$${CARE.interior.addons.petHairRemoval})`} checked={interiorConfig.petHairRemoval} onChange={(c) => setInteriorConfig({ ...interiorConfig, petHairRemoval: c })} />
                         {["cuddy", "cruiser", "express", "yacht"].includes(boatDetails.type) && (
-                          <OptionToggle id="mattressShampoo" label="Mattress / Cushion Shampoo (+$175)" checked={interiorConfig.mattressShampoo} onChange={(c) => setInteriorConfig({ ...interiorConfig, mattressShampoo: c })} />
+                          <OptionToggle id="mattressShampoo" label={`Mattress / Cushion Shampoo (+$${CARE.interior.addons.mattressShampoo})`} checked={interiorConfig.mattressShampoo} onChange={(c) => setInteriorConfig({ ...interiorConfig, mattressShampoo: c })} />
                         )}
-                        <OptionToggle id="headDeepClean" label="Head (Bathroom) Deep Clean (+$125)" checked={interiorConfig.headDeepClean} onChange={(c) => setInteriorConfig({ ...interiorConfig, headDeepClean: c })} />
-                        <OptionToggle id="galleyDeepClean" label="Galley Deep Clean (+$175)" checked={interiorConfig.galleyDeepClean} onChange={(c) => setInteriorConfig({ ...interiorConfig, galleyDeepClean: c })} />
+                        <OptionToggle id="headDeepClean" label={`Head (Bathroom) Deep Clean (+$${CARE.interior.addons.headDeepClean})`} checked={interiorConfig.headDeepClean} onChange={(c) => setInteriorConfig({ ...interiorConfig, headDeepClean: c })} />
+                        <OptionToggle id="galleyDeepClean" label={`Galley Deep Clean (+$${CARE.interior.addons.galleyDeepClean})`} checked={interiorConfig.galleyDeepClean} onChange={(c) => setInteriorConfig({ ...interiorConfig, galleyDeepClean: c })} />
                         {(interiorConfig.tier === "deep" || interiorConfig.tier === "restoration") && (
-                          <OptionToggle id="ozoneInterior" label="Ozone Odor Treatment (+$195)" checked={interiorConfig.ozoneInterior} onChange={(c) => setInteriorConfig({ ...interiorConfig, ozoneInterior: c })} />
+                          <OptionToggle id="ozoneInterior" label={`Ozone Odor Treatment (+$${CARE.interior.addons.ozoneInterior})`} checked={interiorConfig.ozoneInterior} onChange={(c) => setInteriorConfig({ ...interiorConfig, ozoneInterior: c })} />
                         )}
                       </div>
                     </div>
@@ -614,35 +617,35 @@ export function QuoteFlow() {
 
                   <ServiceCard id="ceramic" title={SERVICE_META.ceramic.title} description={SERVICE_META.ceramic.description} selected={selectedServices.ceramic} onToggle={() => toggleService("ceramic")} onLearnMore={() => openLearnMore("ceramic")}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <OptionToggle id="secondLayerCeramic" label="Second Layer (+$8/ft)" checked={ceramicConfig.secondLayer} onChange={(c) => setCeramicConfig({ ...ceramicConfig, secondLayer: c })} />
-                      <OptionToggle id="teakCeramic" label="Teak Ceramic (+$300)" checked={ceramicConfig.teakCeramic} onChange={(c) => setCeramicConfig({ ...ceramicConfig, teakCeramic: c })} />
-                      <OptionToggle id="interiorCeramic" label="Interior Ceramic (+$150)" checked={ceramicConfig.interiorCeramic} onChange={(c) => setCeramicConfig({ ...ceramicConfig, interiorCeramic: c })} />
+                      <OptionToggle id="secondLayerCeramic" label={`Second Layer (+$${CARE.ceramic.perFootAddons.secondLayer}/ft)`} checked={ceramicConfig.secondLayer} onChange={(c) => setCeramicConfig({ ...ceramicConfig, secondLayer: c })} />
+                      <OptionToggle id="teakCeramic" label={`Teak Ceramic (+$${CARE.ceramic.addons.teakCeramic})`} checked={ceramicConfig.teakCeramic} onChange={(c) => setCeramicConfig({ ...ceramicConfig, teakCeramic: c })} />
+                      <OptionToggle id="interiorCeramic" label={`Interior Ceramic (+$${CARE.ceramic.addons.interiorCeramic})`} checked={ceramicConfig.interiorCeramic} onChange={(c) => setCeramicConfig({ ...ceramicConfig, interiorCeramic: c })} />
                     </div>
                   </ServiceCard>
 
                   <ServiceCard id="graphene" title={SERVICE_META.graphene.title} description={SERVICE_META.graphene.description} selected={selectedServices.graphene} onToggle={() => toggleService("graphene")} onLearnMore={() => openLearnMore("graphene")}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <OptionToggle id="secondLayerGraphene" label="Second Layer (+$10/ft)" checked={grapheneConfig.secondLayer} onChange={(c) => setGrapheneConfig({ ...grapheneConfig, secondLayer: c })} />
-                      <OptionToggle id="teakGraphene" label="Teak Graphene (+$350)" checked={grapheneConfig.teakGraphene} onChange={(c) => setGrapheneConfig({ ...grapheneConfig, teakGraphene: c })} />
+                      <OptionToggle id="secondLayerGraphene" label={`Second Layer (+$${CARE.graphene.perFootAddons.secondLayer}/ft)`} checked={grapheneConfig.secondLayer} onChange={(c) => setGrapheneConfig({ ...grapheneConfig, secondLayer: c })} />
+                      <OptionToggle id="teakGraphene" label={`Teak Graphene (+$${CARE.graphene.addons.teakGraphene})`} checked={grapheneConfig.teakGraphene} onChange={(c) => setGrapheneConfig({ ...grapheneConfig, teakGraphene: c })} />
                     </div>
                   </ServiceCard>
 
                   <ServiceCard id="wetSanding" title={SERVICE_META.wetSanding.title} description={SERVICE_META.wetSanding.description} selected={selectedServices.wetSanding} onToggle={() => toggleService("wetSanding")} onLearnMore={() => openLearnMore("wetSanding")}>
                     <div className="space-y-3">
-                      <OptionToggle id="deepScratchRepair" label="Deep Scratch Repair (+$275)" checked={wetSandingConfig.deepScratchRepair} onChange={(c) => setWetSandingConfig({ ...wetSandingConfig, deepScratchRepair: c })} />
+                      <OptionToggle id="deepScratchRepair" label={`Deep Scratch Repair (+$${CARE.wetSanding.addons.deepScratchRepair})`} checked={wetSandingConfig.deepScratchRepair} onChange={(c) => setWetSandingConfig({ ...wetSandingConfig, deepScratchRepair: c })} />
                       <div className="space-y-2">
                         <Label className="text-muted-foreground text-sm">Spot Wet Sanding Areas</Label>
                         <Input type="number" min="0" placeholder="0" value={wetSandingConfig.spotWetSanding || ""} onChange={(e) => setWetSandingConfig({ ...wetSandingConfig, spotWetSanding: parseInt(e.target.value) || 0 })} className="h-10 rounded-xl w-32" />
-                        <p className="text-xs text-muted-foreground/80">$125 per area</p>
+                        <p className="text-xs text-muted-foreground/80">{`$${CARE.wetSanding.spotWetSandingPerArea} per area`}</p>
                       </div>
                     </div>
                   </ServiceCard>
 
                   <ServiceCard id="bottomPainting" title={SERVICE_META.bottomPainting.title} description={SERVICE_META.bottomPainting.description} selected={selectedServices.bottomPainting} onToggle={() => toggleService("bottomPainting")} onLearnMore={() => openLearnMore("bottomPainting")}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <OptionToggle id="secondCoat" label="2nd Coat (+$12/ft)" checked={bottomPaintingConfig.secondCoat} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, secondCoat: c })} />
-                      <OptionToggle id="oldPaintRemoval" label="Old Paint Removal (+$18/ft)" checked={bottomPaintingConfig.oldPaintRemoval} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, oldPaintRemoval: c })} />
-                      <OptionToggle id="heavyGrowthRemoval" label="Heavy Growth Removal (+$250)" checked={bottomPaintingConfig.heavyGrowthRemoval} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, heavyGrowthRemoval: c })} />
+                      <OptionToggle id="secondCoat" label={`2nd Coat (+$${CARE.bottomPainting.perFootAddons.secondCoat}/ft)`} checked={bottomPaintingConfig.secondCoat} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, secondCoat: c })} />
+                      <OptionToggle id="oldPaintRemoval" label={`Old Paint Removal (+$${CARE.bottomPainting.perFootAddons.oldPaintRemoval}/ft)`} checked={bottomPaintingConfig.oldPaintRemoval} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, oldPaintRemoval: c })} />
+                      <OptionToggle id="heavyGrowthRemoval" label={`Heavy Growth Removal (+$${CARE.bottomPainting.addons.heavyGrowthRemoval})`} checked={bottomPaintingConfig.heavyGrowthRemoval} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, heavyGrowthRemoval: c })} />
                       <OptionToggle id="blisterRepair" label="Blister Repair (Manual Review)" checked={bottomPaintingConfig.blisterRepair} onChange={(c) => setBottomPaintingConfig({ ...bottomPaintingConfig, blisterRepair: c })} />
                     </div>
                   </ServiceCard>
@@ -660,7 +663,7 @@ export function QuoteFlow() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <OptionToggle id="customDesign" label="Custom Design (+$125)" checked={vinylConfig.customDesign} onChange={(c) => setVinylConfig({ ...vinylConfig, customDesign: c })} />
+                      <OptionToggle id="customDesign" label={`Custom Design (+$${CARE.vinyl.addons.customDesign})`} checked={vinylConfig.customDesign} onChange={(c) => setVinylConfig({ ...vinylConfig, customDesign: c })} />
                     </div>
                   </ServiceCard>
 
@@ -677,7 +680,7 @@ export function QuoteFlow() {
                         <p className="mt-1">Pressure wash, wipe down, chrome polish, and window cleaning.</p>
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        <span className="rounded-full border border-border px-3 py-1">$6 / ft</span>
+                        <span className="rounded-full border border-border px-3 py-1">{`$${CARE.weeklyMaintenance.ratePerFoot} / ft`}</span>
                         <span className="rounded-full border border-border px-3 py-1">Recurring weekly cadence</span>
                         <span className="rounded-full border border-border px-3 py-1">Google Calendar recurring event</span>
                       </div>
@@ -691,7 +694,7 @@ export function QuoteFlow() {
                         <p className="mt-1">Pressure wash, wipe down, chrome polish, and window cleaning.</p>
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        <span className="rounded-full border border-border px-3 py-1">$7 / ft</span>
+                        <span className="rounded-full border border-border px-3 py-1">{`$${CARE.biweeklyMaintenance.ratePerFoot} / ft`}</span>
                         <span className="rounded-full border border-border px-3 py-1">Recurring bi-weekly cadence</span>
                         <span className="rounded-full border border-border px-3 py-1">Google Calendar recurring event</span>
                       </div>
