@@ -316,14 +316,14 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
                 <Label htmlFor="sw-engines" className="sr-only">
                   Number of engines
                 </Label>
-                <select
+                <select style={{ colorScheme: "dark" }}
                   id="sw-engines"
                   value={engineCount}
                   onChange={(e) => setEngineCount(Number(e.target.value))}
                   className="h-10 w-full rounded-xl border border-white/15 bg-[#161d26] px-3 text-sm text-white"
                 >
                   {[1, 2, 3, 4].map((n) => (
-                    <option key={n} value={n} className="text-black">
+                    <option key={n} value={n} className="bg-[#161d26] text-white">
                       {n} engine{n > 1 ? "s" : ""}
                     </option>
                   ))}
@@ -339,22 +339,22 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
             <Label htmlFor="sw-area" className="text-sm text-white/90">
               Nearest area
             </Label>
-            <select
+            <select style={{ colorScheme: "dark" }}
               id="sw-area"
               required
               value={locationSlug}
               onChange={(e) => setLocationSlug(e.target.value)}
               className="mt-2 h-11 w-full rounded-xl border border-white/15 bg-[#161d26] px-3 text-sm text-white"
             >
-              <option value="" className="text-black">
+              <option value="" className="bg-[#161d26] text-white">
                 Choose…
               </option>
               {locations.map((l) => (
-                <option key={l.slug} value={l.slug} className="text-black">
+                <option key={l.slug} value={l.slug} className="bg-[#161d26] text-white">
                   {l.name}
                 </option>
               ))}
-              <option value="other" className="text-black">
+              <option value="other" className="bg-[#161d26] text-white">
                 Somewhere else
               </option>
             </select>
@@ -378,17 +378,17 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
           <Label htmlFor="sw-window" className="text-sm text-white/90">
             When would you like it done?
           </Label>
-          <select
+          <select style={{ colorScheme: "dark" }}
             id="sw-window"
             value={preferredWindow}
             onChange={(e) => setPreferredWindow(e.target.value)}
             className="mt-2 h-11 w-full rounded-xl border border-white/15 bg-[#161d26] px-3 text-sm text-white"
           >
-            <option value="" className="text-black">
+            <option value="" className="bg-[#161d26] text-white">
               Choose…
             </option>
             {PREFERRED_WINDOWS.map((w) => (
-              <option key={w} value={w} className="text-black">
+              <option key={w} value={w} className="bg-[#161d26] text-white">
                 {w}
               </option>
             ))}
