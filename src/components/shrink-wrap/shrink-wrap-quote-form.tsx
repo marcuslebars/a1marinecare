@@ -151,7 +151,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
 
   if (status === "done" && result) {
     return (
-      <div className="rounded-[2rem] border border-primary/30 bg-[#03111c] p-7 text-white shadow-2xl shadow-black/30 md:p-9">
+      <div className="rounded-[2rem] border border-primary/40 bg-[#0d1117] p-7 text-white shadow-2xl shadow-black/60 md:p-9">
         <div className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
           <Check className="h-3.5 w-3.5" /> Quote locked in
         </div>
@@ -192,7 +192,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "relative rounded-[2rem] border border-white/12 bg-white/10 p-6 text-white shadow-2xl shadow-black/35 backdrop-blur-xl md:p-8",
+        "relative rounded-[2rem] border border-white/10 bg-[#0d1117] p-6 text-white shadow-2xl shadow-black/60 md:p-8",
         compact && "p-5 md:p-6",
       )}
       aria-label="Instant shrink wrap quote"
@@ -203,11 +203,11 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
           <h3 className="mt-1 text-xl font-semibold">Your price in 30 seconds</h3>
         </div>
         <div className="text-right">
-          <p className="text-[11px] uppercase tracking-[0.14em] text-white/50">Estimate</p>
+          <p className="text-[11px] uppercase tracking-[0.14em] text-white/60">Estimate</p>
           <p className="text-2xl font-bold leading-none text-primary" aria-live="polite">
             {formatCents(quote.subtotalCents)}
           </p>
-          <p className="text-[11px] text-white/50">+ HST</p>
+          <p className="text-[11px] text-white/60">+ HST</p>
         </div>
       </div>
 
@@ -215,7 +215,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
       <div className="mt-6 space-y-5">
         <div>
           <div className="flex items-center justify-between">
-            <Label htmlFor="sw-length" className="text-sm text-white/85">
+            <Label htmlFor="sw-length" className="text-sm text-white/90">
               Boat length (overall)
             </Label>
             <span className="text-sm font-semibold">{lengthFt} ft</span>
@@ -241,14 +241,14 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
                 const v = Number(e.target.value);
                 if (Number.isFinite(v)) setLengthFt(Math.max(SHRINK_WRAP.minLengthFt, Math.min(SHRINK_WRAP.maxLengthFt, Math.round(v))));
               }}
-              className="h-10 w-20 rounded-xl border-white/20 bg-black/20 text-center text-white"
+              className="h-10 w-20 rounded-xl border-white/15 bg-[#161d26] text-center text-white"
               aria-label="Boat length in feet (number)"
             />
           </div>
         </div>
 
         <div>
-          <Label className="text-sm text-white/85">Hull type</Label>
+          <Label className="text-sm text-white/90">Hull type</Label>
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {HULL_TYPES.map((h) => (
               <button
@@ -258,8 +258,8 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
                 className={cn(
                   "rounded-xl border px-3 py-2 text-xs font-medium transition-colors sm:text-sm",
                   hullType === h.value
-                    ? "border-primary bg-primary/15 text-white"
-                    : "border-white/15 bg-black/15 text-white/70 hover:border-white/35 hover:text-white",
+                    ? "border-primary bg-primary font-semibold text-primary-foreground"
+                    : "border-white/10 bg-white/[0.06] text-white/90 hover:border-white/30 hover:bg-white/10",
                 )}
                 aria-pressed={hullType === h.value}
               >
@@ -275,7 +275,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
         </div>
 
         {/* Winterization add-on */}
-        <div className="rounded-2xl border border-white/12 bg-black/15 p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
@@ -303,8 +303,8 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
                     className={cn(
                       "rounded-xl border px-2 py-2 text-xs font-medium transition-colors",
                       engineType === e.value
-                        ? "border-primary bg-primary/15 text-white"
-                        : "border-white/15 bg-black/15 text-white/70 hover:border-white/35",
+                        ? "border-primary bg-primary font-semibold text-primary-foreground"
+                        : "border-white/10 bg-white/[0.06] text-white/90 hover:border-white/30 hover:bg-white/10",
                     )}
                     aria-pressed={engineType === e.value}
                   >
@@ -320,7 +320,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
                   id="sw-engines"
                   value={engineCount}
                   onChange={(e) => setEngineCount(Number(e.target.value))}
-                  className="h-10 w-full rounded-xl border border-white/20 bg-black/20 px-3 text-sm text-white"
+                  className="h-10 w-full rounded-xl border border-white/15 bg-[#161d26] px-3 text-sm text-white"
                 >
                   {[1, 2, 3, 4].map((n) => (
                     <option key={n} value={n} className="text-black">
@@ -336,7 +336,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
         {/* Where */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label htmlFor="sw-area" className="text-sm text-white/85">
+            <Label htmlFor="sw-area" className="text-sm text-white/90">
               Nearest area
             </Label>
             <select
@@ -344,7 +344,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
               required
               value={locationSlug}
               onChange={(e) => setLocationSlug(e.target.value)}
-              className="mt-2 h-11 w-full rounded-xl border border-white/20 bg-black/20 px-3 text-sm text-white"
+              className="mt-2 h-11 w-full rounded-xl border border-white/15 bg-[#161d26] px-3 text-sm text-white"
             >
               <option value="" className="text-black">
                 Choose…
@@ -360,7 +360,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
             </select>
           </div>
           <div>
-            <Label htmlFor="sw-where" className="text-sm text-white/85">
+            <Label htmlFor="sw-where" className="text-sm text-white/90">
               Where&apos;s the boat? <span className="text-white/45">(driveway, marina, dock)</span>
             </Label>
             <Input
@@ -368,21 +368,21 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
               value={boatLocation}
               onChange={(e) => setBoatLocation(e.target.value)}
               placeholder="e.g. Driveway in Penetang / Bay Port Marina slip C12"
-              className="mt-2 h-11 rounded-xl border-white/20 bg-black/20 text-white placeholder:text-white/35"
+              className="mt-2 h-11 rounded-xl border-white/15 bg-[#161d26] text-white placeholder:text-white/35"
               maxLength={240}
             />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="sw-window" className="text-sm text-white/85">
+          <Label htmlFor="sw-window" className="text-sm text-white/90">
             When would you like it done?
           </Label>
           <select
             id="sw-window"
             value={preferredWindow}
             onChange={(e) => setPreferredWindow(e.target.value)}
-            className="mt-2 h-11 w-full rounded-xl border border-white/20 bg-black/20 px-3 text-sm text-white"
+            className="mt-2 h-11 w-full rounded-xl border border-white/15 bg-[#161d26] px-3 text-sm text-white"
           >
             <option value="" className="text-black">
               Choose…
@@ -398,7 +398,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
         {/* Contact */}
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <Label htmlFor="sw-name" className="text-sm text-white/85">
+            <Label htmlFor="sw-name" className="text-sm text-white/90">
               Name
             </Label>
             <Input
@@ -407,11 +407,11 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
               autoComplete="name"
               value={contactName}
               onChange={(e) => setContactName(e.target.value)}
-              className="mt-2 h-11 rounded-xl border-white/20 bg-black/20 text-white"
+              className="mt-2 h-11 rounded-xl border-white/15 bg-[#161d26] text-white"
             />
           </div>
           <div>
-            <Label htmlFor="sw-phone" className="text-sm text-white/85">
+            <Label htmlFor="sw-phone" className="text-sm text-white/90">
               Phone
             </Label>
             <Input
@@ -422,11 +422,11 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
               inputMode="tel"
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
-              className="mt-2 h-11 rounded-xl border-white/20 bg-black/20 text-white"
+              className="mt-2 h-11 rounded-xl border-white/15 bg-[#161d26] text-white"
             />
           </div>
           <div>
-            <Label htmlFor="sw-email" className="text-sm text-white/85">
+            <Label htmlFor="sw-email" className="text-sm text-white/90">
               Email
             </Label>
             <Input
@@ -437,7 +437,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
               inputMode="email"
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
-              className="mt-2 h-11 rounded-xl border-white/20 bg-black/20 text-white"
+              className="mt-2 h-11 rounded-xl border-white/15 bg-[#161d26] text-white"
             />
           </div>
         </div>
@@ -448,7 +448,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Radar arch, tower, gate code, anything we should know."
-            className="mt-2 min-h-20 rounded-xl border-white/20 bg-black/20 text-white placeholder:text-white/35"
+            className="mt-2 min-h-20 rounded-xl border-white/15 bg-[#161d26] text-white placeholder:text-white/35"
             maxLength={5000}
           />
         </details>
@@ -483,7 +483,7 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
           <ArrowRight className="h-4 w-4" />
         </Button>
 
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-white/50">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-white/60">
           <span className="inline-flex items-center gap-1">
             <ShieldCheck className="h-3 w-3" /> No payment now
           </span>

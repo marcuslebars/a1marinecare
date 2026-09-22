@@ -59,9 +59,11 @@ const INCLUDED = [
 
 interface Props {
   location?: Location;
+  /** "home" = rendered as the homepage: no location, slightly different H1, breadcrumb omitted. */
+  variant?: "landing" | "home";
 }
 
-export function ShrinkWrapLanding({ location }: Props) {
+export function ShrinkWrapLanding({ location, variant = "landing" }: Props) {
   const service = getServiceBySlug("shrink-wrapping")!;
   const areaLabel = location ? location.name : "Georgian Bay, Lake Simcoe & Muskoka";
   const schema = serviceSchema(service, location);
@@ -91,23 +93,22 @@ export function ShrinkWrapLanding({ location }: Props) {
     <>
       <SchemaScript schema={schema} />
       <SchemaScript schema={faqSchema} />
-      <SchemaScript schema={breadcrumbSchema} />
+      {variant !== "home" && <SchemaScript schema={breadcrumbSchema} />}
 
       {/* HERO + FORM */}
-      <section className="relative isolate overflow-hidden bg-[#03111c]">
+      <section className="relative isolate overflow-hidden bg-black">
         <div className="absolute inset-0">
           <Image
             src="/images/services/shrink-wrapping.jpg"
             alt="Heat gun shrinking white wrap film tight over a boat hull"
             fill
             priority
-            className="object-cover object-center"
+            className="object-cover object-[60%_center] opacity-[0.28] [filter:brightness(0.55)_saturate(0.6)]"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#03111c]/97 via-[#03111c]/88 to-[#03111c]/70" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#03111c] via-[#03111c]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60" />
         </div>
-        <div className="absolute left-[-6rem] top-24 h-56 w-56 rounded-full bg-primary/20 blur-3xl" />
 
         <div className="page-shell relative z-10 py-14 lg:py-20">
           <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_30rem] lg:gap-14">
@@ -115,22 +116,24 @@ export function ShrinkWrapLanding({ location }: Props) {
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary/80">
                 Mobile shrink wrapping{location ? ` · ${location.name}` : ""}
               </p>
-              <h1 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Boat shrink wrap, done in your driveway{location ? ` in ${location.name}` : ""}.
+              <h1 className="mt-4 text-4xl font-black leading-[1.02] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                {variant === "home"
+                  ? "Fall is here. Get the boat wrapped where it sits."
+                  : `Boat shrink wrap, done in your driveway${location ? ` in ${location.name}` : ""}.`}
               </h1>
-              <p className="mt-5 text-lg leading-relaxed text-white/75 md:text-xl">
+              <p className="mt-5 text-lg leading-relaxed text-white/85 md:text-xl">
                 Your boat doesn&apos;t have to go anywhere. We come to your driveway, dock, or marina slip
                 {location ? ` anywhere around ${location.name}` : " across " + areaLabel}, frame it properly, and shrink it tight.
                 Add engine winterization and the whole thing is handled in one visit.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-white">
-                  <Star className="h-4 w-4 text-primary" /> {SHRINK_WRAP_PRICE_LABEL}
+                <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
+                  <Star className="h-4 w-4" /> {SHRINK_WRAP_PRICE_LABEL}
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-sm font-medium text-white">
                   <MapPin className="h-4 w-4 text-primary" /> We come to you
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-sm font-medium text-white">
                   <Clock className="h-4 w-4 text-primary" /> Done in an afternoon
                 </span>
               </div>
@@ -150,15 +153,15 @@ export function ShrinkWrapLanding({ location }: Props) {
                   ["24 ft", formatCents(24 * SHRINK_WRAP.rateCents)],
                   ["28 ft", formatCents(28 * SHRINK_WRAP.rateCents)],
                 ].map(([ft, price]) => (
-                  <div key={ft} className="rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
-                    <p className="text-xs uppercase tracking-[0.14em] text-white/50">{ft} boat</p>
-                    <p className="mt-1 text-2xl font-bold text-white">{price}</p>
-                    <p className="text-xs text-white/50">wrap only, + HST</p>
+                  <div key={ft} className="rounded-2xl border border-white/10 bg-[#0d1117] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/55">{ft} boat</p>
+                    <p className="mt-1 text-3xl font-black text-white">{price}</p>
+                    <p className="text-xs text-white/55">wrap only, + HST</p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/65 lg:mt-8">
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/75 lg:mt-8">
                 <span className="inline-flex items-center gap-2">
                   <Star className="h-4 w-4 fill-primary text-primary" /> 5.0 Google rating
                 </span>
@@ -178,13 +181,13 @@ export function ShrinkWrapLanding({ location }: Props) {
       </section>
 
       {/* WHY MOBILE */}
-      <section className="relative overflow-hidden bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--muted)/0.18)_100%)] py-20">
+      <section className="relative overflow-hidden bg-neutral-950 py-20">
         <div className="page-shell">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80">Why private wrapping</p>
-              <h2 className="mt-3 text-3xl font-semibold text-foreground md:text-4xl">No trailering. No yard drop-off. No waiting around.</h2>
-              <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
+              <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">No trailering. No yard drop-off. No waiting around.</h2>
+              <p className="mt-5 text-lg leading-relaxed text-white/70">
                 Every other option around {location ? location.name : "Georgian Bay"} starts with &ldquo;bring it to us.&rdquo; That means hitching up,
                 towing, a drop-off appointment, and a pickup in spring. We skip all of it. The boat stays exactly where it lives, and the
                 same crew that restores gelcoat for a living wraps it — properly framed, properly vented, properly tight.
@@ -202,7 +205,7 @@ export function ShrinkWrapLanding({ location }: Props) {
                 </Button>
               </div>
             </div>
-            <div className="rounded-[2rem] border border-white/10 bg-[#03111c] p-8 text-white shadow-2xl shadow-black/20">
+            <div className="rounded-[2rem] border border-white/10 bg-black p-8 text-white">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">What&apos;s included in every wrap</p>
               <ul className="mt-5 space-y-3">
                 {INCLUDED.map((item) => (
@@ -223,14 +226,14 @@ export function ShrinkWrapLanding({ location }: Props) {
       </section>
 
       {/* PRICING */}
-      <section className="bg-surface-ocean py-20 text-white">
+      <section className="bg-black py-20 text-white">
         <div className="page-shell">
           <div className="mb-10 max-w-2xl">
             <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80">Pricing, up front</p>
             <h2 className="mt-3 text-3xl font-semibold md:text-4xl">No &ldquo;call for a quote.&rdquo; Here&apos;s the rate card.</h2>
           </div>
           <div className="grid gap-5 md:grid-cols-3">
-            <div className="rounded-[1.75rem] border border-primary/30 bg-primary/10 p-7">
+            <div className="rounded-[1.75rem] border border-primary/40 bg-primary/[0.12] p-7">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Mobile shrink wrap</p>
               <p className="mt-3 text-4xl font-bold">
                 {formatCents(SHRINK_WRAP.rateCents)}
@@ -241,7 +244,7 @@ export function ShrinkWrapLanding({ location }: Props) {
                 Pontoon +{formatCents(SHRINK_WRAP.hullSurchargePerFootCents.pontoon)}/ft · Tritoon +{formatCents(SHRINK_WRAP.hullSurchargePerFootCents.tritoon)}/ft
               </p>
             </div>
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-7">
+            <div className="rounded-[1.75rem] border border-white/10 bg-neutral-950 p-7">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Winterization add-on</p>
               <ul className="mt-3 space-y-2 text-sm">
                 {(["outboard", "sterndrive", "inboard"] as const).map((k) => (
@@ -253,7 +256,7 @@ export function ShrinkWrapLanding({ location }: Props) {
               </ul>
               <p className="mt-3 text-xs text-white/55">Per engine. Additional engines at {Math.round(SHRINK_WRAP.additionalEngineMultiplier * 100)}%.</p>
             </div>
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-7">
+            <div className="rounded-[1.75rem] border border-white/10 bg-neutral-950 p-7">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Worked example</p>
               <p className="mt-3 text-sm text-white/80">24 ft bowrider, single sterndrive, wrap + winterization:</p>
               <ul className="mt-3 space-y-2 text-sm">
@@ -279,23 +282,23 @@ export function ShrinkWrapLanding({ location }: Props) {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="py-20">
+      <section className="bg-neutral-950 py-20">
         <div className="page-shell">
           <div className="mb-10 text-center">
             <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80">How it works</p>
-            <h2 className="mt-3 text-3xl font-semibold text-foreground md:text-4xl">Four steps. One afternoon.</h2>
+            <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Four steps. One afternoon.</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step, i) => (
-              <div key={step.title} className="rounded-[1.75rem] border border-border/60 bg-card/75 p-7 shadow-lg shadow-black/5">
+              <div key={step.title} className="rounded-[1.75rem] border border-white/10 bg-black p-7">
                 <div className="flex items-center gap-3">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                     <step.icon className="h-5 w-5 text-primary" />
                   </span>
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Step {i + 1}</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Step {i + 1}</span>
                 </div>
-                <h3 className="mt-5 text-lg font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
+                <h3 className="mt-5 text-lg font-semibold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/70">{step.body}</p>
               </div>
             ))}
           </div>
@@ -303,7 +306,7 @@ export function ShrinkWrapLanding({ location }: Props) {
       </section>
 
       {/* BAD WRAP vs GOOD WRAP */}
-      <section className="bg-[#03111c] py-20 text-white">
+      <section className="bg-black py-20 text-white">
         <div className="page-shell grid gap-10 lg:grid-cols-2 lg:items-center">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80">Why the frame matters</p>
@@ -338,14 +341,14 @@ export function ShrinkWrapLanding({ location }: Props) {
       </section>
 
       {/* SERVICE AREA */}
-      <section className="py-20">
+      <section className="bg-neutral-950 py-20">
         <div className="page-shell">
           <div className="mb-8 max-w-2xl">
             <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80">Where we wrap</p>
-            <h2 className="mt-3 text-3xl font-semibold text-foreground md:text-4xl">
+            <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">
               {location ? `${location.name} and everywhere around it.` : "Georgian Bay, Lake Simcoe, and Muskoka."}
             </h2>
-            <p className="mt-4 text-muted-foreground">
+            <p className="mt-4 text-white/70">
               Based in Midland. No travel fee anywhere in the areas below — if you&apos;re outside them, send the quote anyway and we&apos;ll
               tell you on the call.
             </p>
@@ -357,8 +360,8 @@ export function ShrinkWrapLanding({ location }: Props) {
                 href={`/shrink-wrapping/${l.slug}`}
                 className={
                   l.slug === location?.slug
-                    ? "rounded-full border border-primary bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary"
-                    : "rounded-full border border-border/60 bg-card/60 px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                    ? "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground"
+                    : "rounded-full border border-white/15 bg-black px-4 py-1.5 text-sm text-white/80 transition-colors hover:border-primary hover:text-primary"
                 }
               >
                 {l.name}
@@ -369,20 +372,20 @@ export function ShrinkWrapLanding({ location }: Props) {
       </section>
 
       {/* FAQ */}
-      <section className="bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--muted)/0.18)_100%)] py-20">
+      <section className="bg-black py-20">
         <div className="page-shell grid gap-10 lg:grid-cols-[18rem_minmax(0,1fr)]">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.15em] text-primary/80">Questions</p>
-            <h2 className="mt-3 text-3xl font-semibold text-foreground">Straight answers.</h2>
+            <h2 className="mt-3 text-3xl font-semibold text-white">Straight answers.</h2>
           </div>
-          <div className="divide-y divide-border/60 rounded-[1.75rem] border border-border/60 bg-card/60">
+          <div className="divide-y divide-white/10 rounded-[1.75rem] border border-white/10 bg-neutral-950">
             {SHRINK_WRAP_FAQ.map((f) => (
               <details key={f.q} className="group px-6 py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-foreground">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-white">
                   {f.q}
-                  <span className="text-muted-foreground transition-transform group-open:rotate-45">+</span>
+                  <span className="text-white/70 transition-transform group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-3 text-sm leading-7 text-muted-foreground">{f.a}</p>
+                <p className="mt-3 text-sm leading-7 text-white/70">{f.a}</p>
               </details>
             ))}
           </div>
@@ -390,9 +393,9 @@ export function ShrinkWrapLanding({ location }: Props) {
       </section>
 
       {/* FINAL CTA */}
-      <section className="bg-[#03111c] py-20 text-white">
+      <section className="bg-neutral-950 py-20 text-white">
         <div className="page-shell">
-          <div className="rounded-[2.5rem] border border-white/10 bg-white/5 px-8 py-12 text-center shadow-2xl shadow-black/25 md:px-12">
+          <div className="rounded-[2.5rem] border border-primary/30 bg-black px-8 py-12 text-center md:px-12">
             <h2 className="text-3xl font-bold md:text-5xl">First frost doesn&apos;t wait.</h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-white/60">
               The wrap calendar fills by mid-October. Get your number now, pick a date, and you&apos;re done for the year.
