@@ -4,8 +4,12 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { services } from "@/content/site";
-import { getServiceStartingPriceLabel } from "@/lib/quote-pricing";
+import { getServiceHref, services } from "@/content/site";
+import { SHRINK_WRAP_PRICE_LABEL } from "@/lib/shrink-wrap-pricing";
+import { getServiceStartingPriceLabel as engineStartingPriceLabel } from "@/lib/quote-pricing";
+
+const getServiceStartingPriceLabel = (slug: string) =>
+  slug === "shrink-wrapping" ? SHRINK_WRAP_PRICE_LABEL : engineStartingPriceLabel(slug);
 import { absoluteUrl, buildDescription, buildTitle } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -17,6 +21,7 @@ export const metadata: Metadata = {
 };
 
 const SERVICE_IMAGES: Record<string, string> = {
+  "shrink-wrapping": "/images/services/shrink-wrapping.jpg",
   "boat-detailing": "/images/services/exterior-detailing.jpg",
   "gelcoat-restoration": "/images/services/gelcoat-restoration.jpg",
   "ceramic-coating": "/images/services/ceramic-coating.jpg",
@@ -46,7 +51,7 @@ export default function ServicesPage() {
             {services.map((service) => (
               <Link
                 key={service.slug}
-                href={`/services/${service.slug}`}
+                href={getServiceHref(service.slug)}
                 className="group surface-panel relative overflow-hidden rounded-2xl border border-transparent bg-gradient-to-b from-card to-card/80 p-6 transition-all duration-500 hover:border-primary/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5"
               >
                 {SERVICE_IMAGES[service.slug] && (

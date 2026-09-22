@@ -6,6 +6,8 @@ import "./globals.css";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { SchemaScript } from "@/components/site/schema-script";
+import { MetaPixel } from "@/components/site/meta-pixel";
+import { SeasonalBanner } from "@/components/site/seasonal-banner";
 import { company, locations } from "@/content/site";
 import { localBusinessSchema } from "@/lib/schema";
 import { absoluteUrl, defaultDescription, defaultTitle } from "@/lib/seo";
@@ -62,6 +64,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           `}
         </Script>
         <SchemaScript schema={businessSchema} />
+        <MetaPixel />
+        <SeasonalBanner />
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />

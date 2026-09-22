@@ -46,6 +46,7 @@ export interface CareLeadInput {
   marina?: string;
   date?: string;
   timeSlot?: string;
+  utm?: Record<string, string>;
 }
 
 function parseFeet(value?: string): number | undefined {
@@ -77,7 +78,12 @@ export function buildCareEnvelope(input: CareLeadInput, receivedAt: string): Lea
     contact: { name: input.name, email: input.email, phone: input.phone },
     message: joinText(input.service ? `Service: ${input.service}` : undefined, input.message, input.notes),
     asset: compact({ type: input.boatType, lengthFt: parseFeet(input.boatLength), marina: input.marina }),
-    meta: compact({ site: "a1marinecare.ca", preferredDate: input.date, preferredTime: input.timeSlot }) ?? {
+    meta: compact({
+      site: "a1marinecare.ca",
+      preferredDate: input.date,
+      preferredTime: input.timeSlot,
+      utm: input.utm && Object.keys(input.utm).length ? input.utm : undefined,
+    }) ?? {
       site: "a1marinecare.ca",
     },
   };
