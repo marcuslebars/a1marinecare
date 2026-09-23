@@ -1,6 +1,6 @@
 import { company } from "@/content/site";
 
-export const defaultTitle = "A1 Marine Care | Mobile Boat Detailing in Ontario";
+export const defaultTitle = "A1 Marine Care | Mobile Boat Shrink Wrapping & Detailing in Ontario";
 
 export const defaultDescription =
   "A1 Marine Care provides premium boat detailing, ceramic coating, and restoration services across Ontario marinas and waterfront communities.";

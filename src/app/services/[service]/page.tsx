@@ -7,8 +7,13 @@ import { ArrowRight, Check, Sparkles, Shield, Star, Clock, Award, MapPin, Users 
 import { Button } from "@/components/ui/button";
 import { SchemaScript } from "@/components/site/schema-script";
 import { TransformationSlider } from "@/components/transformation-slider";
-import { getServiceBySlug, locations, services } from "@/content/site";
-import { getServiceStartingPriceLabel } from "@/lib/quote-pricing";
+import { getServiceBySlug, getServiceHref, locations, services } from "@/content/site";
+import { getServiceStartingPriceLabel as engineStartingPriceLabel } from "@/lib/quote-pricing";
+import { SHRINK_WRAP_PRICE_LABEL } from "@/lib/shrink-wrap-pricing";
+
+// Shrink wrap is priced outside the engine for now (see shrink-wrap-pricing.ts).
+const getServiceStartingPriceLabel = (slug: string) =>
+  slug === "shrink-wrapping" ? SHRINK_WRAP_PRICE_LABEL : engineStartingPriceLabel(slug);
 import { absoluteUrl, buildDescription, buildTitle } from "@/lib/seo";
 import { serviceSchema } from "@/lib/schema";
 
@@ -16,8 +21,12 @@ type ServicePageParams = {
   params: Promise<{ service: string }>;
 };
 
+// /services/shrink-wrapping 301s to /shrink-wrapping (next.config.mjs); the
+// generic template never renders it.
+const TEMPLATE_SERVICES = services.filter((service) => service.slug !== "shrink-wrapping");
+
 export async function generateStaticParams() {
-  return services.map((service) => ({ service: service.slug }));
+  return TEMPLATE_SERVICES.map((service) => ({ service: service.slug }));
 }
 
 export async function generateMetadata({ params }: ServicePageParams): Promise<Metadata> {
@@ -224,7 +233,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
   const { service: serviceSlug } = await params;
   const service = getServiceBySlug(serviceSlug);
 
-  if (!service) {
+  if (!service || service.slug === "shrink-wrapping") {
     notFound();
   }
 
@@ -623,7 +632,7 @@ export default async function ServicePage({ params }: ServicePageParams) {
                   return (
                     <Link
                       key={item.slug}
-                      href={`/services/${item.slug}`}
+                      href={getServiceHref(item.slug)}
                       className="group rounded-[1.75rem] border border-white/10 bg-gradient-to-b from-card/90 to-card/55 p-8 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10"
                     >
                       <div className="mb-5 flex items-start justify-between gap-4">

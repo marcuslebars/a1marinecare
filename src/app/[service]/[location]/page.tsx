@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { InternalLinkGrid } from "@/components/site/internal-link-grid";
 import { SchemaScript } from "@/components/site/schema-script";
+import { ShrinkWrapLanding } from "@/components/shrink-wrap/shrink-wrap-landing";
 import {
   getLocationBySlug,
   getServiceBySlug,
@@ -12,6 +13,7 @@ import {
 } from "@/content/site";
 import { absoluteUrl, buildTitle } from "@/lib/seo";
 import { serviceSchema } from "@/lib/schema";
+import { formatCents, SHRINK_WRAP } from "@/lib/shrink-wrap-pricing";
 
 type CombinedPageParams = {
   params: Promise<{ service: string; location: string }>;
@@ -30,9 +32,27 @@ export async function generateMetadata({ params }: CombinedPageParams): Promise<
     return {};
   }
 
+  const url = absoluteUrl(`/${service.slug}/${location.slug}`);
+
+  if (service.slug === "shrink-wrapping") {
+    const swTitle = `Boat Shrink Wrapping in ${location.name} — We Come To You | A1 Marine Care`;
+    const swDescription = `Mobile boat shrink wrap at your driveway, dock, or marina in ${location.name}, ${location.region}. ${formatCents(SHRINK_WRAP.rateCents)}/ft, ${formatCents(SHRINK_WRAP.minimumCents)} minimum, winterization available. Instant online quote.`;
+    return {
+      title: swTitle,
+      description: swDescription,
+      alternates: { canonical: url },
+      openGraph: {
+        title: swTitle,
+        description: swDescription,
+        url,
+        type: "website",
+        images: [{ url: absoluteUrl("/images/services/shrink-wrapping.jpg"), width: 768, height: 796, alt: `Boat shrink wrapping in ${location.name}` }],
+      },
+    };
+  }
+
   const title = buildTitle(`${service.name} in ${location.name}`);
   const description = `${service.name} in ${location.name}, ${location.region}. ${service.shortDescription}`;
-  const url = absoluteUrl(`/${service.slug}/${location.slug}`);
 
   return {
     title,
@@ -56,6 +76,26 @@ export default async function CombinedSeoPage({ params }: CombinedPageParams) {
 
   if (!service || !location) {
     notFound();
+  }
+
+  // Shrink wrapping gets the full landing page with the town pre-selected in
+  // the quote form — these are the pages the "shrink wrap {town}" searches land on.
+  if (service.slug === "shrink-wrapping") {
+    return (
+      <>
+        <ShrinkWrapLanding location={location} />
+        <InternalLinkGrid
+          title={`Shrink wrapping near ${location.name}`}
+          items={locations
+            .filter((item) => item.slug !== location.slug)
+            .map((item) => ({
+              href: `/shrink-wrapping/${item.slug}`,
+              title: `Shrink Wrapping in ${item.name}`,
+              description: `Mobile boat shrink wrap at your driveway or dock in ${item.name}.`,
+            }))}
+        />
+      </>
+    );
   }
 
   const schema = serviceSchema(service, location);

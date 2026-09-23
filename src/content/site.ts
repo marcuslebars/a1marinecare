@@ -28,6 +28,19 @@ export const company = {
 
 export const services: Service[] = [
   {
+    // Mobile shrink wrap — the seasonal (fall) offer that replaced A1 Marine
+    // Storage. Its page is /shrink-wrapping (NOT /services/shrink-wrapping,
+    // which 301s there — see next.config.mjs); pricing is in
+    // @/lib/shrink-wrap-pricing until the engine gains the service.
+    slug: "shrink-wrapping",
+    name: "Shrink Wrapping",
+    shortDescription: "Mobile boat shrink wrapping at your driveway, dock, or marina — we come to you.",
+    longDescription:
+      "Commercial-grade vented shrink wrap installed tight over a built-up support frame, at your driveway, dock, or marina slip. Optional engine winterization in the same visit so your boat is fully put to bed for a Georgian Bay winter without ever leaving your property.",
+    basePriceFrom: 400,
+    duration: "2-4 hours",
+  },
+  {
     slug: "boat-detailing",
     name: "Exterior Detailing",
     shortDescription: "Full exterior detailing that restores showroom gloss on premium vessels.",
@@ -210,6 +223,7 @@ export const serviceMap = new Map(services.map((service) => [service.slug, servi
 export const locationMap = new Map(locations.map((location) => [location.slug, location]));
 
 export const serviceNameToSlug: Record<string, string> = {
+  "Shrink Wrapping": "shrink-wrapping",
   "Exterior Detailing": "boat-detailing",
   "Gelcoat Restoration": "gelcoat-restoration",
   "Ceramic Coating": "ceramic-coating",
@@ -223,6 +237,7 @@ export const serviceNameToSlug: Record<string, string> = {
 };
 
 export const slugToServiceName: Record<string, string> = {
+  "shrink-wrapping": "Shrink Wrapping",
   "boat-detailing": "Exterior Detailing",
   "gelcoat-restoration": "Gelcoat Restoration",
   "ceramic-coating": "Ceramic Coating",
@@ -254,6 +269,15 @@ export function getRecurringServiceRate(slug: string): number | null {
   if (slug === "weekly-maintenance-plan") return 6;
   if (slug === "bi-weekly-maintenance-plan") return 7;
   return null;
+}
+
+/** Services whose page is a dedicated route rather than /services/[slug]. */
+export const SERVICE_PAGE_HREF: Record<string, string> = {
+  "shrink-wrapping": "/shrink-wrapping",
+};
+
+export function getServiceHref(slug: string) {
+  return SERVICE_PAGE_HREF[slug] ?? `/services/${slug}`;
 }
 
 export function getServiceBySlug(slug: string) {

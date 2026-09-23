@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "postinstall": "prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:deploy": "prisma migrate deploy && npm run build"
+    "db:deploy": "prisma migrate deploy && npm run build",
+    "lookup:place-id": "npx -y tsx scripts/lookup-place-id.ts"
   },
   "dependencies": {
     "@a1/pricing-engine": "git+https://github.com/marcuslebars/a1-pricing-engine.git#v1.0.1",

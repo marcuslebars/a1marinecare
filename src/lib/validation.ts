@@ -45,6 +45,33 @@ export const contactSchema = z.object({
   source: z.string().trim().max(120).optional().default("contact-page"),
 });
 
+// Mobile shrink-wrap instant quote (POST /api/shrink-wrap). The server
+// re-prices from these fields; any client total is ignored.
+export const shrinkWrapQuoteSchema = z.object({
+  lengthFt: z.number().int().min(1).max(200),
+  hullType: z.enum(["bowrider", "cuddy", "cruiser", "pontoon", "tritoon", "sailboat", "pwc", "other"]),
+  winterization: z
+    .object({
+      engineType: z.enum(["outboard", "sterndrive", "inboard"]),
+      engineCount: z.number().int().min(1).max(4),
+    })
+    .nullable()
+    .optional(),
+  boatLocation: z.string().trim().max(240).optional().default(""),
+  locationSlug: z.string().trim().min(1).max(80),
+  preferredWindow: z.string().trim().max(80).optional().default(""),
+  contactName: z.string().trim().min(2).max(120),
+  contactEmail: z.string().trim().email(),
+  contactPhone: z.string().trim().min(7).max(40),
+  notes: z.string().trim().max(5000).optional().default(""),
+  eventId: z.string().trim().max(80).optional(),
+  utm: z.record(z.string(), z.string().max(200)).optional(),
+  // Honeypot — bots fill it, people never see it.
+  website: z.string().max(500).optional().default(""),
+});
+
+export type ShrinkWrapQuoteInput = z.infer<typeof shrinkWrapQuoteSchema>;
+
 export type QuoteInput = z.infer<typeof quoteSchema>;
 export type BookingInput = z.infer<typeof bookingSchema>;
 export type ContactInput = z.infer<typeof contactSchema>;

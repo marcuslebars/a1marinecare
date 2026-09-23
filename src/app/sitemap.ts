@@ -12,6 +12,7 @@ const staticRoutes: Array<{
 }> = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/services", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/shrink-wrapping", changeFrequency: "weekly", priority: 0.95 },
   { path: "/locations", changeFrequency: "weekly", priority: 0.9 },
   { path: "/quote", changeFrequency: "weekly", priority: 0.9 },
   { path: "/booking", changeFrequency: "weekly", priority: 0.9 },
@@ -34,9 +35,10 @@ function createEntry(
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const serviceRoutes = services.map((service) =>
-    createEntry(`/services/${service.slug}`, "monthly", 0.8),
-  );
+  // /services/shrink-wrapping is a 301 to /shrink-wrapping (listed above).
+  const serviceRoutes = services
+    .filter((service) => service.slug !== "shrink-wrapping")
+    .map((service) => createEntry(`/services/${service.slug}`, "monthly", 0.8));
 
   const locationRoutes = locations.map((location) =>
     createEntry(`/locations/${location.slug}`, "monthly", 0.8),

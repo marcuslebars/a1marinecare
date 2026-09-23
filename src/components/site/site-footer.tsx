@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { locations, services } from "@/content/site";
+import { getServiceHref, locations, services } from "@/content/site";
 
 export function SiteFooter() {
   return (
@@ -29,7 +29,7 @@ export function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm text-slate-300">
               {services.map((service) => (
                 <li key={service.slug}>
-                  <Link href={`/services/${service.slug}`} className="transition-colors hover:text-primary">
+                  <Link href={getServiceHref(service.slug)} className="transition-colors hover:text-primary">
                     {service.name}
                   </Link>
                 </li>

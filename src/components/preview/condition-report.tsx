@@ -6,7 +6,7 @@ import { AlertCircle, Sparkles, ArrowRight, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { ConditionReport } from "@/app/api/condition-report/route";
-import { services } from "@/content/site";
+import { getServiceHref, services } from "@/content/site";
 
 type LevelMeta = { label: string; color: string; bg: string };
 
@@ -159,7 +159,7 @@ export function ConditionReportDisplay({
                 {report.recommendedServices.map((slug) => (
                   <Link
                     key={slug}
-                    href={`/services/${slug}`}
+                    href={getServiceHref(slug)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
                   >
                     {getServiceName(slug)}

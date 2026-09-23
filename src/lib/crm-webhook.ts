@@ -45,6 +45,10 @@ type QuoteWebhookPayload = {
   boatType?: string;
   marina?: string;
   notes?: string;
+  /** Overrides the derived `a1marinecare-quote` tag (e.g. shrink-wrap leads). */
+  leadTag?: string;
+  /** utm_* pairs captured on the landing page, for ad attribution in EmpireVu. */
+  utm?: Record<string, string>;
 };
 
 type CrmWebhookPayload = ContactWebhookPayload | BookingWebhookPayload | QuoteWebhookPayload;

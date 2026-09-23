@@ -50,7 +50,7 @@ export function SiteHeader() {
 
         <div className="hidden md:block">
           <Button size="sm" asChild>
-            <Link href="/quote">Get Quote</Link>
+            <Link href="/shrink-wrapping#quote">Get Wrap Quote</Link>
           </Button>
         </div>
 
