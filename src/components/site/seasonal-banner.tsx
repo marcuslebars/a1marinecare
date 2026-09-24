@@ -18,7 +18,7 @@ export function SeasonalBanner() {
           Now booking
         </span>
         <span>
-          Mobile shrink wrap — we come to your driveway or dock. <span className="text-primary">{SHRINK_WRAP_PRICE_LABEL}</span>
+          Mobile shrink wrap — we come to your driveway or storage lot. <span className="text-primary">{SHRINK_WRAP_PRICE_LABEL}</span>
         </span>
         <ArrowRight className="h-3.5 w-3.5 shrink-0 text-primary" />
       </Link>

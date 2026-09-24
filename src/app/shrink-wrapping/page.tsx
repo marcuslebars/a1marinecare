@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 import { formatCents, SHRINK_WRAP } from "@/lib/shrink-wrap-pricing";
 
 const title = "Mobile Boat Shrink Wrapping — We Come To You | A1 Marine Care";
-const description = `Boat shrink wrap at your driveway, dock, or marina across Georgian Bay, Lake Simcoe & Muskoka. ${formatCents(SHRINK_WRAP.rateCents)}/ft, ${formatCents(SHRINK_WRAP.minimumCents)} minimum. Optional winterization in the same visit. Instant online quote.`;
+const description = `Mobile boat shrink wrap at your driveway, trailer, or storage lot across Georgian Bay, Lake Simcoe & Muskoka. ${formatCents(SHRINK_WRAP.rateCents)}/ft, ${formatCents(SHRINK_WRAP.minimumCents)} minimum. Optional winterization in the same visit. Instant online quote.`;
 
 export const metadata: Metadata = {
   title,

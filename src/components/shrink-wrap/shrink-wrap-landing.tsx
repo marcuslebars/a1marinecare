@@ -17,7 +17,7 @@ export const SHRINK_WRAP_FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "Do I have to bring the boat anywhere?",
-    a: "No. That's the point. We wrap it where it sits — your driveway, your dock, a marina slip, or a storage lot. If it's on a trailer or a lift, we work around it.",
+    a: "No. That's the point. As long as the boat is out of the water — on a trailer, on blocks or stands in your driveway, or in a storage lot or marina yard — we come to it. Boats can't be wrapped in the water, so if yours is still in, have the marina haul it first and we'll do the rest.",
   },
   {
     q: "How is the price calculated?",
@@ -46,7 +46,7 @@ export const SHRINK_WRAP_FAQ: Array<{ q: string; a: string }> = [
 ];
 
 const STEPS = [
-  { icon: Phone, title: "Get your number", body: "Boat length, hull type, and where it sits. Your price shows before you type your name." },
+  { icon: Phone, title: "Get your number", body: "Boat length, hull type, and where it's parked. Your price shows before you type your name." },
   { icon: Clock, title: "Hold your spot", body: "A $250 deposit locks your date and comes off the final bill. We call within one business hour to confirm." },
   { icon: Wrench, title: "We show up and frame it", body: "Support frame, peaked ridge, and every arch, tower, and outboard framed around." },
   { icon: Snowflake, title: "Wrapped, vented, done", body: "Heat-shrunk tight, vented, belly-banded. You go back inside. Done in an afternoon." },
@@ -122,12 +122,12 @@ export function ShrinkWrapLanding({ location, variant = "landing" }: Props) {
               </p>
               <h1 className="mt-4 text-4xl font-black leading-[1.02] tracking-tight text-white sm:text-5xl lg:text-6xl">
                 {variant === "home"
-                  ? "Fall is here. Get the boat wrapped where it sits."
+                  ? "Fall is here. Get the boat wrapped in your driveway."
                   : `Boat shrink wrap, done in your driveway${location ? ` in ${location.name}` : ""}.`}
               </h1>
               <p className="mt-5 text-lg leading-relaxed text-white/85 md:text-xl">
-                Your boat doesn&apos;t have to go anywhere. We come to your driveway, dock, or marina slip
-                {location ? ` anywhere around ${location.name}` : " across " + areaLabel}, frame it properly, and shrink it tight.
+                Your boat doesn&apos;t have to go anywhere. Once it&apos;s out of the water — driveway, trailer, or storage lot
+                {location ? ` anywhere around ${location.name}` : " across " + areaLabel} — we come to it, frame it properly, and shrink it tight.
                 Add engine winterization and the whole thing is handled in one visit.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">

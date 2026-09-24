@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: CombinedPageParams): Promise<
 
   if (service.slug === "shrink-wrapping") {
     const swTitle = `Boat Shrink Wrapping in ${location.name} — We Come To You | A1 Marine Care`;
-    const swDescription = `Mobile boat shrink wrap at your driveway, dock, or marina in ${location.name}, ${location.region}. ${formatCents(SHRINK_WRAP.rateCents)}/ft, ${formatCents(SHRINK_WRAP.minimumCents)} minimum, winterization available. Instant online quote.`;
+    const swDescription = `Mobile boat shrink wrap at your driveway, trailer, or storage lot in ${location.name}, ${location.region}. ${formatCents(SHRINK_WRAP.rateCents)}/ft, ${formatCents(SHRINK_WRAP.minimumCents)} minimum, winterization available. Instant online quote.`;
     return {
       title: swTitle,
       description: swDescription,
@@ -91,7 +91,7 @@ export default async function CombinedSeoPage({ params }: CombinedPageParams) {
             .map((item) => ({
               href: `/shrink-wrapping/${item.slug}`,
               title: `Shrink Wrapping in ${item.name}`,
-              description: `Mobile boat shrink wrap at your driveway or dock in ${item.name}.`,
+              description: `Mobile boat shrink wrap at your driveway or storage lot in ${item.name}.`,
             }))}
         />
       </>
