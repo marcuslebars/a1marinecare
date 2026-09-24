@@ -25,6 +25,9 @@ import { cn } from "@/lib/utils";
 const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"] as const;
 const UTM_STORAGE_KEY = "a1mc_utm";
 
+/** Keep in sync with SHRINK_WRAP_DEPOSIT_CENTS on the server (default $250). */
+const DEPOSIT_DOLLARS = 250;
+
 const PREFERRED_WINDOWS = ["As soon as possible", "This week", "Next week", "Before Thanksgiving", "Mid-October", "Late October", "I'm flexible"];
 
 type Status = "idle" | "submitting" | "done" | "error";
@@ -75,10 +78,83 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
   const [errorMessage, setErrorMessage] = useState("");
   const [result, setResult] = useState<{ quoteId: string | null; subtotalCents: number } | null>(null);
   const [utm, setUtm] = useState<Record<string, string>>({});
+  const [depositStatus, setDepositStatus] = useState<"idle" | "redirecting" | "error">("idle");
+  const [depositError, setDepositError] = useState("");
+  const [resumedNotice, setResumedNotice] = useState("");
 
   useEffect(() => {
     setUtm(readUtm());
   }, []);
+
+  // Back from a cancelled Stripe checkout: rebuild the quote panel so they can
+  // retry the deposit without re-typing everything.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const quoteId = params.get("quoteId");
+    if (params.get("deposit") !== "cancelled" || !quoteId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/quotes/${encodeURIComponent(quoteId)}`);
+        if (!res.ok) return;
+        const { quote: saved } = (await res.json()) as {
+          quote: { boatLength: string; boatType: string; addons?: string[]; contactName: string; contactPhone: string; contactEmail: string; locationSlug: string; estimatedTotal?: number; metadata?: { formType?: string } };
+        };
+        if (cancelled || saved?.metadata?.formType !== "shrink-wrap-quote") return;
+        const savedLength = Number.parseInt(saved.boatLength, 10);
+        if (Number.isFinite(savedLength)) setLengthFt(Math.min(Math.max(savedLength, SHRINK_WRAP.minLengthFt), SHRINK_WRAP.maxLengthFt));
+        if ((HULL_TYPES as readonly { value: string }[]).some((h) => h.value === saved.boatType)) setHullType(saved.boatType as HullType);
+        const winter = saved.addons?.find((a) => a.startsWith("winterization:"));
+        if (winter) {
+          const [, type, count] = winter.split(":");
+          setWantsWinterization(true);
+          if ((ENGINE_TYPES as readonly { value: string }[]).some((e) => e.value === type)) setEngineType(type as EngineType);
+          const n = Number.parseInt(count, 10);
+          if (Number.isFinite(n)) setEngineCount(Math.min(Math.max(n, 1), 4));
+        }
+        setContactName(saved.contactName);
+        setContactPhone(saved.contactPhone);
+        setContactEmail(saved.contactEmail);
+        setLocationSlug(saved.locationSlug);
+        setResult({ quoteId, subtotalCents: typeof saved.estimatedTotal === "number" ? saved.estimatedTotal : 0 });
+        setResumedNotice("No charge was made. Your quote is saved — pay the deposit whenever you're ready, or just call us.");
+        setStatus("done");
+      } catch {
+        /* fall through to a fresh form */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function startDeposit() {
+    if (!result?.quoteId || depositStatus === "redirecting") return;
+    setDepositStatus("redirecting");
+    setDepositError("");
+    const eventId = newEventId();
+    trackPixelEvent(
+      "InitiateCheckout",
+      { content_name: "shrink-wrap-deposit", content_category: "shrink-wrapping", value: DEPOSIT_DOLLARS, currency: "CAD" },
+      eventId,
+    );
+    try {
+      const response = await fetch("/api/shrink-wrap/deposit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quoteId: result.quoteId, eventId }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body?.success || !body?.url) {
+        throw new Error(body?.error || "We couldn't start the payment.");
+      }
+      window.location.assign(body.url as string);
+    } catch (err) {
+      setDepositStatus("error");
+      setDepositError(err instanceof Error ? err.message : "We couldn't start the payment. Call us and we'll hold your spot by phone.");
+    }
+  }
 
   const quote = useMemo(
     () =>
@@ -159,9 +235,10 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
           {formatCents(result.subtotalCents)} <span className="text-base font-normal text-white/60">+ HST</span>
         </h3>
         <p className="mt-3 text-sm leading-6 text-white/70">
-          Thanks {contactName.split(" ")[0]} — we&apos;ll call you at {contactPhone} within one business hour to confirm the
-          date. Want it on the calendar right now? Pick your date below.
+          Thanks {contactName.split(" ")[0]} — we&apos;ll call you at {contactPhone} within one business hour. Wrap season
+          books up in weeks, not months: a ${DEPOSIT_DOLLARS} deposit holds your spot and comes straight off this total.
         </p>
+        {resumedNotice ? <p className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">{resumedNotice}</p> : null}
         <ul className="mt-5 space-y-2 text-sm text-white/80">
           {quote.lineItems.map((item) => (
             <li key={item.key} className="flex justify-between gap-4 border-b border-white/10 pb-2">
@@ -170,11 +247,37 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
             </li>
           ))}
         </ul>
-        <div className="mt-6 flex flex-wrap gap-3">
+
+        {result.quoteId ? (
+          <div className="mt-6 rounded-[1.25rem] border border-primary/30 bg-primary/[0.07] p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-base font-bold text-white">Lock in your spot — ${DEPOSIT_DOLLARS} deposit</p>
+                <p className="mt-1 text-xs leading-5 text-white/65">
+                  Secure card payment via Stripe. Applied to your invoice — you pay {formatCents(Math.max(result.subtotalCents - DEPOSIT_DOLLARS * 100, 0))} + HST on the day.
+                </p>
+              </div>
+              <Button size="lg" className="gap-2" onClick={startDeposit} disabled={depositStatus === "redirecting"}>
+                {depositStatus === "redirecting" ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Opening secure checkout…
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4" /> Pay ${DEPOSIT_DOLLARS} &amp; hold my spot
+                  </>
+                )}
+              </Button>
+            </div>
+            {depositStatus === "error" ? <p className="mt-3 text-sm text-amber-300">{depositError}</p> : null}
+          </div>
+        ) : null}
+
+        <div className="mt-5 flex flex-wrap gap-3">
           {result.quoteId ? (
-            <Button asChild size="lg" className="gap-2">
+            <Button asChild variant="heroOutline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10">
               <Link href={`/booking?quoteId=${encodeURIComponent(result.quoteId)}`}>
-                Pick your date now <ArrowRight className="h-4 w-4" />
+                Pick a date first <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           ) : null}

@@ -12,6 +12,10 @@ import { formatCents, SHRINK_WRAP, SHRINK_WRAP_PRICE_LABEL } from "@/lib/shrink-
 
 export const SHRINK_WRAP_FAQ: Array<{ q: string; a: string }> = [
   {
+    q: "How does the $250 deposit work?",
+    a: "Once you have your price, you can pay a $250 deposit by card through Stripe to hold your spot in the schedule. It's applied in full to your final invoice, so you pay the rest (plus HST) when the wrap is done. If we can't get to your boat before freeze-up, you get it back.",
+  },
+  {
     q: "Do I have to bring the boat anywhere?",
     a: "No. That's the point. We wrap it where it sits — your driveway, your dock, a marina slip, or a storage lot. If it's on a trailer or a lift, we work around it.",
   },
@@ -43,7 +47,7 @@ export const SHRINK_WRAP_FAQ: Array<{ q: string; a: string }> = [
 
 const STEPS = [
   { icon: Phone, title: "Get your number", body: "Boat length, hull type, and where it sits. Your price shows before you type your name." },
-  { icon: Clock, title: "We confirm a date", body: "A call within one business hour. Most jobs are scheduled within the week." },
+  { icon: Clock, title: "Hold your spot", body: "A $250 deposit locks your date and comes off the final bill. We call within one business hour to confirm." },
   { icon: Wrench, title: "We show up and frame it", body: "Support frame, peaked ridge, and every arch, tower, and outboard framed around." },
   { icon: Snowflake, title: "Wrapped, vented, done", body: "Heat-shrunk tight, vented, belly-banded. You go back inside. Done in an afternoon." },
 ];
