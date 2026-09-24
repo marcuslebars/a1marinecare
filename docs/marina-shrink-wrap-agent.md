@@ -256,3 +256,28 @@ To take calls yourself for a while: `*73`. Marina keeps working on her direct nu
 - Availability counts bookings in this site's database only; jobs added by hand straight into Google Calendar aren't seen. Add them through `/booking` or bump `SHRINK_WRAP_CAPACITY_PER_WINDOW` down for that day.
 - The deposit link expires 30 min after Marina sends it (Stripe session). The success page and website already handle a fresh link from `/shrink-wrapping`.
 - Marina books requests; the website's booking flow does the same. Nothing here auto-confirms times — Marcus's day-before text is the confirmation.
+
+---
+
+## 7. Text Marcus on every call
+
+`POST /api/retell/webhook` is the Care agent's webhook receiver. It verifies Retell's `x-retell-signature`, ACKs at once, then texts the owner and forwards the untouched event to EmpireVu (so EmpireVu's phone-lead intake keeps working — an agent can only have one webhook URL).
+
+**Texts you get** (from the Twilio number, to `OWNER_SMS_NUMBER`):
+- `call_started` → `📞 Marina answering a call from 705-555-1234 (2:14pm).`
+- `call_analyzed` → who / boat / services, what she actually did (quoted amount and booked window come from this site's database, not the LLM), whether the deposit link went out, whether it was transferred, urgent flag, and Retell's one-paragraph summary.
+
+Outbound calls Marina places from EmpireVu are ignored — only inbound.
+
+**Railway (Care service):**
+
+| Variable | Value |
+| --- | --- |
+| `RETELL_API_KEY` | Retell dashboard → Settings → API Keys (the same key EmpireVu uses; it's also the webhook signing secret) |
+| `OWNER_SMS_NUMBER` | your personal cell, E.164 |
+| `OWNER_SMS_EVENTS` | `call_started,call_analyzed` (default). Set to `call_analyzed` for one text per call instead of two. |
+| `RETELL_FORWARD_WEBHOOK_URL` | leave unset (defaults to EmpireVu). `off` disables forwarding. |
+
+**Retell:** on the Care agent, set the **Webhook URL** to `https://a1marinecare.ca/api/retell/webhook` (replacing the EmpireVu URL — the site forwards to it). Enable events `call_started`, `call_ended`, `call_analyzed`.
+
+Verify: call the line, hang up. You should get the "answering" text within seconds and the summary text about a minute after hanging up (Retell runs analysis first). Railway logs show `[Retell webhook] call_analyzed <call_id>` and `owner sms sent`.
