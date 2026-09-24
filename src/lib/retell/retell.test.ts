@@ -163,3 +163,23 @@ describe("caller lookup + deposit expiry", () => {
     expect(depositExpiryMinutes(5000)).toBe(720);
   });
 });
+
+describe("digest", () => {
+  it("computes Toronto day boundaries across DST", async () => {
+    const { torontoDayRange } = await import("./digest");
+    const summer = torontoDayRange("2026-09-23");
+    expect(summer.start.toISOString()).toBe("2026-09-23T04:00:00.000Z");
+    expect(summer.end.toISOString()).toBe("2026-09-24T04:00:00.000Z");
+    const winter = torontoDayRange("2026-12-10");
+    expect(winter.start.toISOString()).toBe("2026-12-10T05:00:00.000Z");
+  });
+  it("builds a readable empty digest without a database", async () => {
+    const { buildDigest } = await import("./digest");
+    const saved = process.env.DATABASE_URL;
+    delete process.env.DATABASE_URL;
+    const d = await buildDigest(new Date("2026-09-24T11:00:00Z"));
+    if (saved) process.env.DATABASE_URL = saved;
+    expect(d.forDate).toBe("2026-09-23");
+    expect(d.text).toContain("Marina digest");
+  });
+});

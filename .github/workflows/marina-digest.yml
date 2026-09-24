@@ -1,0 +1,19 @@
+name: Marina morning digest
+
+# 7:00 Toronto. GitHub cron is UTC: 11:00 UTC = 07:00 EDT (summer) / 06:00 EST (winter).
+# Bump to "0 12 * * *" after the November clock change if 6am is too early.
+on:
+  schedule:
+    - cron: "0 11 * * *"
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Text the owner yesterday's numbers
+        run: |
+          code=$(curl -sS -o /tmp/out.json -w "%{http_code}" -X POST "https://a1marinecare.ca/api/retell/digest" \
+            -H "x-a1-cron-secret: ${{ secrets.DIGEST_CRON_SECRET }}")
+          cat /tmp/out.json; echo
+          test "$code" = "200"

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { after } from "next/server";
 
-import { forwardToEmpireVu, notifyOwner, verifyRetellSignature, type RetellWebhookEvent } from "@/lib/retell/webhook";
+import { forwardToEmpireVu, notifyOwner, recordCall, verifyRetellSignature, type RetellWebhookEvent } from "@/lib/retell/webhook";
 
 export const runtime = "nodejs";
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   console.log("[Retell webhook]", evt.event, evt.call?.call_id ?? "", evt.call?.from_number ?? "");
 
   after(async () => {
-    await Promise.allSettled([notifyOwner(evt), forwardToEmpireVu(rawBody, signature)]);
+    await Promise.allSettled([recordCall(evt), notifyOwner(evt), forwardToEmpireVu(rawBody, signature)]);
   });
 
   return NextResponse.json({ ok: true });
