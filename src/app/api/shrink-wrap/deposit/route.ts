@@ -4,6 +4,8 @@ import { z } from "zod";
 import { company } from "@/content/site";
 import { getQuoteLead } from "@/lib/leads";
 import { createDepositCheckoutSession, getDepositCents, isStripeConfigured } from "@/lib/stripe";
+import { isDepositPaid } from "@/lib/retell/caller-lookup";
+import { PHONE_LINK_MINUTES } from "@/lib/retell/deposit-link";
 import { formatCents } from "@/lib/shrink-wrap-pricing";
 
 export const runtime = "nodejs";
@@ -57,6 +59,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "We couldn't find that quote. Please request a new one." }, { status: 404 });
   }
 
+  if (await isDepositPaid(input.quoteId)) {
+    return NextResponse.json({ success: false, error: "Good news — this quote's deposit is already paid and your spot is held." }, { status: 409 });
+  }
+
   const origin = resolveOrigin(request);
   const amountCents = getDepositCents();
   const boat = `${quote.boatLength} ft ${quote.boatType}`;
@@ -70,6 +76,7 @@ export async function POST(request: Request) {
       customerEmail: quote.contactEmail,
       description,
       amountCents,
+      expiresInMinutes: PHONE_LINK_MINUTES,
       successUrl: `${origin}/shrink-wrapping/deposit/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${origin}/shrink-wrapping?deposit=cancelled&quoteId=${encodeURIComponent(input.quoteId)}#quote`,
       metadata: {

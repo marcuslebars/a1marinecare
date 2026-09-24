@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 
 import { createLeadEvent, isMissingTableError, sendLeadNotificationEmail } from "@/lib/lead-events";
 import { createQuoteLead } from "@/lib/leads";
@@ -6,6 +7,7 @@ import { sendToCrm } from "@/lib/crm-webhook";
 import { shrinkWrapQuoteSchema } from "@/lib/validation";
 import { calculateShrinkWrapQuote, formatCents } from "@/lib/shrink-wrap-pricing";
 import { getLocationBySlug } from "@/content/site";
+import { sendQuoteCustomerEmail } from "@/lib/quote-customer-email";
 
 export const runtime = "nodejs";
 
@@ -120,6 +122,26 @@ export async function POST(request: Request) {
     quoteId = record.id;
   } catch (err) {
     console.error("[ShrinkWrap API] Quote lead save failed:", err instanceof Error ? err.message : String(err));
+  }
+
+  // Customer's own copy — deposit button first, then the booking link. Runs
+  // after the response so the form never waits on Stripe or Resend.
+  if (quoteId) {
+    const customerQuoteId = quoteId;
+    after(async () => {
+      await sendQuoteCustomerEmail({
+        quoteId: customerQuoteId,
+        contactName: parsed.contactName,
+        contactEmail: parsed.contactEmail,
+        lengthFt: parsed.lengthFt,
+        hullType: parsed.hullType,
+        winterizationLabel: parsed.winterization ? `${parsed.winterization.engineType} × ${parsed.winterization.engineCount}` : null,
+        lineItems: quote.lineItems,
+        subtotalCents: quote.subtotalCents,
+        requiresManualReview: quote.requiresManualReview,
+        utm: parsed.utm,
+      });
+    });
   }
 
   const lineItemsHtml = quote.lineItems
