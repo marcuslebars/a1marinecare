@@ -235,8 +235,9 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
           {formatCents(result.subtotalCents)} <span className="text-base font-normal text-white/60">+ HST</span>
         </h3>
         <p className="mt-3 text-sm leading-6 text-white/70">
-          Thanks {contactName.split(" ")[0]} — we&apos;ll call you at {contactPhone} within one business hour. Wrap season
-          books up in weeks, not months: a ${DEPOSIT_DOLLARS} deposit holds your spot and comes straight off this total.
+          Thanks {contactName.split(" ")[0]} — this quote is on its way to your inbox with the deposit and booking links, and
+          we&apos;ll call you at {contactPhone} within one business hour. Wrap season books up in weeks, not months: a $
+          {DEPOSIT_DOLLARS} deposit holds your spot and comes straight off this total.
         </p>
         {resumedNotice ? <p className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">{resumedNotice}</p> : null}
         <ul className="mt-5 space-y-2 text-sm text-white/80">

@@ -331,3 +331,17 @@ Today: 2 AM / 1 PM — Sam, Priya, Jordan
 - `.github/workflows/marina-digest.yml` POSTs at 11:00 UTC daily (7am EDT). Also runnable by hand: Actions → Marina morning digest → Run workflow.
 
 **Setup:** generate a secret (`openssl rand -hex 24`), set `DIGEST_CRON_SECRET` on the Care Railway service **and** as a repository secret named `DIGEST_CRON_SECRET` (GitHub → Settings → Secrets and variables → Actions). Then run the workflow once by hand to confirm the text arrives.
+
+---
+
+## 10. Customer quote email (website form)
+
+The moment someone submits the instant quote on `/shrink-wrapping`, they get an email from `FROM_EMAIL` (reply-to `contact@a1marinecare.ca`):
+
+1. **Step 1 — hold your spot:** the $250 Stripe deposit button (12–24 h link). For boats the calculator can't price (over 40 ft) this becomes "Marcus will confirm the price".
+2. **Step 2 — pick your wrap date:** link to `/booking?quoteId=…`.
+3. Their quote breakdown + total + HST, what's included, and the phone number.
+
+Sent after the API responds (`after()`), so the form never waits on Stripe or Resend. The emailed deposit link and the "Pay $250" button on the success panel resolve to the **same** Stripe session (shared idempotency window), so there's never two open checkouts for one quote; a paid quote returns "already paid" on any further attempt. Sending the email stamps `depositLinkSentAt` on the quote, so Marina knows if they call.
+
+Phone quotes are unaffected — Marina's flow already texts/emails the link from `send_deposit_link`.

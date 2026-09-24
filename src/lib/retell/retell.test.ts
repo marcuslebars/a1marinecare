@@ -183,3 +183,31 @@ describe("digest", () => {
     expect(d.text).toContain("Marina digest");
   });
 });
+
+describe("customer quote email", () => {
+  it("puts the deposit button before the booking link and shows the total", async () => {
+    const { buildQuoteCustomerEmail } = await import("@/lib/quote-customer-email");
+    const { subject, html } = buildQuoteCustomerEmail(
+      { quoteId: "q-123", contactName: "Dana Lee", contactEmail: "dana@example.com", lengthFt: 24, hullType: "bowrider", winterizationLabel: null, lineItems: [{ key: "shrink_wrap", label: "Mobile shrink wrap", description: "24 ft × $28/ft", amountCents: 67200 }], subtotalCents: 67200, requiresManualReview: false },
+      "https://checkout.stripe.com/c/pay/cs_test_1",
+      "https://www.a1marinecare.ca/booking?quoteId=q-123",
+    );
+    expect(subject).toBe("Your shrink wrap quote: $672 + HST for the 24 ft bowrider");
+    expect(html.indexOf("checkout.stripe.com")).toBeGreaterThan(-1);
+    expect(html.indexOf("checkout.stripe.com")).toBeLessThan(html.indexOf("/booking?quoteId=q-123"));
+    expect(html).toContain("Step 1 — hold your spot");
+    expect(html).toContain("Step 2 — pick your wrap date");
+    expect(html).toContain("Hi Dana");
+  });
+  it("swaps the deposit step for a manual-review note on oversize boats", async () => {
+    const { buildQuoteCustomerEmail } = await import("@/lib/quote-customer-email");
+    const { subject, html } = buildQuoteCustomerEmail(
+      { quoteId: "q-9", contactName: "Sam", contactEmail: "s@example.com", lengthFt: 44, hullType: "cruiser", winterizationLabel: null, lineItems: [], subtotalCents: 123200, requiresManualReview: true },
+      null,
+      "https://www.a1marinecare.ca/booking?quoteId=q-9",
+    );
+    expect(subject).toContain("Marcus will confirm the price");
+    expect(html).toContain("we'll confirm the price");
+    expect(html).not.toContain("checkout.stripe.com");
+  });
+});
