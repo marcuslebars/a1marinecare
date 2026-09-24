@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it } from "vitest";
 
 import { normalizePhone, parseRetellFunctionBody, placeholderEmailForPhone, isPlaceholderEmail } from "./auth";
@@ -230,5 +232,21 @@ describe("customer follow-ups", () => {
     const r = reminderText({ firstName: "Dana", boat: "24 ft bowrider", window: "morning" });
     expect(r).toContain("tomorrow morning");
     expect(r).toContain("705-996-1010");
+  });
+});
+
+describe("post-call quote text", () => {
+  it("thanks the caller and leads with the deposit link", async () => {
+    const { postCallText } = await import("./followups");
+    const t = postCallText({ firstName: "Dana", boat: "24 ft bowrider", total: "$672", depositUrl: "https://checkout.stripe.com/x", bookingUrl: "https://www.a1marinecare.ca/booking?quoteId=q" });
+    expect(t.startsWith("Hi Dana, Marina from A1 Marine Care — thanks for calling!")).toBe(true);
+    expect(t).toContain("$672 + HST");
+    expect(t.indexOf("checkout.stripe.com")).toBeLessThan(t.indexOf("/booking?quoteId="));
+  });
+  it("drops the booking link when the caller already booked", async () => {
+    const { postCallText } = await import("./followups");
+    const t = postCallText({ firstName: "Dana", boat: "24 ft bowrider", total: "$672", depositUrl: "https://checkout.stripe.com/x", bookingUrl: "https://www.a1marinecare.ca/booking?quoteId=q", booked: true });
+    expect(t).not.toContain("/booking?quoteId=");
+    expect(t).toContain("checkout.stripe.com");
   });
 });
