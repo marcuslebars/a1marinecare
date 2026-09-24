@@ -464,13 +464,13 @@ export function ShrinkWrapQuoteForm({ defaultLocationSlug, compact }: Props) {
           </div>
           <div>
             <Label htmlFor="sw-where" className="text-sm text-white/90">
-              Where&apos;s the boat? <span className="text-white/45">(driveway, marina, dock)</span>
+              Where&apos;s the boat parked? <span className="text-white/45">(driveway, storage lot, marina yard)</span>
             </Label>
             <Input
               id="sw-where"
               value={boatLocation}
               onChange={(e) => setBoatLocation(e.target.value)}
-              placeholder="e.g. Driveway in Penetang / Bay Port Marina slip C12"
+              placeholder="e.g. On the trailer in my driveway in Penetang"
               className="mt-2 h-11 rounded-xl border-white/15 bg-[#161d26] text-white placeholder:text-white/35"
               maxLength={240}
             />

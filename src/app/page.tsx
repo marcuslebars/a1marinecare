@@ -16,7 +16,7 @@ import { formatCents, SHRINK_WRAP } from "@/lib/shrink-wrap-pricing";
 // (`git show <pre-fall-commit>:src/app/page.tsx`).
 
 const title = "Mobile Boat Shrink Wrapping & Detailing — Georgian Bay | A1 Marine Care";
-const description = `Boat shrink wrap at your driveway, dock, or marina — ${formatCents(SHRINK_WRAP.rateCents)}/ft, ${formatCents(SHRINK_WRAP.minimumCents)} minimum, winterization in the same visit. Plus premium mobile detailing and ceramic coatings across Georgian Bay, Lake Simcoe & Muskoka.`;
+const description = `Mobile boat shrink wrap at your driveway, trailer, or storage lot — ${formatCents(SHRINK_WRAP.rateCents)}/ft, ${formatCents(SHRINK_WRAP.minimumCents)} minimum, winterization in the same visit. Plus premium mobile detailing and ceramic coatings across Georgian Bay, Lake Simcoe & Muskoka.`;
 
 export const metadata: Metadata = {
   title,

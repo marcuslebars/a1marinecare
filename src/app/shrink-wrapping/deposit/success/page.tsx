@@ -86,7 +86,7 @@ export default async function DepositSuccessPage({ searchParams }: Props) {
             </li>
             <li className="flex gap-3">
               <CalendarCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <span>We come to the boat — driveway, dock, or marina. Nothing to move, nothing to tow.</span>
+              <span>We come to the boat — driveway, trailer, or storage lot. Nothing to tow across town.</span>
             </li>
             <li className="flex gap-3">
               <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
