@@ -13,7 +13,7 @@ import { formatCents, SHRINK_WRAP, SHRINK_WRAP_PRICE_LABEL } from "@/lib/shrink-
 export const SHRINK_WRAP_FAQ: Array<{ q: string; a: string }> = [
   {
     q: "How does the $250 deposit work?",
-    a: "Once you have your price, you can pay a $250 deposit by card through Stripe to hold your spot in the schedule. It's applied in full to your final invoice, so you pay the rest (plus HST) when the wrap is done. If we can't get to your boat before freeze-up, you get it back.",
+    a: "Once you have your price, you can pay a $250 deposit by card through Stripe to hold your spot in the schedule. It's applied in full to your final invoice, so you pay the rest (plus HST) when the wrap is done.",
   },
   {
     q: "Do I have to bring the boat anywhere?",
