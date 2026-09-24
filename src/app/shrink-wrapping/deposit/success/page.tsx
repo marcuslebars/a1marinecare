@@ -30,7 +30,7 @@ export default async function DepositSuccessPage({ searchParams }: Props) {
 
   const paid = session?.payment_status === "paid";
   const amountCents = session?.amount_total ?? 0;
-  const firstName = (session?.customer_details?.name || session?.metadata?.customerName || "").split(" ")[0];
+  const firstName = (session?.metadata?.customerName || session?.customer_details?.name || "").split(" ")[0];
   const quoteId = session?.metadata?.quoteId || session?.client_reference_id || "";
   const boat = session?.metadata?.boat || "";
   const phoneHref = `tel:${company.phone.replace(/\D/g, "")}`;
