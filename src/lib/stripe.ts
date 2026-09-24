@@ -96,9 +96,24 @@ export type DepositSessionInput = {
   successUrl: string;
   cancelUrl: string;
   metadata?: Record<string, string>;
+  /**
+   * How long the Checkout link stays open. Stripe allows 30 min – 24 h; the
+   * link actually lives between 1× and 2× this value because expiry is
+   * aligned to an idempotency bucket (see below). Web default 30; phone-sent
+   * links use 720 (12–24 h) so a texted link survives a drive home.
+   */
+  expiresInMinutes?: number;
 };
 
+export function depositExpiryMinutes(requested: number | undefined): number {
+  const m = Number.isFinite(requested) ? Math.round(requested as number) : 30;
+  return Math.min(Math.max(m, 30), 720);
+}
+
 export async function createDepositCheckoutSession(input: DepositSessionInput): Promise<CheckoutSession> {
+  const minutes = depositExpiryMinutes(input.expiresInMinutes);
+  const bucketMs = minutes * 60 * 1000;
+  const bucket = Math.floor(Date.now() / bucketMs);
   const metadata = {
     kind: "shrink-wrap-deposit",
     quoteId: input.quoteId,
@@ -138,13 +153,14 @@ export async function createDepositCheckoutSession(input: DepositSessionInput): 
           },
         },
       ],
-      // 30 minutes — long enough to finish on a phone, short enough that an
-      // abandoned tab doesn't hold a spot.
-      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+      // Expiry is aligned to the idempotency bucket below so a retry inside
+      // the bucket sends byte-identical params (Stripe rejects an idempotent
+      // replay whose params differ). Lives between 1× and 2× expiresInMinutes.
+      expires_at: Math.floor(((bucket + 2) * bucketMs) / 1000),
     },
     // Same quote → same session while it's still open; a retry from a flaky
     // network doesn't create duplicates.
-    `deposit-${input.quoteId}-${Math.floor(Date.now() / (30 * 60 * 1000))}`,
+    `deposit-${input.quoteId}-${minutes}-${bucket}`,
   );
 }
 

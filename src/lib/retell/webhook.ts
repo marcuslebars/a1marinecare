@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db/prisma";
 import { formatCents } from "@/lib/shrink-wrap-pricing";
 
+import { isDepositPaid } from "./caller-lookup";
 import { sendSms } from "./deposit-link";
 import { WINDOWS, spokenLabel, type Window } from "./slots";
 
@@ -94,14 +95,14 @@ function str(v: unknown): string {
 }
 
 /** What Marina actually did on this call, from our own database (more reliable than the LLM's analysis). */
-export async function lookupCallOutcome(callId: string | undefined): Promise<{ quotedCents: number | null; boat: string | null; name: string | null; bookingLabel: string | null }> {
-  const empty = { quotedCents: null, boat: null, name: null, bookingLabel: null };
+export async function lookupCallOutcome(callId: string | undefined): Promise<{ quotedCents: number | null; boat: string | null; name: string | null; bookingLabel: string | null; depositPaid: boolean }> {
+  const empty = { quotedCents: null, boat: null, name: null, bookingLabel: null, depositPaid: false };
   if (!callId || !process.env.DATABASE_URL) return empty;
   try {
     const quote = await prisma.quoteLead.findFirst({
       where: { metadata: { path: ["retellCallId"], equals: callId } },
       orderBy: { createdAt: "desc" },
-      select: { contactName: true, boatLength: true, boatType: true, estimatedTotal: true },
+      select: { id: true, contactName: true, boatLength: true, boatType: true, estimatedTotal: true },
     });
     const booking = await prisma.bookingRequest.findFirst({
       where: { metadata: { path: ["retellCallId"], equals: callId } },
@@ -118,6 +119,7 @@ export async function lookupCallOutcome(callId: string | undefined): Promise<{ q
       boat: quote ? `${quote.boatLength} ft ${quote.boatType}` : null,
       name: quote?.contactName ?? null,
       bookingLabel,
+      depositPaid: quote ? await isDepositPaid(quote.id) : false,
     };
   } catch (err) {
     console.error("[Retell webhook] outcome lookup failed:", err instanceof Error ? err.message : String(err));
@@ -148,7 +150,8 @@ export async function buildOwnerSms(evt: RetellWebhookEvent): Promise<string | n
     if (outcome.quotedCents != null) status.push(`Quoted ${formatCents(outcome.quotedCents)}`);
     if (outcome.bookingLabel) status.push(`Booked ${outcome.bookingLabel}`);
     else if (c.booked === true) status.push("Booked");
-    if (c.deposit_link_sent === true) status.push("deposit link sent");
+    if (outcome.depositPaid) status.push("deposit PAID");
+    else if (c.deposit_link_sent === true) status.push("deposit link sent");
     if (call.disconnection_reason?.includes("transfer")) status.push("transferred to you");
     if (c.is_urgent === true) status.push("URGENT");
     if (status.length) lines.push(status.join(" · "));

@@ -33,7 +33,7 @@ Already set and reused as-is: `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `GOOGLE_*` 
 
 **Agent name:** `Marina — A1 Marine Care (shrink wrap)`
 **Type:** Single prompt · **LLM:** Claude Sonnet (or GPT-4.1) · **Voice:** the same voice as the Storage agent
-**Begin message:** `Thanks for calling A1 Marine Care, this is Marina. Are you calling about shrink wrapping, or something else?`
+**Begin message:** `{{greeting}}` — the site fills this per call (section 8): a returning caller is greeted by name and boat, a new caller hears "Thanks for calling A1 Marine Care, this is Marina. Are you calling about shrink wrapping, or something else?"
 **Interruption sensitivity:** 0.7 · **Responsiveness:** 0.8 · **Backchannel:** on · **Ambient sound:** off
 **Post-call webhook:** `https://api.empirevu.com/api/retell/webhook` (event `call_analyzed`)
 **Max call duration:** 15 min · **End call after silence:** 20 s
@@ -75,11 +75,19 @@ If anyone asks whether you're a real person, say once, cheerfully: "I'm Marina, 
 3. Call quote_shrink_wrap. Read its "say" text naturally. If it says the quote needs Marcus, say so and move to capturing a callback.
 4. Ask: "Want me to lock in a date while I've got you?" If yes, ask whether they'd prefer a morning or an afternoon and whether they have a day in mind, then call check_availability and offer what it returns — up to three options, nearest first.
 5. When they pick one, call book_wrap_date. Read its "say" text. If it comes back with alternatives, offer those.
-6. Then say: "To hold that spot I'll text you the two-fifty deposit link right now — it comes off your invoice." Call send_deposit_link. Read its "say" text. Tell them the link is good for thirty minutes and Marcus texts to confirm the arrival time the day before.
+6. Then say: "To hold that spot I'll text you the two-fifty deposit link right now — it comes off your invoice." Call send_deposit_link. Read its "say" text. Tell them the link is good for the rest of the day and Marcus texts to confirm the arrival time the day before.
 7. If they don't want to book today: they still have the quote; say Marcus will follow up, and end warmly.
 8. Before ending, recap in one sentence: name, boat, date, and that the deposit link is on its way. Then use end_call.
 
 Every call must end with at least a name and a phone number captured. A pleasant call with no name and number is a failed call.
+
+# RETURNING CALLERS
+Before the call, the system looked this number up. Caller known: {{caller_known}}. First name: {{caller_first_name}}. Boat: {{caller_boat}}. Services: {{caller_services}}. Last quote: {{quote_total}} plus HST, quoted {{quote_age}}, quote id {{quote_id}}. Booked: {{booked_window}}. Deposit paid: {{deposit_paid}}. Deposit link already sent: {{deposit_link_sent}}.
+- If caller_known is "true": you already have their name, number and boat — do NOT ask for them again. Confirm it's the same boat in one breath ("still the {{caller_boat}}?") and carry on. Reuse quote id {{quote_id}} for book_wrap_date and send_deposit_link unless the boat or services changed, in which case run quote_shrink_wrap again.
+- If deposit_paid is "true": their spot is held. Don't offer the link. Help with whatever they need (date change, questions), and reassure them Marcus confirms the arrival time the day before.
+- If booked_window is set but deposit_paid is "false": remind them of the date and offer to resend the deposit link to hold it.
+- If they were quoted but never booked: mention the quote is still good and offer dates.
+- If caller_known is "false": normal flow. Never mention the lookup.
 
 # EMAIL
 Ask for an email only after the quote, only once: "Do you want the quote emailed too, or is the text enough?" If they give one, spell it back once. If they'd rather not, that's fine — the text is enough.
@@ -281,3 +289,25 @@ Outbound calls Marina places from EmpireVu are ignored — only inbound.
 **Retell:** on the Care agent, set the **Webhook URL** to `https://a1marinecare.ca/api/retell/webhook` (replacing the EmpireVu URL — the site forwards to it). Enable events `call_started`, `call_ended`, `call_analyzed`.
 
 Verify: call the line, hang up. You should get the "answering" text within seconds and the summary text about a minute after hanging up (Retell runs analysis first). Railway logs show `[Retell webhook] call_analyzed <call_id>` and `owner sms sent`.
+
+---
+
+## 8. Returning callers + the deposit loop
+
+`POST /api/retell/inbound` is Retell's **inbound-call webhook**, set on the phone number (not the agent). Retell calls it while the phone is still ringing; the site looks the caller up by the last 10 digits of their number across `quote_leads`, `booking_requests` and paid deposits, and hands Marina dynamic variables (`greeting`, `caller_known`, `caller_first_name`, `caller_boat`, `caller_services`, `quote_id`, `quote_total`, `quote_age`, `booked_window`, `deposit_paid`, `deposit_link_sent`). Strictly fail-open: bad signature, DB hiccup or >1.5 s → empty variables and the call connects as a new caller.
+
+**Retell:**
+1. Phone Numbers → the Care number → **Inbound webhook URL** = `https://a1marinecare.ca/api/retell/inbound`.
+2. Agent → **Begin message** = `{{greeting}}` (type `{{` and pick/enter `greeting`).
+3. Agent → prompt: add the `# RETURNING CALLERS` section from section 2 above (the full prompt there already includes it). Republish.
+
+No new env vars — it reuses `RETELL_API_KEY` for the signature.
+
+**Deposit loop changes (same PR):**
+- Phone-sent Stripe links now live 12–24 h instead of 30 min (`PHONE_LINK_MINUTES`); the website's own links are unchanged. Session expiry is aligned to the idempotency bucket so a retried request can't trip Stripe's "same key, different params" error.
+- `send_deposit_link` refuses when the quote's deposit is already paid and tells Marina to say so.
+- Sending the link stamps `depositLinkSentAt` on the quote, which is what `deposit_link_sent` reads.
+- Stripe webhook texts `OWNER_SMS_NUMBER`: `💰 Dana Lee paid the $250 deposit (via Marina) · 24 ft bowrider · Friday, September 25th in the morning · quoted $672`.
+- The end-of-call summary text says `deposit PAID` when the money is actually in, not just "link sent".
+
+**Verify:** call from a phone that already has a quote — she should greet you by name and boat, skip the questions, and offer dates. Pay a test deposit and you get the 💰 text; call again and she says the spot's held.

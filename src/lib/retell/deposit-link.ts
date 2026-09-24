@@ -6,6 +6,10 @@ import { createDepositCheckoutSession, getDepositCents, isStripeConfigured } fro
 import { formatCents } from "@/lib/shrink-wrap-pricing";
 
 import { isPlaceholderEmail, normalizePhone } from "./auth";
+import { isDepositPaid, markDepositLinkSent } from "./caller-lookup";
+
+/** Phone-sent links live 12–24 h (see DepositSessionInput.expiresInMinutes). */
+export const PHONE_LINK_MINUTES = 720;
 
 // Marina can't take a card over the phone (and shouldn't — PCI). She sends the
 // caller the same Stripe Checkout link the website uses, by text while they're
@@ -54,7 +58,7 @@ async function sendDepositEmail(to: string, firstName: string, url: string, amou
         <p>Hi ${firstName},</p>
         <p>Thanks for calling A1 Marine Care. Here's the link to lock in your shrink wrap date for the ${boat} with a ${amountLabel} deposit — it comes straight off your final invoice.</p>
         <p><a href="${url}" style="display:inline-block;padding:12px 20px;background:#0ea5e9;color:#fff;border-radius:10px;text-decoration:none;font-weight:700">Pay ${amountLabel} &amp; hold my spot</a></p>
-        <p style="font-size:13px;color:#667">The link is good for 30 minutes. If it expires, reply to this email or call ${company.phone} and we'll send a fresh one.</p>
+        <p style="font-size:13px;color:#667">The link is good for the next 12 hours. If it expires, reply to this email or call ${company.phone} and we'll send a fresh one.</p>
         <p>— Marina, A1 Marine Care</p>
       </div>`,
     });
@@ -67,7 +71,7 @@ async function sendDepositEmail(to: string, firstName: string, url: string, amou
 
 export type DepositLinkResult =
   | { ok: true; sentBy: Array<"sms" | "email">; sentTo: { sms?: string; email?: string }; amountLabel: string; expiresMinutes: number; sessionId: string; url: string }
-  | { ok: false; reason: "quote_not_found" | "stripe_unavailable" | "no_channel" | "send_failed"; say: string };
+  | { ok: false; reason: "quote_not_found" | "stripe_unavailable" | "no_channel" | "send_failed" | "already_paid"; say: string };
 
 export async function sendDepositLinkForQuote(input: { quoteId: string; phoneOverride?: string | null; emailOverride?: string | null; retellCallId?: string | null }): Promise<DepositLinkResult> {
   if (!isStripeConfigured()) {
@@ -76,6 +80,10 @@ export async function sendDepositLinkForQuote(input: { quoteId: string; phoneOve
   const quote = await getQuoteLead(input.quoteId).catch(() => null);
   if (!quote || quote.metadata?.formType !== "shrink-wrap-quote") {
     return { ok: false, reason: "quote_not_found", say: "I couldn't find that quote on my end. Let me redo it quickly." };
+  }
+
+  if (await isDepositPaid(input.quoteId)) {
+    return { ok: false, reason: "already_paid", say: "Good news — the deposit for that one is already paid, so the spot is held. Nothing more to pay today." };
   }
 
   const phone = normalizePhone(input.phoneOverride) ?? normalizePhone(quote.contactPhone);
@@ -98,6 +106,7 @@ export async function sendDepositLinkForQuote(input: { quoteId: string; phoneOve
       customerEmail: email ?? undefined,
       description: `Holds your mobile shrink wrap date for the ${boat}${quotedTotal ? ` (quoted ${quotedTotal} + HST)` : ""}. Applied in full to your final invoice.`,
       amountCents,
+      expiresInMinutes: PHONE_LINK_MINUTES,
       successUrl: `${origin}/shrink-wrapping/deposit/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${origin}/shrink-wrapping?deposit=cancelled&quoteId=${encodeURIComponent(input.quoteId)}#quote`,
       metadata: {
@@ -120,7 +129,7 @@ export async function sendDepositLinkForQuote(input: { quoteId: string; phoneOve
   const sentTo: { sms?: string; email?: string } = {};
 
   if (phone && isSmsConfigured()) {
-    const sms = await sendSms(phone, `A1 Marine Care: hold your shrink wrap date for the ${boat} with a ${amountLabel} deposit (comes off your invoice): ${session.url} — link is good for 30 min. Questions? ${company.phone}`);
+    const sms = await sendSms(phone, `A1 Marine Care: hold your shrink wrap date for the ${boat} with a ${amountLabel} deposit (comes off your invoice): ${session.url} — good for the next 12 hours. Questions? ${company.phone}`);
     if (sms.ok) {
       sentBy.push("sms");
       sentTo.sms = phone;
@@ -143,5 +152,6 @@ export async function sendDepositLinkForQuote(input: { quoteId: string; phoneOve
   }
 
   console.log("[Marina deposit] link sent", { quoteId: input.quoteId, sessionId: session.id, sentBy, retellCallId: input.retellCallId ?? null });
-  return { ok: true, sentBy, sentTo, amountLabel, expiresMinutes: 30, sessionId: session.id, url: session.url };
+  void markDepositLinkSent(input.quoteId);
+  return { ok: true, sentBy, sentTo, amountLabel, expiresMinutes: PHONE_LINK_MINUTES, sessionId: session.id, url: session.url };
 }

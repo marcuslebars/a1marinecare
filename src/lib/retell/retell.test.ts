@@ -134,3 +134,32 @@ describe("retell webhook", () => {
     expect(done).toContain("transferred to you");
   });
 });
+
+describe("caller lookup + deposit expiry", () => {
+  it("formats caller variables as strings and greets known callers", async () => {
+    const { toDynamicVariables, UNKNOWN_CALLER, last10, ageLabel } = await import("./caller-lookup");
+    const unknown = toDynamicVariables(UNKNOWN_CALLER);
+    expect(unknown.caller_known).toBe("false");
+    expect(unknown.greeting).toContain("shrink wrapping, or something else");
+    expect(Object.values(unknown).every((v) => typeof v === "string")).toBe(true);
+    const known = toDynamicVariables({ ...UNKNOWN_CALLER, known: true, firstName: "Dana", fullName: "Dana Lee", boat: "24 ft bowrider", quoteId: "q-1", quoteTotal: "$672", quoteAgeLabel: "yesterday", bookedWindow: "Friday, September 25th in the morning", depositPaid: true, depositLinkSent: true });
+    expect(known.greeting).toBe("Thanks for calling A1 Marine Care, this is Marina. Hi Dana — are you calling about the 24 ft bowrider?");
+    expect(known.deposit_paid).toBe("true");
+    expect(known.quote_id).toBe("q-1");
+    expect(last10("705-996-1010")).toBe("7059961010");
+    expect(last10("+17059961010")).toBe("7059961010");
+    expect(last10("1010")).toBeNull();
+    const now = new Date("2026-09-24T12:00:00Z");
+    expect(ageLabel(new Date("2026-09-24T02:00:00Z"), now)).toBe("earlier today");
+    expect(ageLabel(new Date("2026-09-23T02:00:00Z"), now)).toBe("yesterday");
+    expect(ageLabel(new Date("2026-09-20T12:00:00Z"), now)).toBe("4 days ago");
+  });
+
+  it("clamps deposit link expiry to Stripe's 30 min – 24 h window", async () => {
+    const { depositExpiryMinutes } = await import("@/lib/stripe");
+    expect(depositExpiryMinutes(undefined)).toBe(30);
+    expect(depositExpiryMinutes(5)).toBe(30);
+    expect(depositExpiryMinutes(720)).toBe(720);
+    expect(depositExpiryMinutes(5000)).toBe(720);
+  });
+});

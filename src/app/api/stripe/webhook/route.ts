@@ -7,6 +7,9 @@ import { createLeadEvent, isMissingTableError, sendLeadNotificationEmail, update
 import { getQuoteLead } from "@/lib/leads";
 import { formatCents } from "@/lib/shrink-wrap-pricing";
 import { verifyStripeWebhook, type CheckoutSession, type StripeEvent } from "@/lib/stripe";
+import { sendSms } from "@/lib/retell/deposit-link";
+import { ownerSmsNumber } from "@/lib/retell/webhook";
+import { WINDOWS, spokenLabel, type Window } from "@/lib/retell/slots";
 
 export const runtime = "nodejs";
 // Stripe signs the exact bytes — never let Next parse/re-serialize the body.
@@ -149,6 +152,26 @@ async function handleDepositPaid(session: CheckoutSession, event: StripeEvent) {
   });
 
   console.log("[Stripe webhook] deposit recorded:", session.id, name, formatCents(amountCents), "lead:", leadEventId);
+
+  // Text the owner the moment money lands.
+  const owner = ownerSmsNumber();
+  if (owner) {
+    let when = "no date yet — call to book";
+    if (quoteId) {
+      try {
+        const b = await prisma.bookingRequest.findFirst({ where: { quoteId, NOT: { status: { in: ["cancelled", "canceled", "declined"] } } }, orderBy: { date: "asc" }, select: { date: true, timeSlot: true } });
+        if (b) {
+          const w: Window = WINDOWS.afternoon.slots.includes(b.timeSlot) ? "afternoon" : "morning";
+          when = spokenLabel(b.date, w);
+        }
+      } catch {
+        /* best-effort */
+      }
+    }
+    const via = session.metadata.channel === "marina" ? " (via Marina)" : "";
+    const res = await sendSms(owner, `💰 ${name} paid the ${formatCents(amountCents)} deposit${via} · ${boat || "boat n/a"} · ${when}${quotedCents ? ` · quoted ${formatCents(quotedCents)}` : ""}${event.livemode ? "" : " · TEST"}`);
+    if (!res.ok) console.error("[Stripe webhook] owner sms failed:", res.error);
+  }
 }
 
 /**

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       sent_by: result.sentBy,
       amount: result.amountLabel,
       expires_minutes: result.expiresMinutes,
-      say: `I've just sent the ${result.amountLabel} deposit link by ${channels.join(" and ")}${result.sentBy.includes("sms") ? ` to the number${smsTail}` : ""}. It's good for thirty minutes, and the deposit comes straight off the final invoice.`,
+      say: `I've just sent the ${result.amountLabel} deposit link by ${channels.join(" and ")}${result.sentBy.includes("sms") ? ` to the number${smsTail}` : ""}. It's good for the rest of the day, and the deposit comes straight off the final invoice.`,
     });
   } catch (err) {
     console.error("[Retell deposit-link] failed:", err instanceof Error ? err.message : String(err));
