@@ -33,6 +33,9 @@ type BookingWebhookPayload = {
   date?: string;
   timeSlot?: string;
   notes?: string;
+  /** Overrides the derived `a1marinecare-booking` tag (e.g. deposit-paid leads). */
+  leadTag?: string;
+  utm?: Record<string, string>;
 };
 
 type QuoteWebhookPayload = {
