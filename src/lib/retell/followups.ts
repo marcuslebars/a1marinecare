@@ -163,3 +163,67 @@ export async function runFollowups(now = new Date(), opts: { dryRun?: boolean } 
 
   return result;
 }
+
+// ---- Right after a Marina call ------------------------------------------
+// A caller who got a quote and hung up without a booking leaves with nothing
+// in hand. As soon as Retell finishes analysing the call, text (and email,
+// if we have a real address) the quote with the deposit link first.
+
+export function postCallText(input: { firstName: string; boat: string; total: string | null; depositUrl: string | null; bookingUrl: string; booked?: boolean }): string {
+  const price = input.total ? ` is ${input.total} + HST` : " is ready";
+  const pay = input.depositUrl ? ` A $250 deposit holds your date and comes off the total: ${input.depositUrl}` : "";
+  const book = input.booked ? "" : ` Or pick a date first: ${input.bookingUrl}`;
+  return `Hi ${input.firstName}, Marina from A1 Marine Care — thanks for calling! Your shrink wrap quote for the ${input.boat}${price}.${pay}${book} Questions? ${company.phone}`;
+}
+
+export async function sendPostCallQuote(retellCallId: string | undefined, now = new Date()): Promise<{ sent: boolean; reason?: string }> {
+  if (!retellCallId || !process.env.DATABASE_URL) return { sent: false, reason: "no call id" };
+  try {
+    const q = await prisma.quoteLead.findFirst({
+      where: { metadata: { path: ["retellCallId"], equals: retellCallId } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, contactName: true, contactPhone: true, contactEmail: true, boatLength: true, boatType: true, estimatedTotal: true, requiresManualReview: true, metadata: true, bookingRequests: { where: { NOT: { status: { in: ["cancelled", "canceled", "declined"] } } }, select: { id: true }, take: 1 } },
+    });
+    if (!q) return { sent: false, reason: "no quote on this call" };
+    const m = meta(q.metadata);
+    if (typeof m.depositLinkSentAt === "string" || typeof m.postCallTextAt === "string") return { sent: false, reason: "already sent" };
+    if (q.requiresManualReview) return { sent: false, reason: "manual review" };
+    if (await isDepositPaid(q.id)) return { sent: false, reason: "paid" };
+    const to = normalizePhone(q.contactPhone);
+    if (!to || !isSmsConfigured()) return { sent: false, reason: "no sms" };
+
+    const boat = `${q.boatLength} ft ${q.boatType}`;
+    const bookingUrl = `${company.url}/booking?quoteId=${encodeURIComponent(q.id)}`;
+    let depositUrl: string | null = null;
+    if (isStripeConfigured()) {
+      try {
+        const session = await createDepositCheckoutSession({
+          quoteId: q.id,
+          customerName: q.contactName,
+          customerEmail: q.contactEmail.endsWith("@no-email.a1marinecare.ca") ? undefined : q.contactEmail,
+          description: `Holds your mobile shrink wrap date for the ${boat}. Applied in full to your final invoice.`,
+          amountCents: getDepositCents(),
+          expiresInMinutes: PHONE_LINK_MINUTES,
+          successUrl: `${company.url}/shrink-wrapping/deposit/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${company.url}/shrink-wrapping?deposit=cancelled&quoteId=${encodeURIComponent(q.id)}#quote`,
+          metadata: { boat, quotedSubtotalCents: String(q.estimatedTotal ?? ""), channel: "post-call-sms", retellCallId },
+        });
+        depositUrl = session.url ?? null;
+      } catch (err) {
+        console.error("[followups] post-call session failed:", q.id, err instanceof Error ? err.message : String(err));
+      }
+    }
+    const body = postCallText({ firstName: firstName(q.contactName), boat, total: q.estimatedTotal != null ? formatCents(Number(q.estimatedTotal)) : null, depositUrl, bookingUrl, booked: q.bookingRequests.length > 0 });
+    const sms = await sendSms(to, body);
+    if (!sms.ok) {
+      console.error("[followups] post-call sms failed:", q.id, sms.error);
+      return { sent: false, reason: sms.error };
+    }
+    await prisma.quoteLead.update({ where: { id: q.id }, data: { metadata: { ...m, postCallTextAt: now.toISOString(), ...(depositUrl ? { depositLinkSentAt: now.toISOString() } : {}) } as Prisma.InputJsonValue } });
+    console.log("[followups] post-call quote text sent", { quoteId: q.id, booked: q.bookingRequests.length > 0, deposit: Boolean(depositUrl) });
+    return { sent: true };
+  } catch (err) {
+    if (!isMissingTableError(err)) console.error("[followups] post-call failed:", err instanceof Error ? err.message : String(err));
+    return { sent: false, reason: "error" };
+  }
+}

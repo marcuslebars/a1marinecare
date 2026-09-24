@@ -356,3 +356,16 @@ Phone quotes are unaffected — Marina's flow already texts/emails the link from
 - `GET /api/retell/followups` is a dry run (who would be texted now). Same `x-a1-cron-secret` as the digest. STOP replies are handled by Twilio.
 
 **Website booking page** now shares Marina's capacity rule for shrink wrap: `GET /api/shrink-wrap/availability?date=` reports which half-day windows are open (2 per window, Mon–Sat, 24 h notice); full windows show as "full" and can't be picked; `/api/bookings` rejects a full or too-soon window with a 409 and a plain message. Other services are unchanged.
+
+---
+
+## 12. Post-call quote text
+
+A caller who gets a quote from Marina and hangs up with "let me think about it" used to leave with nothing in hand until the 20-hour nudge. Now, when Retell's `call_analyzed` webhook arrives for an inbound call, `sendPostCallQuote(call_id)` runs in the same `after()` as the owner SMS:
+
+- Finds the quote Marina created on that call (`metadata.retellCallId`).
+- Skips if Marina already sent the deposit link during the call (`depositLinkSentAt`), the deposit is paid, the quote needs manual review, or there's no mobile number.
+- Otherwise creates a fresh 12-hour Stripe link (`channel: "post-call-sms"`) and texts: *"Hi Dana, Marina from A1 Marine Care — thanks for calling! Your shrink wrap quote for the 24 ft bowrider is $672 + HST. A $250 deposit holds your date and comes off the total: <stripe> Or pick a date first: <booking> Questions? 705-996-1010"*. If they booked on the call, the "pick a date" part is dropped.
+- Stamps `metadata.postCallTextAt` (and `depositLinkSentAt`) so the hourly nudge and Marina's returning-caller greeting both know the link is already out.
+
+Nothing to configure — it uses the existing Twilio, Stripe and Retell webhook settings. Timing: typically 30–90 s after the call ends (Retell finishes analysis first).
