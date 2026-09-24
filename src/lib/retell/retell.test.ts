@@ -103,3 +103,34 @@ describe("half-day slots", () => {
     expect(slots[0].date).toBe("2026-09-25");
   });
 });
+
+describe("retell webhook", () => {
+  it("verifies v=ts,d=hmac signatures and rejects stale or wrong ones", async () => {
+    const { createHmac } = await import("node:crypto");
+    const { verifyRetellSignature, prettyPhone, buildOwnerSms } = await import("./webhook");
+    const key = "key_test";
+    const body = JSON.stringify({ event: "call_started", call: { call_id: "c1" } });
+    const ts = String(Date.now());
+    const d = createHmac("sha256", key).update(body + ts).digest("hex");
+    expect(verifyRetellSignature(body, `v=${ts},d=${d}`, key)).toBe(true);
+    expect(verifyRetellSignature(body + " ", `v=${ts},d=${d}`, key)).toBe(false);
+    expect(verifyRetellSignature(body, `v=${ts},d=${d}`, "other")).toBe(false);
+    const old = String(Date.now() - 10 * 60_000);
+    const dOld = createHmac("sha256", key).update(body + old).digest("hex");
+    expect(verifyRetellSignature(body, `v=${old},d=${dOld}`, key)).toBe(false);
+    expect(verifyRetellSignature(body, null, key)).toBe(false);
+    expect(prettyPhone("+17059961010")).toBe("705-996-1010");
+    const sms = await buildOwnerSms({ event: "call_started", call: { direction: "inbound", from_number: "+17055551234", start_timestamp: Date.now() } });
+    expect(sms).toContain("705-555-1234");
+    expect(await buildOwnerSms({ event: "call_started", call: { direction: "outbound", from_number: "+17055551234" } })).toBeNull();
+    const done = await buildOwnerSms({
+      event: "call_analyzed",
+      call: { direction: "inbound", from_number: "+17055551234", duration_ms: 200_000, disconnection_reason: "call_transfer", call_analysis: { call_summary: "Caller wanted a wrap.", custom_analysis_data: { caller_name: "Dana Lee", boat_length_ft: 24, boat_type: "bowrider", booked: true, deposit_link_sent: true } } },
+    });
+    expect(done).toContain("Dana Lee · 24 ft bowrider");
+    expect(done).toContain("3m20s");
+    expect(done).toContain("Booked");
+    expect(done).toContain("deposit link sent");
+    expect(done).toContain("transferred to you");
+  });
+});
