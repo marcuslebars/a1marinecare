@@ -89,7 +89,8 @@ export type DepositSessionInput = {
   quoteId: string;
   leadEventId?: string | null;
   customerName: string;
-  customerEmail: string;
+  /** Omit when unknown — Stripe collects it on the Checkout page. */
+  customerEmail?: string;
   description: string;
   amountCents: number;
   successUrl: string;
@@ -111,7 +112,7 @@ export async function createDepositCheckoutSession(input: DepositSessionInput): 
     "/checkout/sessions",
     {
       mode: "payment",
-      customer_email: input.customerEmail,
+      customer_email: input.customerEmail?.trim() || undefined,
       customer_creation: "always",
       phone_number_collection: { enabled: true },
       submit_type: "book",
