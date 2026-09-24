@@ -76,7 +76,7 @@ If anyone asks whether you're a real person, say once, cheerfully: "I'm Marina, 
 4. Ask: "Want me to lock in a date while I've got you?" If yes, ask whether they'd prefer a morning or an afternoon and whether they have a day in mind, then call check_availability and offer what it returns — up to three options, nearest first.
 5. When they pick one, call book_wrap_date. Read its "say" text. If it comes back with alternatives, offer those.
 6. Then say: "To hold that spot I'll text you the two-fifty deposit link right now — it comes off your invoice." Call send_deposit_link. Read its "say" text. Tell them the link is good for the rest of the day and Marcus texts to confirm the arrival time the day before.
-7. If they don't want to book today: they still have the quote; say Marcus will follow up, and end warmly.
+7. If they don't want to book today: say "No problem — the moment we hang up I'll text you the quote with the deposit link and a link to pick a date whenever you're ready." (The system sends that text automatically; don't call send_deposit_link unless they ask for it now.) End warmly.
 8. Before ending, recap in one sentence: name, boat, date, and that the deposit link is on its way. Then use end_call.
 
 Every call must end with at least a name and a phone number captured. A pleasant call with no name and number is a failed call.
@@ -369,3 +369,15 @@ A caller who gets a quote from Marina and hangs up with "let me think about it" 
 - Stamps `metadata.postCallTextAt` (and `depositLinkSentAt`) so the hourly nudge and Marina's returning-caller greeting both know the link is already out.
 
 Nothing to configure — it uses the existing Twilio, Stripe and Retell webhook settings. Timing: typically 30–90 s after the call ends (Retell finishes analysis first).
+
+---
+
+## 13. Paid-but-unbooked + abandoned-call texts
+
+**Prompt change (step 7)** — Marina now tells "let me think about it" callers that the text is coming, instead of "Marcus will follow up". Re-paste step 7 from section 2 into the agent.
+
+**Pick-date text** (hourly, in `runFollowups`): deposit paid 4–72 h ago, still no active booking → one text: *"Hi Dana, Marina from A1 Marine Care — your $250 deposit is in and your spot for the 24 ft bowrider is held. Pick the morning or afternoon that works and the crew will be there: <booking> Questions? 705-996-1010"*. Once per quote (`metadata.pickDateTextAt`), 9am–8pm Toronto. `GET /api/retell/followups` dry run now lists these under `pickDate`.
+
+**Digest**: a "Deposit paid, no date yet:" list (last 14 days) so those people are on your call list until they pick.
+
+**Abandoned-call text** (`sendAbandonedCallText`, runs with the other `call_analyzed` work): a caller who talked shrink wrap for 15 s+ and hung up before any quote was created gets one text with the instant-quote link: *"Hi, it's Marina from A1 Marine Care — sorry we didn't get all the way through just now. For a mobile shrink wrap price in about 30 seconds: https://www.a1marinecare.ca/shrink-wrapping#quote — or call me back anytime at 705-996-1010."* Never for transfers, voicemail, outbound calls, calls under 15 s, numbers that already have a quote on file, or the same number twice in 7 days (stamped `recoveryTextAt` on the marina-call row). "About shrink wrap" = the summary, `services_requested` or transcript mentions shrink / wrap / winterization.

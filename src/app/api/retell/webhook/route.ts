@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { after } from "next/server";
 
-import { sendPostCallQuote } from "@/lib/retell/followups";
+import { sendAbandonedCallText, sendPostCallQuote } from "@/lib/retell/followups";
 import { forwardToEmpireVu, notifyOwner, recordCall, verifyRetellSignature, type RetellWebhookEvent } from "@/lib/retell/webhook";
 
 export const runtime = "nodejs";
@@ -32,11 +32,13 @@ export async function POST(request: Request) {
   console.log("[Retell webhook]", evt.event, evt.call?.call_id ?? "", evt.call?.from_number ?? "");
 
   after(async () => {
+    await recordCall(evt); // first: the customer texts below stamp this row
+    const inboundDone = evt.event === "call_analyzed" && evt.call?.direction !== "outbound";
     await Promise.allSettled([
-      recordCall(evt),
       notifyOwner(evt),
       forwardToEmpireVu(rawBody, signature),
-      evt.event === "call_analyzed" && evt.call?.direction !== "outbound" ? sendPostCallQuote(evt.call?.call_id) : Promise.resolve(),
+      inboundDone ? sendPostCallQuote(evt.call?.call_id) : Promise.resolve(),
+      inboundDone ? sendAbandonedCallText(evt) : Promise.resolve(),
     ]);
   });
 
