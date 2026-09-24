@@ -211,3 +211,24 @@ describe("customer quote email", () => {
     expect(html).not.toContain("checkout.stripe.com");
   });
 });
+
+describe("customer follow-ups", () => {
+  it("keeps texts inside Toronto civil hours", async () => {
+    const { inWindow, torontoHour, NUDGE_HOURS, REMINDER_HOURS } = await import("./followups");
+    expect(torontoHour(new Date("2026-09-24T13:00:00Z"))).toBe(9); // EDT
+    expect(inWindow(new Date("2026-09-24T13:00:00Z"), NUDGE_HOURS)).toBe(true);
+    expect(inWindow(new Date("2026-09-24T07:30:00Z"), NUDGE_HOURS)).toBe(false); // 3:30am
+    expect(inWindow(new Date("2026-09-24T20:00:00Z"), REMINDER_HOURS)).toBe(true); // 4pm
+    expect(inWindow(new Date("2026-09-24T13:00:00Z"), REMINDER_HOURS)).toBe(false); // 9am
+  });
+  it("writes the texts in Marina's voice with the links in order", async () => {
+    const { nudgeText, reminderText } = await import("./followups");
+    const n = nudgeText({ firstName: "Dana", boat: "24 ft bowrider", total: "$672", depositUrl: "https://checkout.stripe.com/x", bookingUrl: "https://www.a1marinecare.ca/booking?quoteId=q" });
+    expect(n.startsWith("Hi Dana, Marina from A1 Marine Care.")).toBe(true);
+    expect(n.indexOf("checkout.stripe.com")).toBeLessThan(n.indexOf("/booking?quoteId="));
+    expect(n).toContain("$672");
+    const r = reminderText({ firstName: "Dana", boat: "24 ft bowrider", window: "morning" });
+    expect(r).toContain("tomorrow morning");
+    expect(r).toContain("705-996-1010");
+  });
+});

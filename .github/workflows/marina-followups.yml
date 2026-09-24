@@ -1,0 +1,19 @@
+name: Marina customer follow-ups
+
+# Hourly. The endpoint decides what's due and only texts during Toronto civil hours
+# (nudges 9am–8pm, day-before reminders 3pm–8pm).
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send due nudges and reminders
+        run: |
+          code=$(curl -sS -o /tmp/out.json -w "%{http_code}" -X POST "https://a1marinecare.ca/api/retell/followups" \
+            -H "x-a1-cron-secret: ${{ secrets.DIGEST_CRON_SECRET }}")
+          cat /tmp/out.json; echo
+          test "$code" = "200"

@@ -194,8 +194,43 @@ export function BookingFlow() {
     return true;
   }, [step, data, bookingSource, isRecurringBooking]);
 
+  const isShrinkWrap = data.serviceSlug === "shrink-wrapping" || Boolean(quoteData?.serviceSlugs?.includes("shrink-wrapping"));
+  const [availability, setAvailability] = useState<{ date: string; earliestDate: string; windows: Record<string, { open: boolean; slots: string[] }> } | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isShrinkWrap || !data.date) {
+      setAvailability(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/shrink-wrap/availability?date=${encodeURIComponent(data.date)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (!cancelled && json?.ok) setAvailability(json);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isShrinkWrap, data.date]);
+
+  const slotDisabled = useCallback(
+    (slot: string) => {
+      if (!isShrinkWrap || !availability || availability.date !== data.date) return false;
+      const w = Object.values(availability.windows).find((x) => x.slots.includes(slot));
+      return w ? !w.open : false;
+    },
+    [isShrinkWrap, availability, data.date],
+  );
+
+  useEffect(() => {
+    if (data.timeSlot && slotDisabled(data.timeSlot)) setData((previous) => ({ ...previous, timeSlot: "" }));
+  }, [data.timeSlot, slotDisabled]);
+
   async function submitBooking() {
     setSubmissionState("submitting");
+    setSubmitError(null);
 
     try {
       const response = await fetch("/api/bookings", {
@@ -221,7 +256,9 @@ export function BookingFlow() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit booking");
+        const body = (await response.json().catch(() => null)) as { error?: string } | null;
+        if (body?.error) setSubmitError(body.error);
+        throw new Error(body?.error || "Failed to submit booking");
       }
 
       setSubmissionState("success");
@@ -323,20 +360,27 @@ export function BookingFlow() {
                     <CalendarDays className="h-4 w-4" /> Time slots
                   </Label>
                   <div className="grid grid-cols-2 gap-3">
-                    {timeSlots.map((slot) => (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={() => setData((previous) => ({ ...previous, timeSlot: slot }))}
-                        className={`rounded-xl border p-3 text-sm transition-colors ${
-                          data.timeSlot === slot
-                            ? "border-primary bg-secondary text-foreground"
-                            : "border-border hover:border-primary/50"
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
+                    {timeSlots.map((slot) => {
+                      const full = slotDisabled(slot);
+                      return (
+                        <button
+                          key={slot}
+                          type="button"
+                          disabled={full}
+                          onClick={() => setData((previous) => ({ ...previous, timeSlot: slot }))}
+                          className={`rounded-xl border p-3 text-sm transition-colors ${
+                            full
+                              ? "cursor-not-allowed border-border/50 text-muted-foreground/50 line-through"
+                              : data.timeSlot === slot
+                                ? "border-primary bg-secondary text-foreground"
+                                : "border-border hover:border-primary/50"
+                          }`}
+                        >
+                          {slot}
+                          {full ? <span className="ml-1 text-[10px] uppercase tracking-wide no-underline">full</span> : null}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -616,7 +660,7 @@ export function BookingFlow() {
 
                 {submissionState === "error" && (
                   <p className="text-center text-sm text-destructive">
-                    Booking submission failed. Please try again or contact us directly.
+                    {submitError ?? "Booking submission failed. Please try again or contact us directly."}
                   </p>
                 )}
               </div>
