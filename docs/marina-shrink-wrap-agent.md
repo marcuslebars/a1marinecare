@@ -311,3 +311,23 @@ No new env vars — it reuses `RETELL_API_KEY` for the signature.
 - The end-of-call summary text says `deposit PAID` when the money is actually in, not just "link sent".
 
 **Verify:** call from a phone that already has a quote — she should greet you by name and boat, skip the questions, and offer dates. Pay a test deposit and you get the 💰 text; call again and she says the spot's held.
+
+---
+
+## 9. The 7am digest
+
+One text every morning with yesterday's numbers, today's call-back list, and today's schedule:
+
+```
+☀️ Marina · Wed, Sep 23: 9 calls · 6 quotes (4 by phone) worth $4,830 · 3 booked · 2 deposits ($500)
+Quoted, not booked — call today:
+• Dana Lee 705-555-1234 · 24 ft bowrider · $672
+• Mike Rowe 705-555-9876 · 22 ft pontoon · $968
+Today: 2 AM / 1 PM — Sam, Priya, Jordan
+```
+
+- Calls come from a new one-row-per-call log the webhook writes to `lead_events` (`leadType = marina-call`, with summary, duration, quoted/booked/paid flags). Quotes, bookings and deposits count website + phone together; "by phone" is Marina's share.
+- `GET /api/retell/digest` previews; `POST` sends. Both need header `x-a1-cron-secret` = `DIGEST_CRON_SECRET`.
+- `.github/workflows/marina-digest.yml` POSTs at 11:00 UTC daily (7am EDT). Also runnable by hand: Actions → Marina morning digest → Run workflow.
+
+**Setup:** generate a secret (`openssl rand -hex 24`), set `DIGEST_CRON_SECRET` on the Care Railway service **and** as a repository secret named `DIGEST_CRON_SECRET` (GitHub → Settings → Secrets and variables → Actions). Then run the workflow once by hand to confirm the text arrives.

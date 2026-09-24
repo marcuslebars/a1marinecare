@@ -1,8 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { prisma } from "@/lib/db/prisma";
+import { createLeadEvent, isMissingTableError } from "@/lib/lead-events";
 import { formatCents } from "@/lib/shrink-wrap-pricing";
 
+import { placeholderEmailForPhone } from "./auth";
 import { isDepositPaid } from "./caller-lookup";
 import { sendSms } from "./deposit-link";
 import { WINDOWS, spokenLabel, type Window } from "./slots";
@@ -161,6 +163,37 @@ export async function buildOwnerSms(evt: RetellWebhookEvent): Promise<string | n
   }
 
   return null;
+}
+
+/** Durable one-row-per-call log in lead_events (leadType "marina-call") — what the digest counts. */
+export async function recordCall(evt: RetellWebhookEvent): Promise<void> {
+  const call = evt.call ?? {};
+  if (evt.event !== "call_analyzed" || !call.call_id || !process.env.DATABASE_URL) return;
+  if (call.direction && call.direction !== "inbound") return;
+  try {
+    const dup = await prisma.leadEvent.findFirst({ where: { leadType: "marina-call", metadata: { path: ["retellCallId"], equals: call.call_id } }, select: { id: true } });
+    if (dup) return;
+    const a = call.call_analysis ?? {};
+    const c = a.custom_analysis_data ?? {};
+    const outcome = await lookupCallOutcome(call.call_id);
+    const phone = call.from_number ?? "";
+    const name = outcome.name || (typeof c.caller_name === "string" && c.caller_name.trim()) || "Unknown caller";
+    await createLeadEvent({
+      source: "contact",
+      customerName: name,
+      email: phone ? placeholderEmailForPhone(phone) : "unknown@no-email.a1marinecare.ca",
+      phone,
+      serviceInterest: Array.isArray(c.services_requested) ? c.services_requested.map(String).join(", ") : typeof c.services_requested === "string" ? c.services_requested : "phone call",
+      boatLength: outcome.boat ? outcome.boat.split(" ")[0] : undefined,
+      boatType: outcome.boat ? outcome.boat.split(" ").slice(2).join(" ") : undefined,
+      message: typeof a.call_summary === "string" ? a.call_summary : undefined,
+      leadType: "marina-call",
+      rawPayload: { durationMs: call.duration_ms ?? null, disconnectionReason: call.disconnection_reason ?? null, sentiment: a.user_sentiment ?? null, successful: a.call_successful ?? null, voicemail: a.in_voicemail ?? null },
+      metadata: { retellCallId: call.call_id, channel: "marina", quotedCents: outcome.quotedCents, booked: Boolean(outcome.bookingLabel), depositPaid: outcome.depositPaid, transferred: Boolean(call.disconnection_reason?.includes("transfer")), urgent: c.is_urgent === true },
+    });
+  } catch (err) {
+    if (!isMissingTableError(err)) console.error("[Retell webhook] call log failed:", err instanceof Error ? err.message : String(err));
+  }
 }
 
 export async function notifyOwner(evt: RetellWebhookEvent): Promise<void> {
