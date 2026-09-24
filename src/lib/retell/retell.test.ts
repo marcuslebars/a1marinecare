@@ -250,3 +250,23 @@ describe("post-call quote text", () => {
     expect(t).toContain("checkout.stripe.com");
   });
 });
+
+describe("pick-date + abandoned-call texts", () => {
+  it("pick-date text says the spot is held and links the booking page", async () => {
+    const { pickDateText } = await import("./followups");
+    const t = pickDateText({ firstName: "Dana", boat: "24 ft bowrider", bookingUrl: "https://www.a1marinecare.ca/booking?quoteId=q" });
+    expect(t).toContain("deposit is in");
+    expect(t).toContain("/booking?quoteId=q");
+  });
+  it("only treats real shrink-wrap callers who hung up as abandoned", async () => {
+    const { looksAbandoned } = await import("./followups");
+    const base = { event: "call_analyzed", call: { call_id: "c1", from_number: "+17055551234", direction: "inbound", duration_ms: 40_000, call_analysis: { call_summary: "Caller asked about shrink wrapping a pontoon and hung up." } } };
+    expect(looksAbandoned(base)).toBe(true);
+    expect(looksAbandoned({ ...base, call: { ...base.call, duration_ms: 8_000 } })).toBe(false);
+    expect(looksAbandoned({ ...base, call: { ...base.call, disconnection_reason: "call_transfer" } })).toBe(false);
+    expect(looksAbandoned({ ...base, call: { ...base.call, direction: "outbound" } })).toBe(false);
+    expect(looksAbandoned({ ...base, call: { ...base.call, call_analysis: { in_voicemail: true, call_summary: "shrink wrap" } } })).toBe(false);
+    expect(looksAbandoned({ ...base, call: { ...base.call, call_analysis: { call_summary: "Asked about detailing prices." } } })).toBe(false);
+    expect(looksAbandoned({ ...base, event: "call_started" })).toBe(false);
+  });
+});

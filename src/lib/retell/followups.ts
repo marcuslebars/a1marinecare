@@ -7,18 +7,22 @@ import { formatCents } from "@/lib/shrink-wrap-pricing";
 import { createDepositCheckoutSession, getDepositCents, isStripeConfigured } from "@/lib/stripe";
 
 import { normalizePhone } from "./auth";
-import { isDepositPaid, markDepositLinkSent } from "./caller-lookup";
+import { isDepositPaid, lookupCallerByPhone, markDepositLinkSent } from "./caller-lookup";
 import { PHONE_LINK_MINUTES, isSmsConfigured, sendSms } from "./deposit-link";
 import { WINDOWS, addDays, earliestBookableDate } from "./slots";
+import type { RetellWebhookEvent } from "./webhook";
 
-// Two customer texts, in Marina's voice, run hourly by the follow-ups workflow:
-//   nudge    — quoted 20–72 h ago, no booking, no deposit → one text with the deposit + booking links
-//   reminder — booked for tomorrow → one text the afternoon before
+// Customer texts, in Marina's voice, run hourly by the follow-ups workflow:
+//   nudge      — quoted 20–72 h ago, no booking, no deposit → one text with the deposit + booking links
+//   pick-date  — deposit paid 4–72 h ago, still no booking → one text with the booking link
+//   reminder   — booked for tomorrow → one text the afternoon before
 // Each fires at most once per quote / booking (stamped in metadata) and only
 // during civil hours in Toronto. Twilio handles STOP replies on its own.
 
 export const NUDGE_MIN_HOURS = 20;
 export const NUDGE_MAX_HOURS = 72;
+export const PICK_DATE_MIN_HOURS = 4;
+export const PICK_DATE_MAX_HOURS = 72;
 /** Local hours (inclusive start, exclusive end) when texts may go out. */
 export const NUDGE_HOURS: [number, number] = [9, 20];
 export const REMINDER_HOURS: [number, number] = [15, 20];
@@ -52,14 +56,19 @@ export function reminderText(input: { firstName: string; boat: string; window: "
   return `Hi ${input.firstName}, Marina from A1 Marine Care — the crew is coming tomorrow ${input.window} to wrap the ${input.boat}. Please have it out of the water, on the trailer or in the driveway, with a clear path around it. If anything's changed, reply here or call ${company.phone}.`;
 }
 
+export function pickDateText(input: { firstName: string; boat: string; bookingUrl: string }): string {
+  return `Hi ${input.firstName}, Marina from A1 Marine Care — your $250 deposit is in and your spot for the ${input.boat} is held. Pick the morning or afternoon that works and the crew will be there: ${input.bookingUrl} Questions? ${company.phone}`;
+}
+
 export type FollowupResult = {
   nudged: Array<{ quoteId: string; to: string }>;
+  pickDate: Array<{ quoteId: string; to: string }>;
   reminded: Array<{ bookingId: string; to: string }>;
   skipped: string[];
 };
 
 export async function runFollowups(now = new Date(), opts: { dryRun?: boolean } = {}): Promise<FollowupResult> {
-  const result: FollowupResult = { nudged: [], reminded: [], skipped: [] };
+  const result: FollowupResult = { nudged: [], pickDate: [], reminded: [], skipped: [] };
   if (!process.env.DATABASE_URL) return { ...result, skipped: ["no database"] };
   if (!isSmsConfigured() && !opts.dryRun) return { ...result, skipped: ["sms not configured"] };
 
@@ -123,6 +132,50 @@ export async function runFollowups(now = new Date(), opts: { dryRun?: boolean } 
     }
   } else {
     result.skipped.push("nudges: outside 9am–8pm");
+  }
+
+  // ---- Paid, but never picked a date -----------------------------------
+  if (inWindow(now, NUDGE_HOURS)) {
+    try {
+      const paid = await prisma.leadEvent.findMany({
+        where: { leadType: "shrink-wrap-deposit", createdAt: { gte: new Date(now.getTime() - PICK_DATE_MAX_HOURS * 3600_000), lte: new Date(now.getTime() - PICK_DATE_MIN_HOURS * 3600_000) } },
+        orderBy: { createdAt: "asc" },
+        take: BATCH,
+        select: { leadId: true, metadata: true },
+      });
+      const seen = new Set<string>();
+      for (const d of paid) {
+        const quoteId = d.leadId ?? String(meta(d.metadata).quoteId ?? "");
+        if (!quoteId || seen.has(quoteId)) continue;
+        seen.add(quoteId);
+        const q = await prisma.quoteLead.findUnique({
+          where: { id: quoteId },
+          select: { id: true, contactName: true, contactPhone: true, boatLength: true, boatType: true, metadata: true, bookingRequests: { where: { NOT: { status: { in: ["cancelled", "canceled", "declined"] } } }, select: { id: true }, take: 1 } },
+        });
+        if (!q || q.bookingRequests.length) continue;
+        const m = meta(q.metadata);
+        if (typeof m.pickDateTextAt === "string") continue;
+        const to = normalizePhone(q.contactPhone);
+        if (!to) continue;
+        const boat = `${q.boatLength} ft ${q.boatType}`;
+        const body = pickDateText({ firstName: firstName(q.contactName), boat, bookingUrl: `${company.url}/booking?quoteId=${encodeURIComponent(q.id)}` });
+        if (opts.dryRun) {
+          result.pickDate.push({ quoteId: q.id, to });
+          continue;
+        }
+        const sms = await sendSms(to, body);
+        if (!sms.ok) {
+          console.error("[followups] pick-date sms failed:", q.id, sms.error);
+          continue;
+        }
+        await prisma.quoteLead.update({ where: { id: q.id }, data: { metadata: { ...m, pickDateTextAt: now.toISOString() } as Prisma.InputJsonValue } });
+        result.pickDate.push({ quoteId: q.id, to });
+      }
+    } catch (err) {
+      if (!isMissingTableError(err)) console.error("[followups] pick-date pass failed:", err instanceof Error ? err.message : String(err));
+    }
+  } else {
+    result.skipped.push("pick-date: outside 9am–8pm");
   }
 
   // ---- Day-before reminders ------------------------------------------
@@ -224,6 +277,69 @@ export async function sendPostCallQuote(retellCallId: string | undefined, now = 
     return { sent: true };
   } catch (err) {
     if (!isMissingTableError(err)) console.error("[followups] post-call failed:", err instanceof Error ? err.message : String(err));
+    return { sent: false, reason: "error" };
+  }
+}
+
+// ---- Abandoned calls ----------------------------------------------------
+// Some callers hang up on an AI before Marina gets to a quote. If the call was
+// about shrink wrap and nothing was created, text the instant-quote link once.
+// Never for transfers, voicemail, outbound calls, or a number that already has
+// a quote on file (they get the post-call / nudge texts instead).
+
+export const RECOVERY_COOLDOWN_DAYS = 7;
+const SHRINK_WRAP_RE = /shrink|wrap|winteri[sz]/i;
+
+export function abandonedCallText(): string {
+  return `Hi, it's Marina from A1 Marine Care — sorry we didn't get all the way through just now. For a mobile shrink wrap price in about 30 seconds: ${company.url}/shrink-wrapping#quote — or call me back anytime at ${company.phone}.`;
+}
+
+/** Decide from the analysed call alone (no DB) whether this looks like a shrink-wrap caller who bailed. */
+export function looksAbandoned(evt: RetellWebhookEvent): boolean {
+  const call = evt.call ?? {};
+  if (evt.event !== "call_analyzed" || !call.call_id || !call.from_number) return false;
+  if (call.direction && call.direction !== "inbound") return false;
+  if ((call.duration_ms ?? 0) < 15_000) return false; // wrong numbers, pocket dials
+  if (call.disconnection_reason?.includes("transfer")) return false;
+  const a = call.call_analysis ?? {};
+  if (a.in_voicemail) return false;
+  const c = a.custom_analysis_data ?? {};
+  const services = Array.isArray(c.services_requested) ? c.services_requested.map(String).join(" ") : typeof c.services_requested === "string" ? c.services_requested : "";
+  const text = `${services} ${a.call_summary ?? ""} ${(call.transcript ?? "").slice(0, 4000)}`;
+  return SHRINK_WRAP_RE.test(text);
+}
+
+export async function sendAbandonedCallText(evt: RetellWebhookEvent, now = new Date()): Promise<{ sent: boolean; reason?: string }> {
+  if (!looksAbandoned(evt)) return { sent: false, reason: "not abandoned" };
+  if (!process.env.DATABASE_URL || !isSmsConfigured()) return { sent: false, reason: "not configured" };
+  const call = evt.call!;
+  const to = normalizePhone(call.from_number);
+  if (!to) return { sent: false, reason: "bad number" };
+  try {
+    const [quoteOnCall, known, recent] = await Promise.all([
+      prisma.quoteLead.findFirst({ where: { metadata: { path: ["retellCallId"], equals: call.call_id } }, select: { id: true } }),
+      lookupCallerByPhone(to, now),
+      prisma.leadEvent.findFirst({
+        where: { leadType: "marina-call", phone: { endsWith: to.slice(-10) }, createdAt: { gte: new Date(now.getTime() - RECOVERY_COOLDOWN_DAYS * 86_400_000) }, metadata: { path: ["recoveryTextAt"], string_starts_with: "20" } },
+        select: { id: true },
+      }),
+    ]);
+    if (quoteOnCall) return { sent: false, reason: "quoted" };
+    if (known.known) return { sent: false, reason: "known caller" };
+    if (recent) return { sent: false, reason: "cooldown" };
+
+    const sms = await sendSms(to, abandonedCallText());
+    if (!sms.ok) {
+      console.error("[followups] recovery sms failed:", call.call_id, sms.error);
+      return { sent: false, reason: sms.error };
+    }
+    // recordCall runs before this, so the row for this call exists; stamp it for the cooldown.
+    const row = await prisma.leadEvent.findFirst({ where: { leadType: "marina-call", metadata: { path: ["retellCallId"], equals: call.call_id } }, select: { id: true, metadata: true } });
+    if (row) await prisma.leadEvent.update({ where: { id: row.id }, data: { metadata: { ...meta(row.metadata), recoveryTextAt: now.toISOString() } as Prisma.InputJsonValue } });
+    console.log("[followups] recovery text sent", { callId: call.call_id });
+    return { sent: true };
+  } catch (err) {
+    if (!isMissingTableError(err)) console.error("[followups] recovery failed:", err instanceof Error ? err.message : String(err));
     return { sent: false, reason: "error" };
   }
 }
