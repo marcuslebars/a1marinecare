@@ -345,3 +345,14 @@ The moment someone submits the instant quote on `/shrink-wrapping`, they get an 
 Sent after the API responds (`after()`), so the form never waits on Stripe or Resend. The emailed deposit link and the "Pay $250" button on the success panel resolve to the **same** Stripe session (shared idempotency window), so there's never two open checkouts for one quote; a paid quote returns "already paid" on any further attempt. Sending the email stamps `depositLinkSentAt` on the quote, so Marina knows if they call.
 
 Phone quotes are unaffected — Marina's flow already texts/emails the link from `send_deposit_link`.
+
+---
+
+## 11. Customer follow-up texts + website booking parity
+
+**Texts (Marina's voice, via Twilio), run hourly by `.github/workflows/marina-followups.yml` → `POST /api/retell/followups`:**
+- **Nudge** — quoted 20–72 h ago, no booking, no deposit: *"Hi Dana, Marina from A1 Marine Care. Your shrink wrap quote for the 24 ft bowrider ($672 + HST) is still good and October is filling up. A $250 deposit holds your date and comes off the total: <stripe> Or pick a date first: <booking> — questions? 705-996-1010"*. Once per quote (`metadata.nudgedAt`), 9am–8pm Toronto only.
+- **Reminder** — booked for tomorrow: *"…the crew is coming tomorrow morning to wrap the 24 ft bowrider. Please have it out of the water, on the trailer or in the driveway, with a clear path around it…"*. Once per booking (`metadata.remindedAt`), 3pm–8pm Toronto only.
+- `GET /api/retell/followups` is a dry run (who would be texted now). Same `x-a1-cron-secret` as the digest. STOP replies are handled by Twilio.
+
+**Website booking page** now shares Marina's capacity rule for shrink wrap: `GET /api/shrink-wrap/availability?date=` reports which half-day windows are open (2 per window, Mon–Sat, 24 h notice); full windows show as "full" and can't be picked; `/api/bookings` rejects a full or too-soon window with a 409 and a plain message. Other services are unchanged.

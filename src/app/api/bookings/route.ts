@@ -3,6 +3,8 @@ import { createLeadEvent, isMissingTableError } from "@/lib/lead-events";
 import { createBookingLead } from "@/lib/leads";
 import { bookingSchema } from "@/lib/validation";
 import { sendToCrm } from "@/lib/crm-webhook";
+import { loadSlotCounts } from "@/lib/retell/bookings";
+import { CAPACITY_PER_WINDOW, SHRINK_WRAP_SERVICE_SLUG, WINDOWS, WORKING_DAYS, earliestBookableDate, isWindowOpen, weekdayOf, type Window } from "@/lib/retell/slots";
 
 export async function POST(request: Request) {
   let payload: Record<string, unknown>;
@@ -32,6 +34,19 @@ export async function POST(request: Request) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[Booking Create] Validation failed:", msg);
     return NextResponse.json({ success: false, error: "Invalid request data." }, { status: 400 });
+  }
+
+  // Shrink wrap shares Marina's capacity rule: 2 per half-day, Mon–Sat, 24 h notice.
+  if (parsed.serviceSlug === SHRINK_WRAP_SERVICE_SLUG) {
+    const window: Window | null = WINDOWS.morning.slots.includes(parsed.timeSlot) ? "morning" : WINDOWS.afternoon.slots.includes(parsed.timeSlot) ? "afternoon" : null;
+    const earliest = earliestBookableDate(new Date());
+    if (!window || !WORKING_DAYS.has(weekdayOf(parsed.date)) || parsed.date < earliest) {
+      return NextResponse.json({ success: false, error: "Shrink wrap bookings need at least a day's notice, Monday to Saturday. Please pick another day." }, { status: 409 });
+    }
+    const counts = await loadSlotCounts(parsed.date, parsed.date).catch(() => []);
+    if (!isWindowOpen(counts, parsed.date, window, CAPACITY_PER_WINDOW)) {
+      return NextResponse.json({ success: false, error: `That ${window} is full. Please pick another ${window === "morning" ? "morning or an afternoon" : "afternoon or a morning"}.` }, { status: 409 });
+    }
   }
 
   let leadEventId: string | null = null;
