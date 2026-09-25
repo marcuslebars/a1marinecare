@@ -3,7 +3,7 @@ import { isMissingTableError } from "@/lib/lead-events";
 import { formatCents } from "@/lib/shrink-wrap-pricing";
 
 import { sendSms } from "./deposit-link";
-import { WINDOWS, addDays, earliestBookableDate } from "./slots";
+import { WINDOWS, addDays, earliestBookableDate, torontoDayRange } from "./slots";
 import { ownerSmsNumber, prettyPhone } from "./webhook";
 
 // The 7am text: what Marina and the website did yesterday, who quoted but
@@ -12,21 +12,12 @@ import { ownerSmsNumber, prettyPhone } from "./webhook";
 export const CALL_LEAD_TYPE = "marina-call";
 const PAID_UNBOOKED_DAYS = 14;
 
-/** Toronto-local day boundaries as UTC instants. */
-export function torontoDayRange(dateStr: string): { start: Date; end: Date } {
-  // Offset for that date: -04:00 (EDT) or -05:00 (EST). Probe noon UTC on the date.
-  const probe = new Date(`${dateStr}T12:00:00Z`);
-  const local = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", hour: "2-digit", hour12: false }).formatToParts(probe).find((p) => p.type === "hour")?.value;
-  const offsetHours = 12 - (Number(local) % 24); // 4 in summer, 5 in winter
-  const start = new Date(`${dateStr}T00:00:00Z`);
-  start.setUTCHours(start.getUTCHours() + offsetHours);
-  const end = new Date(start.getTime() + 24 * 3600_000);
-  return { start, end };
-}
+export { torontoDayRange };
 
 export type Digest = {
   forDate: string;
   calls: number;
+  outboundCalls: number;
   quotes: number;
   phoneQuotes: number;
   quotedCents: number;
@@ -51,11 +42,11 @@ export async function buildDigest(now = new Date()): Promise<Digest> {
   const yesterday = addDays(today, -1);
   const { start, end } = torontoDayRange(yesterday);
 
-  const empty: Digest = { forDate: yesterday, calls: 0, quotes: 0, phoneQuotes: 0, quotedCents: 0, bookings: 0, deposits: 0, depositCents: 0, unbooked: [], paidUnbooked: [], todayMorning: 0, todayAfternoon: 0, todayNames: [], text: "" };
+  const empty: Digest = { forDate: yesterday, calls: 0, outboundCalls: 0, quotes: 0, phoneQuotes: 0, quotedCents: 0, bookings: 0, deposits: 0, depositCents: 0, unbooked: [], paidUnbooked: [], todayMorning: 0, todayAfternoon: 0, todayNames: [], text: "" };
   if (!process.env.DATABASE_URL) return { ...empty, text: `☀️ Marina digest for ${dayLabel(yesterday)}: no database connected.` };
 
   try {
-    const [calls, quotes, bookings, deposits, todays, recentPaid] = await Promise.all([
+    const [calls, quotes, bookings, deposits, todays, recentPaid, outboundCalls] = await Promise.all([
       prisma.leadEvent.count({ where: { leadType: CALL_LEAD_TYPE, createdAt: { gte: start, lt: end } } }),
       prisma.quoteLead.findMany({
         where: { createdAt: { gte: start, lt: end } },
@@ -65,6 +56,7 @@ export async function buildDigest(now = new Date()): Promise<Digest> {
       prisma.leadEvent.findMany({ where: { leadType: "shrink-wrap-deposit", createdAt: { gte: start, lt: end } }, select: { leadId: true, metadata: true } }),
       prisma.bookingRequest.findMany({ where: { date: today, serviceSlug: "shrink-wrapping", NOT: { status: { in: ["cancelled", "canceled", "declined"] } } }, select: { timeSlot: true, contactName: true } }),
       prisma.leadEvent.findMany({ where: { leadType: "shrink-wrap-deposit", createdAt: { gte: new Date(now.getTime() - PAID_UNBOOKED_DAYS * 86_400_000), lt: start } }, select: { leadId: true, metadata: true } }),
+      prisma.leadEvent.count({ where: { leadType: CALL_LEAD_TYPE, createdAt: { gte: start, lt: end }, metadata: { path: ["direction"], equals: "outbound" } } }),
     ]);
 
     // Deposit paid in the last two weeks (before yesterday — yesterday's are counted above) but still no date picked.
@@ -89,7 +81,7 @@ export async function buildDigest(now = new Date()): Promise<Digest> {
     const todayAfternoon = todays.length - todayMorning;
 
     const lines: string[] = [];
-    lines.push(`☀️ Marina · ${dayLabel(yesterday)}: ${calls} call${calls === 1 ? "" : "s"} · ${wrapQuotes.length} quote${wrapQuotes.length === 1 ? "" : "s"}${phoneQuotes ? ` (${phoneQuotes} by phone)` : ""} ${quotedCents ? `worth ${formatCents(quotedCents)}` : ""} · ${bookings} booked · ${deposits.length} deposit${deposits.length === 1 ? "" : "s"}${depositCents ? ` (${formatCents(depositCents)})` : ""}`.replace(/\s+·/g, " ·").replace(/\s{2,}/g, " "));
+    lines.push(`☀️ Marina · ${dayLabel(yesterday)}: ${calls} call${calls === 1 ? "" : "s"}${outboundCalls ? ` (${outboundCalls} Marina placed)` : ""} · ${wrapQuotes.length} quote${wrapQuotes.length === 1 ? "" : "s"}${phoneQuotes ? ` (${phoneQuotes} by phone)` : ""} ${quotedCents ? `worth ${formatCents(quotedCents)}` : ""} · ${bookings} booked · ${deposits.length} deposit${deposits.length === 1 ? "" : "s"}${depositCents ? ` (${formatCents(depositCents)})` : ""}`.replace(/\s+·/g, " ·").replace(/\s{2,}/g, " "));
     if (unbooked.length) {
       lines.push(`Quoted, not booked — call today:`);
       for (const u of unbooked) lines.push(`• ${u.name} ${u.phone} · ${u.boat}${u.totalCents != null ? ` · ${formatCents(u.totalCents)}` : ""}`);
@@ -104,7 +96,7 @@ export async function buildDigest(now = new Date()): Promise<Digest> {
       lines.push("Today: nothing booked yet.");
     }
 
-    return { forDate: yesterday, calls, quotes: wrapQuotes.length, phoneQuotes, quotedCents, bookings, deposits: deposits.length, depositCents, unbooked, paidUnbooked, todayMorning, todayAfternoon, todayNames: todays.map((b) => b.contactName), text: lines.join("\n") };
+    return { forDate: yesterday, calls, outboundCalls, quotes: wrapQuotes.length, phoneQuotes, quotedCents, bookings, deposits: deposits.length, depositCents, unbooked, paidUnbooked, todayMorning, todayAfternoon, todayNames: todays.map((b) => b.contactName), text: lines.join("\n") };
   } catch (err) {
     if (!isMissingTableError(err)) console.error("[digest] failed:", err instanceof Error ? err.message : String(err));
     return { ...empty, text: `☀️ Marina digest for ${dayLabel(yesterday)}: couldn't read the database.` };

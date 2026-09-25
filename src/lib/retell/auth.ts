@@ -106,3 +106,12 @@ export function placeholderEmailForPhone(phoneE164: string): string {
 export function isPlaceholderEmail(email: string | null | undefined): boolean {
   return Boolean(email && email.endsWith("@no-email.a1marinecare.ca"));
 }
+
+/** +17055551234 → 705-555-1234 for texts and logs. */
+export function prettyPhone(e164: string | undefined | null): string {
+  if (!e164) return "unknown number";
+  const d = e164.replace(/\D/g, "");
+  if (d.length === 11 && d.startsWith("1")) return `${d.slice(1, 4)}-${d.slice(4, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  return e164;
+}

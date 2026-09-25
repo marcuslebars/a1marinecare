@@ -395,3 +395,36 @@ Every text Marina sends says "reply here". `POST /api/sms/inbound` is the Twilio
 - STOP / START / HELP and their variants are left to Twilio's built-in opt-out handling; texts from `OWNER_SMS_NUMBER` are ignored.
 
 **One-time setup (Twilio console):** Phone Numbers → Active numbers → the `TWILIO_FROM_NUMBER` → Messaging Configuration → "A message comes in": **Webhook**, `https://www.a1marinecare.ca/api/sms/inbound`, **HTTP POST**. Save. If that field already has a URL (EmpireVu?), note it before replacing — this number is shared. Test: text the number from your phone; you get the 💬 relay within a few seconds and your phone gets the ack.
+
+---
+
+## 15. Speed to lead — Marina calls web leads
+
+Two minutes after someone submits the shrink-wrap quote form or the contact form, Marina calls them. Same agent, same functions, so she can book the date and send the deposit link on the call.
+
+**Rules**
+- Delay `OUTBOUND_CALL_DELAY_MINUTES` (default 2) so they have a moment to click the deposit button first. Calls only 9am–8pm Toronto; a lead outside that is queued for 9am.
+- At call time it re-checks: skipped if the quote needs your manual review, if they've already booked *and* paid, or if the number isn't dialable. One number is never called twice in 24 h.
+- No answer / voicemail → one text: *"Hi Dana, Marina from A1 Marine Care — just tried to call about your shrink wrap quote — the deposit and booking links are in your email. Reply here or call 705-996-1010 and I'll sort it out."*
+- You get one 📤 text per outbound call (who, boat, quote, booked/deposit, or "no answer" / "voicemail left"). The digest shows "(N Marina placed)" in the calls count.
+- Queue = `lead_events` rows with `leadType = "marina-outbound"` (`metadata.status`: queued → placed → done | skipped | failed). Calls are placed by an in-process timer right after the form, and the hourly follow-ups run is the safety net (`GET /api/retell/followups` dry run lists them under `called`).
+
+**Railway vars (new):** `RETELL_AGENT_ID` (the Care agent's id, from the agent page URL or Retell → Agents), `RETELL_FROM_NUMBER` (Marina's number in E.164, e.g. `+1705…`). Leave either unset and no outbound calls are placed. Optional `OUTBOUND_CALL_DELAY_MINUTES`.
+
+**Retell agent settings:** the number Marina answers on must be allowed to make outbound calls (Phone Numbers → the number → outbound agent = Care agent). Turn on **voicemail detection** and set the voicemail message to:
+> Hi {{caller_first_name}}, it's Marina from A1 Marine Care about your shrink wrap quote. I've texted you the links to hold a date — or call us back at 705-996-1010. Thanks!
+
+**Prompt — add this section (paste verbatim, after RETURNING CALLERS):**
+
+```
+# OUTBOUND CALLS (when outbound_reason is not empty)
+Outbound reason: {{outbound_reason}}. Detail: {{outbound_detail}}.
+If outbound_reason is set, YOU placed this call — they did not call you. The begin message already said who you are and why you're calling.
+- Wait for them to confirm it's them. If it's the wrong person or a bad time: apologize once, say you'll text the links instead, and use end_call.
+- If outbound_reason is "shrink-wrap-quote": they already have the price ({{quote_total}} plus HST, quote id {{quote_id}}) — do NOT re-quote or re-ask boat details. Your one goal is to lock a date: ask morning or afternoon and whether they have a day in mind, then check_availability → book_wrap_date → send_deposit_link, exactly as in the normal flow. If they want to think about it, that's fine — remind them the deposit and booking links are in their email, and end warmly.
+- If outbound_reason is "contact": you know what they wrote (the detail above). Help with it. If it's a shrink wrap, run the normal quote flow. If it's something you can't handle, take a message for Marcus or transfer if he's needed.
+- Never say "I'm an automated call". If asked whether you're a real person, be honest: "I'm Marina, A1's AI assistant — Marcus is the one who'll be out with the crew."
+- Keep it under three minutes. Nobody expects a callback to be long.
+```
+
+**Test:** submit the quote form with your own number during calling hours. ~2 min later your phone rings from Marina's number; you get the 📤 text when the call ends. Railway logs: `[outbound] queued` → `[outbound] placed`.

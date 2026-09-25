@@ -8,6 +8,7 @@ import { shrinkWrapQuoteSchema } from "@/lib/validation";
 import { calculateShrinkWrapQuote, formatCents } from "@/lib/shrink-wrap-pricing";
 import { getLocationBySlug } from "@/content/site";
 import { sendQuoteCustomerEmail } from "@/lib/quote-customer-email";
+import { queueOutboundCall } from "@/lib/retell/outbound";
 
 export const runtime = "nodejs";
 
@@ -141,6 +142,8 @@ export async function POST(request: Request) {
         requiresManualReview: quote.requiresManualReview,
         utm: parsed.utm,
       });
+      // Speed to lead: Marina calls them a couple of minutes from now (skips manual-review quotes at call time).
+      if (!quote.requiresManualReview) await queueOutboundCall({ to: parsed.contactPhone, name: parsed.contactName, reason: "shrink-wrap-quote", quoteId: customerQuoteId });
     });
   }
 

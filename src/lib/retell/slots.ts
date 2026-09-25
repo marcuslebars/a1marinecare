@@ -158,3 +158,15 @@ export function findAvailableSlots(q: AvailabilityQuery): AvailableSlot[] {
   }
   return results.slice(0, limit);
 }
+
+/** Toronto-local day boundaries as UTC instants. */
+export function torontoDayRange(dateStr: string): { start: Date; end: Date } {
+  // Offset for that date: -04:00 (EDT) or -05:00 (EST). Probe noon UTC on the date.
+  const probe = new Date(`${dateStr}T12:00:00Z`);
+  const local = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", hour: "2-digit", hour12: false }).formatToParts(probe).find((p) => p.type === "hour")?.value;
+  const offsetHours = 12 - (Number(local) % 24); // 4 in summer, 5 in winter
+  const start = new Date(`${dateStr}T00:00:00Z`);
+  start.setUTCHours(start.getUTCHours() + offsetHours);
+  const end = new Date(start.getTime() + 24 * 3600_000);
+  return { start, end };
+}

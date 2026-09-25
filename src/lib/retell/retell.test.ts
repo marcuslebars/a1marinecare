@@ -299,3 +299,29 @@ describe("inbound customer texts", () => {
     expect(isOptOutKeyword("stop calling me at 10")).toBe(false);
   });
 });
+
+describe("outbound speed-to-lead calls", () => {
+  it("schedules after the delay inside 9am–8pm Toronto, otherwise at the next 9am", async () => {
+    const { scheduleFor } = await import("./outbound");
+    // Sept 2026 is EDT (UTC-4).
+    expect(scheduleFor(new Date("2026-09-25T14:00:00Z"), 2).toISOString()).toBe("2026-09-25T14:02:00.000Z"); // 10:00 → 10:02
+    expect(scheduleFor(new Date("2026-09-25T10:00:00Z"), 2).toISOString()).toBe("2026-09-25T13:00:00.000Z"); // 06:00 → 09:00 today
+    expect(scheduleFor(new Date("2026-09-26T02:00:00Z"), 2).toISOString()).toBe("2026-09-26T13:00:00.000Z"); // 22:00 → 09:00 tomorrow
+    expect(scheduleFor(new Date("2026-09-25T23:59:00Z"), 2).toISOString()).toBe("2026-09-26T13:00:00.000Z"); // 19:59 + 2 min = 20:01 → tomorrow
+  });
+  it("opens with why she's calling and tells a missed call from an answered one", async () => {
+    const { outboundGreeting, callWasMissed, missedCallText } = await import("./outbound");
+    const g = outboundGreeting({ firstName: "Dana", reason: "shrink-wrap-quote", boat: "24 ft bowrider", total: "$672" });
+    expect(g.startsWith("Hi, is this Dana? It's Marina from A1 Marine Care.")).toBe(true);
+    expect(g).toContain("24 ft bowrider");
+    expect(g).toContain("$672 plus tax");
+    expect(outboundGreeting({ firstName: "Sam", reason: "contact", detail: 'Detailing — "how much for a 30 footer"' })).toContain("sent us a message about Detailing");
+    expect(callWasMissed("dial_no_answer")).toBe("no answer");
+    expect(callWasMissed("dial_busy")).toBe("no answer");
+    expect(callWasMissed("voicemail_reached")).toBe("voicemail");
+    expect(callWasMissed("machine_detected")).toBe("voicemail");
+    expect(callWasMissed("user_hangup")).toBeNull();
+    expect(callWasMissed(undefined)).toBeNull();
+    expect(missedCallText({ firstName: "Dana", reason: "shrink-wrap-quote" })).toContain("just tried to call");
+  });
+});
