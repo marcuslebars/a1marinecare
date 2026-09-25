@@ -404,7 +404,7 @@ Two minutes after someone submits the shrink-wrap quote form or the contact form
 
 **Rules**
 - Delay `OUTBOUND_CALL_DELAY_MINUTES` (default 2) so they have a moment to click the deposit button first. Calls only 9am–8pm Toronto; a lead outside that is queued for 9am.
-- At call time it re-checks: skipped if the quote needs your manual review, if they've already booked *and* paid, or if the number isn't dialable. One number is never called twice in 24 h.
+- At call time it re-checks: skipped if the quote needs your manual review, if they've already booked *and* paid, or if the number isn't dialable. One number is never called twice in 24 h (`OUTBOUND_DEDUPE_HOURS`; set `0` while testing with your own number). Every skipped call is logged as `[outbound] not queued: <reason>`.
 - No answer / voicemail → one text: *"Hi Dana, Marina from A1 Marine Care — just tried to call about your shrink wrap quote — the deposit and booking links are in your email. Reply here or call 705-996-1010 and I'll sort it out."*
 - You get one 📤 text per outbound call (who, boat, quote, booked/deposit, or "no answer" / "voicemail left"). The digest shows "(N Marina placed)" in the calls count.
 - Queue = `lead_events` rows with `leadType = "marina-outbound"` (`metadata.status`: queued → placed → done | skipped | failed). Calls are placed by an in-process timer right after the form, and the hourly follow-ups run is the safety net (`GET /api/retell/followups` dry run lists them under `called`).
@@ -428,3 +428,11 @@ If outbound_reason is set, YOU placed this call — they did not call you. The b
 ```
 
 **Test:** submit the quote form with your own number during calling hours. ~2 min later your phone rings from Marina's number; you get the 📤 text when the call ends. Railway logs: `[outbound] queued` → `[outbound] placed`.
+
+---
+
+## 16. Weekly transcript review
+
+`GET /api/retell/calls?days=7&limit=50&full=1` (header `x-a1-cron-secret`, same secret as the digest) pulls Marina's recent calls from Retell — when, direction, number, duration, how it ended, sentiment, summary, post-call analysis fields, transcript — and joins each with our own records (quote, booking, deposit). `stats` at the top: inbound/outbound counts, missed outbound, average length, quoted/booked/paid, transfers, calls under 30 s, how calls ended, sentiment mix. Without `full=1` transcripts are cut at 600 chars.
+
+Use: Friday, read the week's calls, tune the prompt from where real callers hesitate or drop.

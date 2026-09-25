@@ -24,7 +24,13 @@ export const OUTBOUND_LEAD_TYPE = "marina-outbound";
 /** Local hours (inclusive start, exclusive end) when Marina may place calls. */
 export const CALL_HOURS: [number, number] = [9, 20];
 export const DEFAULT_DELAY_MINUTES = 2;
-export const DEDUPE_HOURS = 24;
+export const DEFAULT_DEDUPE_HOURS = 24;
+
+/** One call per number per this many hours. OUTBOUND_DEDUPE_HOURS=0 while testing. */
+export function dedupeHours(): number {
+  const n = Number(process.env.OUTBOUND_DEDUPE_HOURS);
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_DEDUPE_HOURS;
+}
 const RETELL_CREATE_CALL = "https://api.retellai.com/v2/create-phone-call";
 
 export type OutboundReason = "shrink-wrap-quote" | "contact";
@@ -95,17 +101,24 @@ export function callWasMissed(reason: string | undefined): "no answer" | "voicem
 const timers = new Map<string, NodeJS.Timeout>();
 
 export async function queueOutboundCall(req: OutboundRequest, now = new Date()): Promise<{ queued: boolean; id?: string; dueAt?: string; reason?: string }> {
-  if (!isOutboundConfigured()) return { queued: false, reason: "not configured" };
-  if (!process.env.DATABASE_URL) return { queued: false, reason: "no database" };
+  const skip = (reason: string) => {
+    console.log("[outbound] not queued:", reason, { to: prettyPhone(req.to), reason: req.reason });
+    return { queued: false, reason };
+  };
+  if (!isOutboundConfigured()) return skip("not configured (RETELL_AGENT_ID / RETELL_FROM_NUMBER)");
+  if (!process.env.DATABASE_URL) return skip("no database");
   const to = normalizePhone(req.to);
-  if (!to) return { queued: false, reason: "no dialable number" };
+  if (!to) return skip("no dialable number");
 
   try {
-    const dup = await prisma.leadEvent.findFirst({
-      where: { leadType: OUTBOUND_LEAD_TYPE, phone: to, createdAt: { gte: new Date(now.getTime() - DEDUPE_HOURS * 3600_000) } },
-      select: { id: true },
-    });
-    if (dup) return { queued: false, reason: "called in the last 24h" };
+    const hours = dedupeHours();
+    const dup = hours > 0
+      ? await prisma.leadEvent.findFirst({
+          where: { leadType: OUTBOUND_LEAD_TYPE, phone: to, createdAt: { gte: new Date(now.getTime() - hours * 3600_000) } },
+          select: { id: true },
+        })
+      : null;
+    if (dup) return skip(`already called in the last ${hours}h`);
 
     const dueAt = scheduleFor(now);
     const row = await createLeadEvent({
