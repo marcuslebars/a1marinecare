@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { after } from "next/server";
 
 import { sendAbandonedCallText, sendPostCallQuote } from "@/lib/retell/followups";
+import { afterOutboundCall } from "@/lib/retell/outbound";
 import { forwardToEmpireVu, notifyOwner, recordCall, verifyRetellSignature, type RetellWebhookEvent } from "@/lib/retell/webhook";
 
 export const runtime = "nodejs";
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
       forwardToEmpireVu(rawBody, signature),
       inboundDone ? sendPostCallQuote(evt.call?.call_id) : Promise.resolve(),
       inboundDone ? sendAbandonedCallText(evt) : Promise.resolve(),
+      afterOutboundCall(evt),
     ]);
   });
 

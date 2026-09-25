@@ -4,9 +4,10 @@ import { prisma } from "@/lib/db/prisma";
 import { createLeadEvent, isMissingTableError } from "@/lib/lead-events";
 import { formatCents } from "@/lib/shrink-wrap-pricing";
 
-import { placeholderEmailForPhone } from "./auth";
+import { placeholderEmailForPhone, prettyPhone } from "./auth";
 import { isDepositPaid } from "./caller-lookup";
 import { sendSms } from "./deposit-link";
+import { callWasMissed } from "./outbound";
 import { WINDOWS, spokenLabel, type Window } from "./slots";
 
 // Retell agent webhook → owner SMS + pass-through to EmpireVu.
@@ -73,13 +74,7 @@ export function ownerSmsEvents(): Set<string> {
   return new Set(raw.split(",").map((s) => s.trim()).filter(Boolean));
 }
 
-export function prettyPhone(e164: string | undefined | null): string {
-  if (!e164) return "unknown number";
-  const d = e164.replace(/\D/g, "");
-  if (d.length === 11 && d.startsWith("1")) return `${d.slice(1, 4)}-${d.slice(4, 7)}-${d.slice(7)}`;
-  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
-  return e164;
-}
+export { prettyPhone };
 
 function torontoTime(ms: number | undefined): string {
   const d = ms ? new Date(ms) : new Date();
@@ -131,7 +126,8 @@ export async function lookupCallOutcome(callId: string | undefined): Promise<{ q
 
 export async function buildOwnerSms(evt: RetellWebhookEvent): Promise<string | null> {
   const call = evt.call ?? {};
-  if (call.direction && call.direction !== "inbound") return null; // Marina's outbound calls aren't "incoming"
+  if (call.direction === "outbound") return evt.event === "call_analyzed" ? outboundOwnerSms(evt) : null; // one summary per outbound call, no "answering" text
+  if (call.direction && call.direction !== "inbound") return null;
   const from = prettyPhone(call.from_number);
 
   if (evt.event === "call_started") {
@@ -165,18 +161,43 @@ export async function buildOwnerSms(evt: RetellWebhookEvent): Promise<string | n
   return null;
 }
 
+/** Marina placed this call (speed-to-lead). Who, what came of it, and whether anyone picked up. */
+async function outboundOwnerSms(evt: RetellWebhookEvent): Promise<string> {
+  const call = evt.call ?? {};
+  const c = call.call_analysis?.custom_analysis_data ?? {};
+  const outcome = await lookupCallOutcome(call.call_id);
+  const missed = callWasMissed(call.disconnection_reason);
+  let name = outcome.name || str(c.caller_name);
+  let boat = outcome.boat;
+  if ((!name || !boat) && call.to_number) {
+    const lead = await prisma.leadEvent.findFirst({ where: { leadType: "marina-outbound", metadata: { path: ["callId"], equals: call.call_id ?? "" } }, select: { customerName: true, boatLength: true, boatType: true } }).catch(() => null);
+    name = name || lead?.customerName || "lead";
+    boat = boat || (lead?.boatLength ? `${lead.boatLength} ft ${lead.boatType ?? ""}`.trim() : null);
+  }
+  const who = [name, boat, outcome.quotedCents != null ? formatCents(outcome.quotedCents) : ""].filter(Boolean).join(" · ");
+  const status: string[] = [];
+  if (missed) status.push(missed === "voicemail" ? "voicemail left" : "no answer");
+  if (outcome.bookingLabel) status.push(`Booked ${outcome.bookingLabel}`);
+  if (outcome.depositPaid) status.push("deposit PAID");
+  else if (c.deposit_link_sent === true) status.push("deposit link sent");
+  if (call.disconnection_reason?.includes("transfer")) status.push("transferred to you");
+  const summary = str(call.call_analysis?.call_summary);
+  return [`📤 Marina called ${prettyPhone(call.to_number)} · ${who} · ${duration(call.duration_ms)}`.replace(/ · $/, ""), status.join(" · "), !missed && summary ? (summary.length > 220 ? `${summary.slice(0, 217)}…` : summary) : ""].filter(Boolean).join("\n");
+}
+
 /** Durable one-row-per-call log in lead_events (leadType "marina-call") — what the digest counts. */
 export async function recordCall(evt: RetellWebhookEvent): Promise<void> {
   const call = evt.call ?? {};
   if (evt.event !== "call_analyzed" || !call.call_id || !process.env.DATABASE_URL) return;
-  if (call.direction && call.direction !== "inbound") return;
+  if (call.direction && call.direction !== "inbound" && call.direction !== "outbound") return;
+  const outbound = call.direction === "outbound";
   try {
     const dup = await prisma.leadEvent.findFirst({ where: { leadType: "marina-call", metadata: { path: ["retellCallId"], equals: call.call_id } }, select: { id: true } });
     if (dup) return;
     const a = call.call_analysis ?? {};
     const c = a.custom_analysis_data ?? {};
     const outcome = await lookupCallOutcome(call.call_id);
-    const phone = call.from_number ?? "";
+    const phone = (outbound ? call.to_number : call.from_number) ?? "";
     const name = outcome.name || (typeof c.caller_name === "string" && c.caller_name.trim()) || "Unknown caller";
     await createLeadEvent({
       source: "contact",
@@ -189,7 +210,7 @@ export async function recordCall(evt: RetellWebhookEvent): Promise<void> {
       message: typeof a.call_summary === "string" ? a.call_summary : undefined,
       leadType: "marina-call",
       rawPayload: { durationMs: call.duration_ms ?? null, disconnectionReason: call.disconnection_reason ?? null, sentiment: a.user_sentiment ?? null, successful: a.call_successful ?? null, voicemail: a.in_voicemail ?? null },
-      metadata: { retellCallId: call.call_id, channel: "marina", quotedCents: outcome.quotedCents, booked: Boolean(outcome.bookingLabel), depositPaid: outcome.depositPaid, transferred: Boolean(call.disconnection_reason?.includes("transfer")), urgent: c.is_urgent === true },
+      metadata: { retellCallId: call.call_id, channel: "marina", direction: outbound ? "outbound" : "inbound", missed: callWasMissed(call.disconnection_reason), quotedCents: outcome.quotedCents, booked: Boolean(outcome.bookingLabel), depositPaid: outcome.depositPaid, transferred: Boolean(call.disconnection_reason?.includes("transfer")), urgent: c.is_urgent === true },
     });
   } catch (err) {
     if (!isMissingTableError(err)) console.error("[Retell webhook] call log failed:", err instanceof Error ? err.message : String(err));
