@@ -7,7 +7,7 @@
 //   STRIPE_WEBHOOK_SECRET  whsec_… for the endpoint POST /api/stripe/webhook
 //   SHRINK_WRAP_DEPOSIT_CENTS  optional override, default 25000 ($250)
 
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 const STRIPE_API = "https://api.stripe.com/v1";
 
@@ -110,6 +110,12 @@ export function depositExpiryMinutes(requested: number | undefined): number {
   return Math.min(Math.max(m, 30), 720);
 }
 
+/** Short stable hash of everything that varies per caller, for the idempotency key. */
+export function paramsFingerprint(input: DepositSessionInput, metadata: Record<string, string>): string {
+  const basis = JSON.stringify({ e: input.customerEmail ?? "", n: input.customerName, d: input.description, a: input.amountCents, s: input.successUrl, c: input.cancelUrl, m: metadata });
+  return createHash("sha256").update(basis).digest("hex").slice(0, 12);
+}
+
 export async function createDepositCheckoutSession(input: DepositSessionInput): Promise<CheckoutSession> {
   const minutes = depositExpiryMinutes(input.expiresInMinutes);
   const bucketMs = minutes * 60 * 1000;
@@ -158,9 +164,11 @@ export async function createDepositCheckoutSession(input: DepositSessionInput): 
       // replay whose params differ). Lives between 1× and 2× expiresInMinutes.
       expires_at: Math.floor(((bucket + 2) * bucketMs) / 1000),
     },
-    // Same quote → same session while it's still open; a retry from a flaky
-    // network doesn't create duplicates.
-    `deposit-${input.quoteId}-${minutes}-${bucket}`,
+    // Same quote + same params → same session while it's still open, so a
+    // retry from a flaky network doesn't create duplicates. The params hash
+    // keeps different channels (quote email, Marina mid-call, post-call text,
+    // nudge) from colliding: Stripe rejects a key reused with different params.
+    `deposit-${input.quoteId}-${minutes}-${bucket}-${paramsFingerprint(input, metadata)}`,
   );
 }
 
