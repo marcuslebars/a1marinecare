@@ -381,3 +381,17 @@ Nothing to configure — it uses the existing Twilio, Stripe and Retell webhook 
 **Digest**: a "Deposit paid, no date yet:" list (last 14 days) so those people are on your call list until they pick.
 
 **Abandoned-call text** (`sendAbandonedCallText`, runs with the other `call_analyzed` work): a caller who talked shrink wrap for 15 s+ and hung up before any quote was created gets one text with the instant-quote link: *"Hi, it's Marina from A1 Marine Care — sorry we didn't get all the way through just now. For a mobile shrink wrap price in about 30 seconds: https://www.a1marinecare.ca/shrink-wrapping#quote — or call me back anytime at 705-996-1010."* Never for transfers, voicemail, outbound calls, calls under 15 s, numbers that already have a quote on file, or the same number twice in 7 days (stamped `recoveryTextAt` on the marina-call row). "About shrink wrap" = the summary, `services_requested` or transcript mentions shrink / wrap / winterization.
+
+---
+
+## 14. Customer replies to Marina's texts
+
+Every text Marina sends says "reply here". `POST /api/sms/inbound` is the Twilio number's inbound-message webhook:
+
+- Verifies `X-Twilio-Signature` with `TWILIO_AUTH_TOKEN` (accepts the URL with or without `www.`), answers Twilio with empty TwiML immediately.
+- Looks the sender up (same lookup Marina uses for returning callers) and texts you: *💬 Text from Dana Smith (24 ft bowrider · quoted $672 · booked Tuesday morning, September 29 · deposit PAID) "Can you come at 10 instead?" Reply to them at 705-555-1234*. Unknown numbers show as "new number, no quote on file".
+- Acks the customer once per 24 h: *"Thanks Dana — got your message. Marcus will text you back shortly. Anything urgent, call 705-996-1010."*
+- Logs a `customer-sms` lead_event (message, quote id, relayed/acked flags).
+- STOP / START / HELP and their variants are left to Twilio's built-in opt-out handling; texts from `OWNER_SMS_NUMBER` are ignored.
+
+**One-time setup (Twilio console):** Phone Numbers → Active numbers → the `TWILIO_FROM_NUMBER` → Messaging Configuration → "A message comes in": **Webhook**, `https://www.a1marinecare.ca/api/sms/inbound`, **HTTP POST**. Save. If that field already has a URL (EmpireVu?), note it before replacing — this number is shared. Test: text the number from your phone; you get the 💬 relay within a few seconds and your phone gets the ack.

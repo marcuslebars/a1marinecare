@@ -270,3 +270,32 @@ describe("pick-date + abandoned-call texts", () => {
     expect(looksAbandoned({ ...base, event: "call_started" })).toBe(false);
   });
 });
+
+describe("inbound customer texts", () => {
+  it("verifies Twilio signatures against any of the URLs the number could be pointed at", async () => {
+    const { twilioSignatureFor, verifyTwilioSignature, candidateUrls } = await import("./inbound-sms");
+    const params = { From: "+17055551234", To: "+17055550000", Body: "Can you do Tuesday?", MessageSid: "SM1" };
+    const token = "tok";
+    const sig = twilioSignatureFor("https://a1marinecare.ca/api/sms/inbound", params, token);
+    const urls = candidateUrls("http://0.0.0.0:8080/api/sms/inbound", "/api/sms/inbound");
+    expect(urls).toContain("https://a1marinecare.ca/api/sms/inbound");
+    expect(urls).toContain("https://www.a1marinecare.ca/api/sms/inbound");
+    expect(verifyTwilioSignature(urls, params, sig, token)).toBe(true);
+    expect(verifyTwilioSignature(urls, { ...params, Body: "tampered" }, sig, token)).toBe(false);
+    expect(verifyTwilioSignature(urls, params, sig, "other")).toBe(false);
+    expect(verifyTwilioSignature(urls, params, null, token)).toBe(false);
+  });
+  it("relays with who-this-is context and leaves opt-out keywords to Twilio", async () => {
+    const { relayText, ackText, isOptOutKeyword } = await import("./inbound-sms");
+    const { UNKNOWN_CALLER } = await import("./caller-lookup");
+    const known = { ...UNKNOWN_CALLER, known: true, firstName: "Dana", fullName: "Dana Smith", boat: "24 ft bowrider", quoteTotal: "$672", bookedWindow: "Tuesday morning, September 29", depositPaid: true };
+    const t = relayText(known, "+17055551234", "Can you come at 10 instead?");
+    expect(t).toContain("Dana Smith");
+    expect(t).toContain("24 ft bowrider · quoted $672 · booked Tuesday morning, September 29 · deposit PAID");
+    expect(t).toContain("705-555-1234");
+    expect(relayText(UNKNOWN_CALLER, "+17055551234", "hi")).toContain("new number, no quote on file");
+    expect(ackText(known).startsWith("Thanks Dana")).toBe(true);
+    expect(isOptOutKeyword(" STOP ")).toBe(true);
+    expect(isOptOutKeyword("stop calling me at 10")).toBe(false);
+  });
+});
