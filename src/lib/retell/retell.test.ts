@@ -325,3 +325,16 @@ describe("outbound speed-to-lead calls", () => {
     expect(missedCallText({ firstName: "Dana", reason: "shrink-wrap-quote" })).toContain("just tried to call");
   });
 });
+
+describe("deposit session idempotency", () => {
+  it("keys differ across channels for the same quote, but repeat for an exact retry", async () => {
+    const { paramsFingerprint } = await import("@/lib/stripe");
+    const base = { quoteId: "q1", customerName: "Dana", customerEmail: "d@x.ca", description: "Holds your date", amountCents: 25000, successUrl: "https://a/s", cancelUrl: "https://a/c", metadata: {} };
+    const email = paramsFingerprint(base, { channel: "quote-email" });
+    const marina = paramsFingerprint(base, { channel: "marina", retellCallId: "c1" });
+    expect(email).toMatch(/^[0-9a-f]{12}$/);
+    expect(email).not.toBe(marina);
+    expect(paramsFingerprint(base, { channel: "quote-email" })).toBe(email);
+    expect(paramsFingerprint({ ...base, customerEmail: undefined }, { channel: "quote-email" })).not.toBe(email);
+  });
+});

@@ -69,13 +69,21 @@ async function sendDepositEmail(to: string, firstName: string, url: string, amou
   }
 }
 
+/** Marina just promised the caller Marcus would send the link himself — make sure Marcus knows. */
+async function alertOwnerLinkFailed(quoteId: string, quote: { contactName: string; contactPhone: string }, why: string): Promise<void> {
+  const owner = process.env.OWNER_SMS_NUMBER?.trim();
+  if (!owner || owner.length < 10) return;
+  const res = await sendSms(owner, `⚠️ Marina couldn't send the deposit link to ${quote.contactName} (${quote.contactPhone}) — ${why}. Their quote email has a link; otherwise text them one. Quote ${quoteId.slice(0, 8)}.`);
+  if (!res.ok) console.error("[Marina deposit] owner alert failed:", res.error);
+}
+
 export type DepositLinkResult =
   | { ok: true; sentBy: Array<"sms" | "email">; sentTo: { sms?: string; email?: string }; amountLabel: string; expiresMinutes: number; sessionId: string; url: string }
   | { ok: false; reason: "quote_not_found" | "stripe_unavailable" | "no_channel" | "send_failed" | "already_paid"; say: string };
 
 export async function sendDepositLinkForQuote(input: { quoteId: string; phoneOverride?: string | null; emailOverride?: string | null; retellCallId?: string | null }): Promise<DepositLinkResult> {
   if (!isStripeConfigured()) {
-    return { ok: false, reason: "stripe_unavailable", say: "Online deposits are down for a moment — Marcus will hold the spot by phone and follow up." };
+    return { ok: false, reason: "stripe_unavailable", say: "Online deposits are down for a moment, so I've noted the spot as held — Marcus will text you the link himself within the hour. Is this the best number for that?" };
   }
   const quote = await getQuoteLead(input.quoteId).catch(() => null);
   if (!quote || quote.metadata?.formType !== "shrink-wrap-quote") {
@@ -120,9 +128,10 @@ export async function sendDepositLinkForQuote(input: { quoteId: string; phoneOve
     });
   } catch (err) {
     console.error("[Marina deposit] session create failed:", err instanceof Error ? err.message : String(err));
-    return { ok: false, reason: "stripe_unavailable", say: "I couldn't generate the payment link just now — Marcus will hold the spot and send it himself." };
+    void alertOwnerLinkFailed(input.quoteId, quote, "Stripe link failed");
+    return { ok: false, reason: "stripe_unavailable", say: "The payment link didn't generate just now, so I've noted the spot as held — Marcus will text you the link himself within the hour. Is this the best number for that?" };
   }
-  if (!session.url) return { ok: false, reason: "stripe_unavailable", say: "I couldn't generate the payment link just now — Marcus will hold the spot and send it himself." };
+  if (!session.url) return { ok: false, reason: "stripe_unavailable", say: "The payment link didn't generate just now, so I've noted the spot as held — Marcus will text you the link himself within the hour. Is this the best number for that?" };
 
   const firstName = quote.contactName.split(" ")[0] || "there";
   const sentBy: Array<"sms" | "email"> = [];
@@ -148,7 +157,8 @@ export async function sendDepositLinkForQuote(input: { quoteId: string; phoneOve
   }
 
   if (!sentBy.length) {
-    return { ok: false, reason: "send_failed", say: "The link didn't go through. Marcus will send it to you directly and hold your spot in the meantime." };
+    void alertOwnerLinkFailed(input.quoteId, quote, "text and email both failed");
+    return { ok: false, reason: "send_failed", say: "The text didn't go through on my end, so I've noted the spot as held — Marcus will send you the link directly within the hour. Is this the best number for that?" };
   }
 
   console.log("[Marina deposit] link sent", { quoteId: input.quoteId, sessionId: session.id, sentBy, retellCallId: input.retellCallId ?? null });
