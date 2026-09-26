@@ -451,3 +451,14 @@ Use: Friday, read the week's calls, tune the prompt from where real callers hesi
 - Prompt: quote order (wrap → add-on → total) after a caller misread a winterization-first quote; tool failures no longer route to a transfer; "shrimp wrapping" and friends accepted without a confirm turn; deposit-link window pinned to "rest of the day" after Marina said "thirty minutes" once.
 - Analysis field `callback_requested` + owner text line **☎️ CALL BACK <number>** whenever Marina promised one (regex fallback on the summary).
 - `/api/retell/calls` falls back to a phone lookup for the outcome when the call didn't create the quote.
+
+---
+
+## 18. Health check
+
+`GET /api/retell/health` (header `x-a1-cron-secret`) — is Marina wired up right now? Returns `{ ok, checks[], warnings[] }`, HTTP 503 when anything is wrong:
+- **Env:** every var Marina depends on (Retell, Twilio, Stripe, Resend, owner number, cron secret, database), plus whether outbound calling is on.
+- **Retell:** agent has no unpublished changes; agent webhook points at `/api/retell/webhook`; the number's inbound and outbound bindings point at the Care agent on the published version; inbound webhook points at `/api/retell/inbound`; CA is an allowed outbound country.
+- **Outbound queue:** nothing queued 3 h+ past due (hourly workflow not running?), no failed placements in the last 24 h.
+
+The 7am digest runs the same checks and puts any warnings on its first line (`⚠️ Marina check: agent published: v17 has unpublished changes — callers get the previous version`), so the "edited but not published" class of problem is caught the next morning at the latest.

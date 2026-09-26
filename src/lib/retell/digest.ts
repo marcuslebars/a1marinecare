@@ -3,6 +3,7 @@ import { isMissingTableError } from "@/lib/lead-events";
 import { formatCents } from "@/lib/shrink-wrap-pricing";
 
 import { sendSms } from "./deposit-link";
+import { healthReport } from "./health";
 import { WINDOWS, addDays, earliestBookableDate, torontoDayRange } from "./slots";
 import { ownerSmsNumber, prettyPhone } from "./webhook";
 
@@ -103,11 +104,15 @@ export async function buildDigest(now = new Date()): Promise<Digest> {
   }
 }
 
-export async function sendDigest(now = new Date()): Promise<{ sent: boolean; digest: Digest; error?: string }> {
+export async function sendDigest(now = new Date()): Promise<{ sent: boolean; digest: Digest; error?: string; warnings?: string[] }> {
   const digest = await buildDigest(now);
   const to = ownerSmsNumber();
   if (!to) return { sent: false, digest, error: "OWNER_SMS_NUMBER not set" };
-  const res = await sendSms(to, digest.text);
+  // Anything wrong with the wiring goes on top, so it's the first thing read.
+  const health = await healthReport(now).catch(() => null);
+  const warnings = health?.warnings ?? [];
+  const text = warnings.length ? `⚠️ Marina check: ${warnings.slice(0, 3).join(" · ")}${warnings.length > 3 ? ` (+${warnings.length - 3} more)` : ""}\n${digest.text}` : digest.text;
+  const res = await sendSms(to, text);
   if (!res.ok) console.error("[digest] sms failed:", res.error);
-  return { sent: res.ok, digest, error: res.error };
+  return { sent: res.ok, digest, error: res.error, warnings };
 }
