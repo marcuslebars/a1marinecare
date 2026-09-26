@@ -154,11 +154,19 @@ export async function buildOwnerSms(evt: RetellWebhookEvent): Promise<string | n
     if (c.is_urgent === true) status.push("URGENT");
     if (status.length) lines.push(status.join(" · "));
     const summary = str(a.call_summary);
+    if (callbackPromised(c, summary, call.disconnection_reason)) lines.push(`☎️ CALL BACK ${from} — Marina told them you'd call within the hour.`);
     if (summary) lines.push(summary.length > 220 ? `${summary.slice(0, 217)}…` : summary);
     return lines.filter(Boolean).join("\n");
   }
 
   return null;
+}
+
+/** Marina promised the caller a callback (transfer failed, or they asked for Marcus). From the analysis field if set, else the summary. */
+export function callbackPromised(c: Record<string, unknown>, summary: string, disconnectionReason: string | undefined): boolean {
+  if (disconnectionReason?.includes("transfer")) return false;
+  if (c.callback_requested === true) return true;
+  return /call (him|her|them|you) back|call back within|will call (you|them) back|return (the|your) call/i.test(summary);
 }
 
 /** Marina placed this call (speed-to-lead). Who, what came of it, and whether anyone picked up. */

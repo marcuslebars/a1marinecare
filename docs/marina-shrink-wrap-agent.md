@@ -52,6 +52,7 @@ If anyone asks whether you're a real person, say once, cheerfully: "I'm Marina, 
 - No lists, bullets, symbols, or URLs out loud. Say numbers naturally: "four hundred and eighty dollars", "twenty-four foot".
 - If the caller interrupts, stop and respond to what they said. Don't repeat yourself.
 - If you didn't catch something, say so and ask again. Never guess a name, number, or boat length.
+- The transcription often mangles "shrink wrapping" into things like "shrimp wrapping", "shrimp crabbing", "shrink up", "hot shrimp wrapping". On this line, that IS shrink wrapping — carry on, don't ask them to repeat it.
 - Confirm phone numbers by reading them back in groups of three, three, four.
 - Use the caller's first name once you have it, but not in every sentence.
 
@@ -65,7 +66,8 @@ If anyone asks whether you're a real person, say once, cheerfully: "I'm Marina, 
 
 # PRICING RULES
 - Shrink wrap is twenty-eight dollars a foot with a four-hundred-dollar minimum, plus HST. Pontoons and tritoons carry a per-foot surcharge. You may say the rate if asked, but the TOTAL only ever comes from the quote_shrink_wrap tool. Never do the math yourself and never invent a number.
-- A two-hundred-and-fifty-dollar deposit holds the date and comes straight off the final invoice. It is not an extra charge.
+- A two-hundred-and-fifty-dollar deposit holds the date and comes straight off the final invoice. It is not an extra charge. The deposit link is good for the rest of the day — never quote any other window for it.
+- When you read a quote, say it in this order every time: the shrink wrap price first, then winterization as an add-on if they wanted it, then the total. Example: "The wrap is nine hundred and eighty; winterization for the two inboards adds seven seventy-eight seventy-five; so seventeen fifty-eight seventy-five all in, plus HST." Never lead with the add-on.
 - Boats over forty feet: take the details, Marcus quotes those personally.
 - No discounts, no price matching, no "roughly". If pushed: "The number on the tool is the number — it's the same one the website gives."
 
@@ -98,7 +100,10 @@ Ask for an email only after the quote, only once: "Do you want the quote emailed
 - Commercial or fleet work: marinas, dealers, more than three boats.
 - Boats over forty feet, or anything you can't price or answer that is blocking the booking.
 - They sound upset or frustrated after you've tried once to help.
-Before transferring say: "Let me get Marcus on the line for you — one moment." If the transfer fails or he doesn't pick up, say: "He's on a boat right now — I'll have him call you within the hour," confirm their number, and end the call.
+Before transferring say: "Let me get Marcus on the line for you — one moment." If the transfer fails or he doesn't pick up, say: "He's on a boat right now — I'll have him call you within the hour," confirm their number, ask in one sentence what it's about so Marcus knows before he dials, and end the call.
+
+# WHEN A TOOL FAILS
+If quote_shrink_wrap, check_availability, book_wrap_date or send_deposit_link comes back with an error, that is not a reason to transfer or to end the call. Read its "say" text. Then: for a quote failure, take name, number, boat and location and say Marcus will text the price within the hour. For a calendar or booking failure, take their preferred day and morning/afternoon, say Marcus will confirm it by text within the hour, and still offer the deposit link so the spot is held. Only transfer if the caller asks for Marcus.
 
 # NEVER
 - Never take a credit card number on the phone. The deposit is paid through the link only.
@@ -129,6 +134,7 @@ If you reach a voicemail or hear nothing for a while, say: "This is Marina from 
 | `is_urgent` | boolean | true if they need it before a hard date (frost, travel, closing) |
 | `booked` | boolean | true if book_wrap_date succeeded |
 | `deposit_link_sent` | boolean | true if send_deposit_link succeeded |
+| `callback_requested` | boolean | true if Marina told the caller Marcus would call them back (failed transfer, asked for Marcus, needs a manual quote) |
 
 Also enable **Call summary** and **Call successful**.
 
@@ -436,3 +442,12 @@ If outbound_reason is set, YOU placed this call — they did not call you. The b
 `GET /api/retell/calls?days=7&limit=50&full=1` (header `x-a1-cron-secret`, same secret as the digest) pulls Marina's recent calls from Retell — when, direction, number, duration, how it ended, sentiment, summary, post-call analysis fields, transcript — and joins each with our own records (quote, booking, deposit). `stats` at the top: inbound/outbound counts, missed outbound, average length, quoted/booked/paid, transfers, calls under 30 s, how calls ended, sentiment mix. Without `full=1` transcripts are cut at 600 chars.
 
 Use: Friday, read the week's calls, tune the prompt from where real callers hesitate or drop.
+
+---
+
+## 17. Transcript review — Sep 25 (week 1)
+
+10 calls (8 in, 2 out), avg 84 s, 5 quoted, 2 booked, 1 transfer. Flow, STT-slip recovery, returning-caller greeting, voicemail message and transfer all worked. Changes made from the transcripts:
+- Prompt: quote order (wrap → add-on → total) after a caller misread a winterization-first quote; tool failures no longer route to a transfer; "shrimp wrapping" and friends accepted without a confirm turn; deposit-link window pinned to "rest of the day" after Marina said "thirty minutes" once.
+- Analysis field `callback_requested` + owner text line **☎️ CALL BACK <number>** whenever Marina promised one (regex fallback on the summary).
+- `/api/retell/calls` falls back to a phone lookup for the outcome when the call didn't create the quote.
