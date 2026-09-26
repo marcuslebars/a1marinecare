@@ -1,4 +1,5 @@
 import { prettyPhone } from "./auth";
+import { lookupCallerByPhone } from "./caller-lookup";
 import { callWasMissed } from "./outbound";
 import { lookupCallOutcome } from "./webhook";
 
@@ -96,9 +97,14 @@ export async function fetchRecentCalls(days: number, limit: number): Promise<Ret
 }
 
 export async function reviewCall(c: RetellCall, opts: { full: boolean }): Promise<CallReview> {
-  const outcome = await lookupCallOutcome(c.call_id);
   const outbound = c.direction === "outbound";
   const transcript = c.transcript ?? "";
+  let outcome = await lookupCallOutcome(c.call_id);
+  if (!outcome.name && !outcome.boat) {
+    // The call didn't create the quote (web lead, returning caller) — what do we know about the number?
+    const p = await lookupCallerByPhone(outbound ? c.to_number : c.from_number, c.start_timestamp ? new Date(c.start_timestamp) : new Date());
+    if (p.known) outcome = { name: p.fullName || null, boat: p.boat || null, quotedCents: null, bookingLabel: p.bookedWindow || null, depositPaid: p.depositPaid };
+  }
   return {
     id: c.call_id,
     when: torontoStamp(c.start_timestamp),
