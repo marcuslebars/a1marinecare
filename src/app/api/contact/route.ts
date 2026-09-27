@@ -3,7 +3,7 @@ import { after } from "next/server";
 import { createLeadEvent, sendLeadNotificationEmail, isMissingTableError } from "@/lib/lead-events";
 import { contactSchema } from "@/lib/validation";
 import { sendToCrm } from "@/lib/crm-webhook";
-import { queueOutboundCall } from "@/lib/retell/outbound";
+import { looksLikeJunkLead, queueOutboundCall } from "@/lib/retell/outbound";
 
 export const runtime = "nodejs";
 
@@ -43,11 +43,17 @@ export async function POST(request: Request) {
     });
     leadEventId = leadEvent.id;
     console.log("[Contact API] Lead saved:", leadEventId);
-    // Speed to lead: Marina calls back in a couple of minutes, knowing what they wrote.
-    const detail = `${formatServiceLabel(parsed.serviceInterest)}${parsed.message ? ` — "${parsed.message.slice(0, 200)}"` : ""}`;
-    after(async () => {
-      await queueOutboundCall({ to: parsed.phone, name: parsed.fullName, reason: "contact", detail });
-    });
+    // Speed to lead: Marina calls back in a couple of minutes, knowing what they wrote —
+    // unless it's link-drop / SEO-pitch junk, which still gets logged and emailed but never called.
+    const junk = looksLikeJunkLead({ name: parsed.fullName, email: parsed.email, message: parsed.message });
+    if (junk) {
+      console.log("[Contact API] no callback — looks like junk:", junk, { leadEventId });
+    } else {
+      const detail = `${formatServiceLabel(parsed.serviceInterest)}${parsed.message ? ` — "${parsed.message.slice(0, 200)}"` : ""}`;
+      after(async () => {
+        await queueOutboundCall({ to: parsed.phone, name: parsed.fullName, reason: "contact", detail });
+      });
+    }
   } catch (err) {
     if (isMissingTableError(err)) {
       console.warn("[Contact API] lead_events table unavailable. Proceeding without lead tracking.");

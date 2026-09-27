@@ -33,17 +33,35 @@ export function dedupeHours(): number {
 }
 const RETELL_CREATE_CALL = "https://api.retellai.com/v2/create-phone-call";
 
-export type OutboundReason = "shrink-wrap-quote" | "contact";
+export type OutboundReason = "shrink-wrap-quote" | "contact" | "sms-reply";
 
 export type OutboundRequest = {
   to: string | null | undefined;
-  name: string;
+  /** Best name we have; null/"Unknown…" means Marina skips the "is this X?" opener. */
+  name: string | null | undefined;
   reason: OutboundReason;
   /** Quote id for shrink-wrap leads (Marina reuses it to book + send the deposit link). */
   quoteId?: string | null;
-  /** What the contact form said, for the contact reason. */
+  /** What the contact form / text said, for the contact and sms-reply reasons. */
   detail?: string | null;
+  /** Override the one-call-per-number window for this request (hours; 0 = always call). */
+  dedupeHours?: number;
 };
+
+/**
+ * Contact-form junk that should never get a phone call: link drops, SEO /
+ * web-design pitches, crypto, obvious non-Latin spam. Leads still get logged
+ * and emailed — this only gates the outbound call.
+ */
+export function looksLikeJunkLead(input: { name?: string | null; email?: string | null; message?: string | null }): string | null {
+  const text = `${input.name ?? ""} ${input.message ?? ""}`;
+  const noEmails = text.replace(/\S+@\S+/g, " ");
+  if (/https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|org|io|ru|xyz|co|site|online)\b/i.test(noEmails)) return "contains a link";
+  if (/\b(seo|backlinks?|search engine|google ranking|rank(ing)? on google|web ?design|website (design|redesign|traffic)|lead generation|digital marketing|social media marketing|crypto|bitcoin|forex|casino|loan offer|guest post|sponsored post|ai chatbot for your|increase your sales)\b/i.test(text)) return "marketing/SEO pitch";
+  if (/[\u0400-\u04FF\u4E00-\u9FFF]{4,}/.test(text)) return "non-Latin spam";
+  if (/@(example|test|mailinator|guerrillamail|tempmail|10minutemail)\./i.test(input.email ?? "")) return "throwaway email";
+  return null;
+}
 
 export function isOutboundConfigured(): boolean {
   return Boolean(process.env.RETELL_API_KEY && process.env.RETELL_AGENT_ID && process.env.RETELL_FROM_NUMBER);
@@ -71,22 +89,31 @@ function meta(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-function firstName(name: string): string {
-  return name.trim().split(/\s+/)[0] || "there";
+/** First name for the opener; "" when we don't really know who this is (unknown texter, placeholder names). */
+export function firstName(name: string | null | undefined): string {
+  const n = (name ?? "").trim();
+  if (!n || /^(unknown|there|customer|n\/?a|test)\b/i.test(n)) return "";
+  return n.split(/\s+/)[0];
 }
 
 export function outboundGreeting(input: { firstName: string; reason: OutboundReason; boat?: string; total?: string; detail?: string | null }): string {
+  const opener = input.firstName ? `Hi, is this ${input.firstName}? It's Marina from A1 Marine Care` : "Hi, it's Marina from A1 Marine Care";
   if (input.reason === "shrink-wrap-quote") {
     const price = input.total ? ` — it came to ${input.total} plus tax` : "";
-    return `Hi, is this ${input.firstName}? It's Marina from A1 Marine Care. You just priced a shrink wrap for your ${input.boat || "boat"} on our site${price}. I wanted to see if I can lock in a date for you while it's fresh — got a quick minute?`;
+    return `${opener}. You just priced a shrink wrap for your ${input.boat || "boat"} on our site${price}. I wanted to see if I can lock in a date for you while it's fresh — got a quick minute?`;
+  }
+  if (input.reason === "sms-reply") {
+    const about = input.boat ? ` about the ${input.boat}` : "";
+    return `${opener} — I just saw your text${about}, figured it'd be quicker to call. Got a minute?`;
   }
   const about = input.detail ? ` about ${input.detail}` : "";
-  return `Hi, is this ${input.firstName}? It's Marina from A1 Marine Care — you just sent us a message${about}. Got a quick minute?`;
+  return `${opener} — you just sent us a message${about}. Got a quick minute?`;
 }
 
 export function missedCallText(input: { firstName: string; reason: OutboundReason }): string {
-  const what = input.reason === "shrink-wrap-quote" ? "your shrink wrap quote — the deposit and booking links are in your email" : "your message";
-  return `Hi ${input.firstName}, Marina from A1 Marine Care — just tried to call about ${what}. Reply here or call ${company.phone} and I'll sort it out.`;
+  const what = input.reason === "shrink-wrap-quote" ? "your shrink wrap quote — the deposit and booking links are in your email" : input.reason === "sms-reply" ? "your text" : "your message";
+  const hi = input.firstName ? `Hi ${input.firstName}, ` : "Hi, ";
+  return `${hi}Marina from A1 Marine Care — just tried to call about ${what}. Reply here or call ${company.phone} and I'll sort it out.`;
 }
 
 /** Retell's outbound disconnection reasons that mean nobody talked to Marina. */
@@ -128,7 +155,7 @@ export async function queueOutboundCall(req: OutboundRequest, now = new Date()):
   if (!to) return skip("no dialable number");
 
   try {
-    const hours = dedupeHours();
+    const hours = req.dedupeHours ?? dedupeHours();
     const dup = hours > 0
       ? await prisma.leadEvent.findFirst({
           where: { leadType: OUTBOUND_LEAD_TYPE, phone: to, createdAt: { gte: new Date(now.getTime() - hours * 3600_000) } },
@@ -139,11 +166,11 @@ export async function queueOutboundCall(req: OutboundRequest, now = new Date()):
 
     const dueAt = scheduleFor(now);
     const row = await createLeadEvent({
-      source: req.reason === "contact" ? "contact" : "quote",
-      customerName: req.name,
+      source: req.reason === "shrink-wrap-quote" ? "quote" : "contact",
+      customerName: req.name?.trim() || "Unknown",
       email: placeholderEmailForPhone(to),
       phone: to,
-      serviceInterest: req.reason === "contact" ? req.detail ?? "contact form" : "Shrink Wrapping",
+      serviceInterest: req.reason === "shrink-wrap-quote" ? "Shrink Wrapping" : req.reason === "sms-reply" ? "text reply" : req.detail ?? "contact form",
       message: req.detail ?? undefined,
       leadId: req.quoteId ?? undefined,
       leadType: OUTBOUND_LEAD_TYPE,
@@ -195,13 +222,14 @@ export async function placeQueuedCall(id: string, now = new Date()): Promise<{ p
       await setStatus(id, m, { status: "skipped", skipReason: "manual review — Marcus quotes" });
       return { placed: false, reason: "manual review" };
     }
-    if (profile.depositPaid && profile.bookedWindow) {
+    // (A texter who is already booked and paid may still have a question — only the quote chase skips.)
+    if (reason === "shrink-wrap-quote" && profile.depositPaid && profile.bookedWindow) {
       await setStatus(id, m, { status: "skipped", skipReason: "already booked and paid" });
       return { placed: false, reason: "already booked and paid" };
     }
   }
 
-  const first = firstName(row.customerName);
+  const first = profile.firstName || firstName(row.customerName);
   const boat = profile.boat || undefined;
   const total = profile.quoteTotal || undefined;
   const greeting = outboundGreeting({ firstName: first, reason, boat, total, detail: typeof m.detail === "string" ? m.detail : null });
@@ -209,7 +237,7 @@ export async function placeQueuedCall(id: string, now = new Date()): Promise<{ p
     ...toDynamicVariables(profile),
     greeting,
     caller_known: "true",
-    caller_first_name: profile.firstName || first,
+    caller_first_name: first || "there",
     outbound_reason: reason,
     outbound_detail: typeof m.detail === "string" ? m.detail.slice(0, 300) : "",
   };

@@ -298,6 +298,23 @@ describe("inbound customer texts", () => {
     expect(isOptOutKeyword(" STOP ")).toBe(true);
     expect(isOptOutKeyword("stop calling me at 10")).toBe(false);
   });
+  it("calls back on yeses, questions and date-talk; relays the rest", async () => {
+    const { wantsCallback } = await import("./inbound-sms");
+    for (const yes of ["Yes", "yes please", "Sure, call me", "Can you do Tuesday?", "Tuesday afternoon works", "How much for a 30 footer", "when could you come out", "Book it", "Who is this?"]) expect(wantsCallback(yes), yes).toBe(true);
+    for (const no of ["No thanks", "not interested", "Already done, thanks", "Thanks!", "ok", "Sounds good", "Wrong number", "please don't call me", "STOP", ""]) expect(wantsCallback(no), no).toBe(false);
+  });
+  it("tells the texter (and Marcus) when Marina's call is coming", async () => {
+    const { ackText, callTiming, relayText } = await import("./inbound-sms");
+    const { UNKNOWN_CALLER } = await import("./caller-lookup");
+    const now = new Date("2026-09-25T14:00:00Z"); // 10:00 Toronto
+    expect(callTiming(new Date("2026-09-25T14:02:00Z"), now)).toBe("in a couple of minutes");
+    expect(callTiming(new Date("2026-09-26T13:00:00Z"), new Date("2026-09-26T02:00:00Z"))).toBe("at 9 tomorrow morning"); // 22:00 → 9:00 next day
+    expect(callTiming(new Date("2026-09-26T13:00:00Z"), new Date("2026-09-26T10:00:00Z"))).toBe("at 9 this morning"); // 06:00 → 9:00 same day
+    const ack = ackText({ ...UNKNOWN_CALLER, firstName: "Dana" }, { dueAt: new Date("2026-09-25T14:02:00Z"), now });
+    expect(ack).toContain("Thanks Dana — got it. I'll give you a quick call in a couple of minutes");
+    expect(ackText(UNKNOWN_CALLER)).toContain("Marcus will text you back shortly");
+    expect(relayText(UNKNOWN_CALLER, "+17055551234", "yes", "📞 Marina is calling them back in a couple of minutes.")).toContain("📞 Marina is calling them back in a couple of minutes.\nReply to them at 705-555-1234");
+  });
 });
 
 describe("outbound speed-to-lead calls", () => {
@@ -328,6 +345,21 @@ describe("outbound speed-to-lead calls", () => {
     expect(outboundCallMissed({ direction: "outbound", disconnection_reason: "agent_hangup", transcript: "User: Yes please book Wednesday." })).toBeNull();
     expect(outboundCallMissed({ direction: "inbound", disconnection_reason: "agent_hangup", transcript: "leave a message" })).toBeNull();
     expect(missedCallText({ firstName: "Dana", reason: "shrink-wrap-quote" })).toContain("just tried to call");
+  });
+  it("calls texters back without guessing a name, and never calls junk contact forms", async () => {
+    const { outboundGreeting, missedCallText, firstName, looksLikeJunkLead } = await import("./outbound");
+    expect(firstName("Dana Smith")).toBe("Dana");
+    expect(firstName("Unknown texter")).toBe("");
+    expect(firstName(null)).toBe("");
+    const g = outboundGreeting({ firstName: "", reason: "sms-reply", boat: "24 ft bowrider" });
+    expect(g.startsWith("Hi, it's Marina from A1 Marine Care — I just saw your text about the 24 ft bowrider")).toBe(true);
+    expect(outboundGreeting({ firstName: "Dana", reason: "sms-reply" })).toContain("Hi, is this Dana? It's Marina");
+    expect(missedCallText({ firstName: "", reason: "sms-reply" }).startsWith("Hi, Marina from A1 Marine Care — just tried to call about your text")).toBe(true);
+    expect(looksLikeJunkLead({ name: "Bob", email: "bob@gmail.com", message: "How much for a 26 ft pontoon in Orillia? Email me at bob@gmail.com" })).toBeNull();
+    expect(looksLikeJunkLead({ name: "Bob", email: "bob@gmail.com", message: "I can rank your website on Google page 1 — SEO packages from $99" })).toBe("marketing/SEO pitch");
+    expect(looksLikeJunkLead({ name: "Bob", email: "bob@gmail.com", message: "check out https://bit.ly/xyz for cheap boats" })).toBe("contains a link");
+    expect(looksLikeJunkLead({ name: "Bob", email: "bob@gmail.com", message: "see mysite.com for details" })).toBe("contains a link");
+    expect(looksLikeJunkLead({ name: "Иван Петров", email: "x@y.com", message: "Привет, интересное предложение" })).toBe("non-Latin spam");
   });
 });
 
