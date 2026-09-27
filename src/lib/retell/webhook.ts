@@ -7,7 +7,7 @@ import { formatCents } from "@/lib/shrink-wrap-pricing";
 import { placeholderEmailForPhone, prettyPhone } from "./auth";
 import { isDepositPaid } from "./caller-lookup";
 import { sendSms } from "./deposit-link";
-import { callWasMissed } from "./outbound";
+import { callWasMissed, outboundCallMissed } from "./outbound";
 import { WINDOWS, spokenLabel, type Window } from "./slots";
 
 // Retell agent webhook → owner SMS + pass-through to EmpireVu.
@@ -174,7 +174,7 @@ async function outboundOwnerSms(evt: RetellWebhookEvent): Promise<string> {
   const call = evt.call ?? {};
   const c = call.call_analysis?.custom_analysis_data ?? {};
   const outcome = await lookupCallOutcome(call.call_id);
-  const missed = callWasMissed(call.disconnection_reason);
+  const missed = outboundCallMissed(call);
   let name = outcome.name || str(c.caller_name);
   let boat = outcome.boat;
   if ((!name || !boat) && call.to_number) {
@@ -218,7 +218,7 @@ export async function recordCall(evt: RetellWebhookEvent): Promise<void> {
       message: typeof a.call_summary === "string" ? a.call_summary : undefined,
       leadType: "marina-call",
       rawPayload: { durationMs: call.duration_ms ?? null, disconnectionReason: call.disconnection_reason ?? null, sentiment: a.user_sentiment ?? null, successful: a.call_successful ?? null, voicemail: a.in_voicemail ?? null },
-      metadata: { retellCallId: call.call_id, channel: "marina", direction: outbound ? "outbound" : "inbound", missed: callWasMissed(call.disconnection_reason), quotedCents: outcome.quotedCents, booked: Boolean(outcome.bookingLabel), depositPaid: outcome.depositPaid, transferred: Boolean(call.disconnection_reason?.includes("transfer")), urgent: c.is_urgent === true },
+      metadata: { retellCallId: call.call_id, channel: "marina", direction: outbound ? "outbound" : "inbound", missed: outbound ? outboundCallMissed(call) : null, quotedCents: outcome.quotedCents, booked: Boolean(outcome.bookingLabel), depositPaid: outcome.depositPaid, transferred: Boolean(call.disconnection_reason?.includes("transfer")), urgent: c.is_urgent === true },
     });
   } catch (err) {
     if (!isMissingTableError(err)) console.error("[Retell webhook] call log failed:", err instanceof Error ? err.message : String(err));

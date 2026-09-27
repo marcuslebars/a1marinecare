@@ -322,6 +322,11 @@ describe("outbound speed-to-lead calls", () => {
     expect(callWasMissed("machine_detected")).toBe("voicemail");
     expect(callWasMissed("user_hangup")).toBeNull();
     expect(callWasMissed(undefined)).toBeNull();
+    const { outboundCallMissed } = await import("./outbound");
+    expect(outboundCallMissed({ direction: "outbound", disconnection_reason: "agent_hangup", transcript: "User: record your name and reason for calling, I'll see if this person is available." })).toBe("no answer");
+    expect(outboundCallMissed({ direction: "outbound", disconnection_reason: "agent_hangup", call_analysis: { in_voicemail: true } })).toBe("voicemail");
+    expect(outboundCallMissed({ direction: "outbound", disconnection_reason: "agent_hangup", transcript: "User: Yes please book Wednesday." })).toBeNull();
+    expect(outboundCallMissed({ direction: "inbound", disconnection_reason: "agent_hangup", transcript: "leave a message" })).toBeNull();
     expect(missedCallText({ firstName: "Dana", reason: "shrink-wrap-quote" })).toContain("just tried to call");
   });
 });

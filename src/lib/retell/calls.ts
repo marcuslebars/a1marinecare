@@ -1,6 +1,6 @@
 import { prettyPhone } from "./auth";
 import { lookupCallerByPhone } from "./caller-lookup";
-import { callWasMissed } from "./outbound";
+import { outboundCallMissed } from "./outbound";
 import { lookupCallOutcome } from "./webhook";
 
 // Pulls Marina's recent calls from Retell and joins them with what our own
@@ -112,7 +112,7 @@ export async function reviewCall(c: RetellCall, opts: { full: boolean }): Promis
     number: prettyPhone(outbound ? c.to_number : c.from_number),
     duration: duration(c.duration_ms),
     ended: c.disconnection_reason ?? "?",
-    missed: outbound ? callWasMissed(c.disconnection_reason) : null,
+    missed: outbound ? outboundCallMissed(c) : null,
     sentiment: c.call_analysis?.user_sentiment ?? "",
     successful: c.call_analysis?.call_successful ?? null,
     summary: c.call_analysis?.call_summary ?? "",

@@ -1,10 +1,11 @@
 name: Marina customer follow-ups
 
-# Hourly. The endpoint decides what's due and only texts during Toronto civil hours
-# (nudges 9am–8pm, day-before reminders 3pm–8pm).
+# Every 20 minutes (GitHub often runs hourly crons 30-70 min late, especially on
+# weekends). The endpoint decides what's due, stamps everything it sends, and only
+# texts / calls during Toronto civil hours, so extra runs are harmless.
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "7,27,47 * * * *"
   workflow_dispatch:
 
 jobs:
