@@ -97,6 +97,23 @@ export function callWasMissed(reason: string | undefined): "no answer" | "voicem
   return null;
 }
 
+/**
+ * Same question, but from the whole analysed call: also catches call-screening
+ * services and unflagged voicemails, where Retell reports agent_hangup because
+ * Marina gave up after nobody real answered.
+ */
+export function outboundCallMissed(call: { direction?: string; disconnection_reason?: string; duration_ms?: number; transcript?: string; call_analysis?: { in_voicemail?: boolean; call_summary?: string } }): "no answer" | "voicemail" | null {
+  const byReason = callWasMissed(call.disconnection_reason);
+  if (byReason) return byReason;
+  if (call.direction !== "outbound") return null;
+  if (call.call_analysis?.in_voicemail) return "voicemail";
+  if (call.disconnection_reason === "agent_hangup") {
+    const text = `${call.call_analysis?.call_summary ?? ""} ${call.transcript ?? ""}`;
+    if (/screening|record your name|voicemail|voice mail|not available|leave a message|after the tone/i.test(text)) return "no answer";
+  }
+  return null;
+}
+
 // Timers so the first attempt happens ~2 min after the form without waiting for the hourly cron.
 const timers = new Map<string, NodeJS.Timeout>();
 
@@ -134,8 +151,11 @@ export async function queueOutboundCall(req: OutboundRequest, now = new Date()):
       metadata: { status: "queued", reason: req.reason, quoteId: req.quoteId ?? null, detail: req.detail ?? null, dueAt: dueAt.toISOString() },
     });
 
+    // Arm an in-process timer for anything due within 14 h (covers the overnight
+    // queue, so a 9:00 call goes at 9:00). The hourly workflow remains the safety
+    // net if the process restarts and the timer is lost.
     const waitMs = dueAt.getTime() - now.getTime();
-    if (waitMs <= 10 * 60_000) {
+    if (waitMs <= 14 * 3600_000) {
       const t = setTimeout(() => {
         timers.delete(row.id);
         void placeQueuedCall(row.id).catch((err) => console.error("[outbound] timer place failed:", err instanceof Error ? err.message : String(err)));
@@ -264,7 +284,7 @@ export async function afterOutboundCall(evt: RetellWebhookEvent, now = new Date(
     const row = await prisma.leadEvent.findFirst({ where: { leadType: OUTBOUND_LEAD_TYPE, metadata: { path: ["callId"], equals: call.call_id } }, select: { id: true, phone: true, customerName: true, metadata: true } });
     if (!row) return;
     const m = meta(row.metadata);
-    const missed = callWasMissed(call.disconnection_reason);
+    const missed = outboundCallMissed(call);
     const patch: Record<string, unknown> = { status: "done", outcome: missed ?? "answered", disconnectionReason: call.disconnection_reason ?? null, durationMs: call.duration_ms ?? null, doneAt: now.toISOString() };
     if (missed && typeof m.missedTextAt !== "string") {
       const sms = await sendSms(row.phone, missedCallText({ firstName: firstName(row.customerName), reason: (m.reason as OutboundReason) || "contact" }));

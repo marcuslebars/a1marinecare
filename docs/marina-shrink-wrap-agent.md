@@ -356,7 +356,7 @@ Phone quotes are unaffected — Marina's flow already texts/emails the link from
 
 ## 11. Customer follow-up texts + website booking parity
 
-**Texts (Marina's voice, via Twilio), run hourly by `.github/workflows/marina-followups.yml` → `POST /api/retell/followups`:**
+**Texts (Marina's voice, via Twilio), run every 20 minutes by `.github/workflows/marina-followups.yml` → `POST /api/retell/followups`:**
 - **Nudge** — quoted 20–72 h ago, no booking, no deposit: *"Hi Dana, Marina from A1 Marine Care. Your shrink wrap quote for the 24 ft bowrider ($672 + HST) is still good and October is filling up. A $250 deposit holds your date and comes off the total: <stripe> Or pick a date first: <booking> — questions? 705-996-1010"*. Once per quote (`metadata.nudgedAt`), 9am–8pm Toronto only.
 - **Reminder** — booked for tomorrow: *"…the crew is coming tomorrow morning to wrap the 24 ft bowrider. Please have it out of the water, on the trailer or in the driveway, with a clear path around it…"*. Once per booking (`metadata.remindedAt`), 3pm–8pm Toronto only.
 - `GET /api/retell/followups` is a dry run (who would be texted now). Same `x-a1-cron-secret` as the digest. STOP replies are handled by Twilio.
@@ -413,7 +413,8 @@ Two minutes after someone submits the shrink-wrap quote form or the contact form
 - At call time it re-checks: skipped if the quote needs your manual review, if they've already booked *and* paid, or if the number isn't dialable. One number is never called twice in 24 h (`OUTBOUND_DEDUPE_HOURS`; set `0` while testing with your own number). Every skipped call is logged as `[outbound] not queued: <reason>`.
 - No answer / voicemail → one text: *"Hi Dana, Marina from A1 Marine Care — just tried to call about your shrink wrap quote — the deposit and booking links are in your email. Reply here or call 705-996-1010 and I'll sort it out."*
 - You get one 📤 text per outbound call (who, boat, quote, booked/deposit, or "no answer" / "voicemail left"). The digest shows "(N Marina placed)" in the calls count.
-- Queue = `lead_events` rows with `leadType = "marina-outbound"` (`metadata.status`: queued → placed → done | skipped | failed). Calls are placed by an in-process timer right after the form, and the hourly follow-ups run is the safety net (`GET /api/retell/followups` dry run lists them under `called`).
+- Queue = `lead_events` rows with `leadType = "marina-outbound"` (`metadata.status`: queued → placed → done | skipped | failed). Calls are placed by an in-process timer (armed for anything due within 14 h, so an overnight lead is called at 9:00 sharp); the follow-ups workflow (every 20 min) is the safety net if a deploy lost the timer (`GET /api/retell/followups` dry run lists due calls under `called`).
+- "Missed" covers no-answer, busy, voicemail, and call-screening services ("record your name and reason for calling…") — Retell reports those as `agent_hangup`, so the transcript/summary is checked too. Missed calls get the one text.
 
 **Railway vars (new):** `RETELL_AGENT_ID` (the Care agent's id, from the agent page URL or Retell → Agents), `RETELL_FROM_NUMBER` (Marina's number in E.164, e.g. `+1705…`). Leave either unset and no outbound calls are placed. Optional `OUTBOUND_CALL_DELAY_MINUTES`.
 
