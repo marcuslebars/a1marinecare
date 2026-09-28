@@ -15,6 +15,9 @@
  *
  * Options: --days 45   how far back to take quotes
  */
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+
 import { prisma } from "@/lib/db/prisma";
 
 const CANCELLED = ["cancelled", "canceled", "declined"];
@@ -29,10 +32,9 @@ function obj(v: unknown): Record<string, unknown> {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
 }
 
-async function main(): Promise<void> {
-  const days = Math.max(1, Number(arg("days", "45")) || 45);
-  const since = new Date(Date.now() - days * 86_400_000);
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date());
+export async function exportForEmpireVu(now = new Date(), days = 45) {
+  const since = new Date(now.getTime() - days * 86_400_000);
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(now);
 
   const bookings = await prisma.bookingRequest.findMany({
     where: { date: { gte: today }, NOT: { status: { in: CANCELLED } } },
@@ -48,17 +50,28 @@ async function main(): Promise<void> {
   const bookedQuotes = bookedQuoteIds.length ? await prisma.quoteLead.findMany({ where: { id: { in: bookedQuoteIds } } }) : [];
   const quotes = [...recentQuotes, ...bookedQuotes];
 
-  const deposits = await prisma.leadEvent.findMany({
-    where: { leadType: "shrink-wrap-deposit", createdAt: { gte: new Date(since.getTime() - 30 * 86_400_000) } },
+  // A future booking can reference a quote (and paid deposit) from any date.
+  // Restrict by the exported quote IDs, never by the payment's age.
+  const quoteIds = quotes.map((q) => q.id);
+  const deposits = quoteIds.length ? await prisma.leadEvent.findMany({
+    where: {
+      leadType: "shrink-wrap-deposit",
+      OR: [
+        { leadId: { in: quoteIds } },
+        ...quoteIds.map((id) => ({ metadata: { path: ["quoteId"], equals: id } })),
+      ],
+    },
     select: { leadId: true, metadata: true, createdAt: true, rawPayload: true },
-  });
+    orderBy: { createdAt: "asc" },
+  }) : [];
   const paidByQuote = new Map<string, { paidAt: string; stripeSessionId: string | null; amountCents: number | null }>();
   for (const d of deposits) {
     const m = obj(d.metadata);
     const quoteId = d.leadId || (typeof m.quoteId === "string" ? m.quoteId : null);
     if (!quoteId || paidByQuote.has(quoteId)) continue;
     const raw = obj(d.rawPayload);
-    const amount = Number(raw.amountTotal ?? raw.amount_total ?? m.amountCents ?? NaN);
+    const session = obj(raw.session);
+    const amount = Number(m.depositCents ?? session.amount_total ?? raw.amountTotal ?? raw.amount_total ?? m.amountCents ?? NaN);
     paidByQuote.set(quoteId, {
       paidAt: d.createdAt.toISOString(),
       stripeSessionId: typeof m.stripeSessionId === "string" ? m.stripeSessionId : null,
@@ -68,7 +81,7 @@ async function main(): Promise<void> {
 
   const out = {
     source: "a1marinecare",
-    exportedAt: new Date().toISOString(),
+    exportedAt: now.toISOString(),
     timezone: TIMEZONE,
     quoteDays: days,
     quotes: quotes.map((q) => {
@@ -111,16 +124,24 @@ async function main(): Promise<void> {
     })),
   };
 
+  return out;
+}
+
+async function main(): Promise<void> {
+  const days = Math.max(1, Number(arg("days", "45")) || 45);
+  const out = await exportForEmpireVu(new Date(), days);
   process.stdout.write(`${JSON.stringify(out, null, 2)}\n`);
   console.error(
-    `[export] ${out.quotes.length} quotes (${[...paidByQuote.keys()].filter((id) => quotes.some((q) => q.id === id)).length} with a paid deposit), ` +
+    `[export] ${out.quotes.length} quotes (${out.quotes.filter((q) => q.deposit).length} with a paid deposit), ` +
       `${out.bookings.length} upcoming bookings. Contains customer PII — delete the file after importing.`,
   );
 }
 
-main()
-  .catch((err) => {
-    console.error("[export] failed:", err instanceof Error ? err.message : err);
-    process.exitCode = 1;
-  })
-  .finally(() => prisma.$disconnect());
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  main()
+    .catch((err) => {
+      console.error("[export] failed:", err instanceof Error ? err.message : err);
+      process.exitCode = 1;
+    })
+    .finally(() => prisma.$disconnect());
+}
