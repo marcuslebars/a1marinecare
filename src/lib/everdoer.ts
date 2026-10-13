@@ -128,7 +128,10 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * unconfigured or disabled — the legacy hub + durable log remain the source of truth.
  */
 export async function forwardToEverdoer(envelope: LeadEnvelope, attempts = 3): Promise<void> {
-  if (everdoerEnv("INTAKE_DISABLED") === "1") return;
+  // Either name disables while the shim exists (same `=== "1"` truthiness as before), so a
+  // stale EVERDOER_INTAKE_DISABLED=0 can never override a deliberate legacy kill switch.
+  // Rebrand shim (remove after one release once EVERDOER_* is set)
+  if (process.env.EVERDOER_INTAKE_DISABLED === "1" || process.env.EMPIREVU_INTAKE_DISABLED === "1") return;
   const url = everdoerEnv("INTAKE_URL");
   const secret = everdoerEnv("INTAKE_SECRET");
   if (!url || !secret) {
@@ -136,7 +139,14 @@ export async function forwardToEverdoer(envelope: LeadEnvelope, attempts = 3): P
     return;
   }
   const rawBody = JSON.stringify(envelope);
-  const headers = { "Content-Type": "application/json", "x-everdoer-signature": signEverdoerBody(rawBody, secret) };
+  const signature = signEverdoerBody(rawBody, secret);
+  const headers = {
+    "Content-Type": "application/json",
+    "x-everdoer-signature": signature,
+    // Rebrand shim (remove after one release once EVERDOER_* is set): also send the old header name
+    // with the identical value so intake never depends on the platform's new-header support.
+    "x-empirevu-signature": signature,
+  };
 
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {

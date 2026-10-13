@@ -128,7 +128,7 @@ describe("forwardToEverdoer is additive + best-effort", () => {
     await expect(forwardToEverdoer(envelope, 1)).resolves.toBeUndefined();
   });
 
-  it("sends only the x-everdoer-signature header, byte-identical HMAC (sha256=<hex>)", async () => {
+  it("sends x-everdoer-signature and (shim) x-empirevu-signature with the same byte-identical HMAC (sha256=<hex>)", async () => {
     process.env.EVERDOER_INTAKE_URL = "https://api.everdoer.com/api/intake";
     process.env.EVERDOER_INTAKE_SECRET = "s";
     const spy = vi.fn((_url: string, _opts: RequestInit) => Promise.resolve({ ok: true, status: 200 } as Response));
@@ -137,8 +137,8 @@ describe("forwardToEverdoer is additive + best-effort", () => {
     const [url, opts] = spy.mock.calls[0];
     expect(url).toBe("https://api.everdoer.com/api/intake");
     const headers = opts.headers as Record<string, string>;
-    expect(Object.keys(headers).sort()).toEqual(["Content-Type", "x-everdoer-signature"]);
-    expect(Object.keys(headers).some((h) => h.toLowerCase().startsWith("x-empirevu"))).toBe(false);
+    expect(Object.keys(headers).sort()).toEqual(["Content-Type", "x-empirevu-signature", "x-everdoer-signature"]);
+    expect(headers["x-empirevu-signature"]).toBe(headers["x-everdoer-signature"]);
     // Same scheme as before the rename: HMAC-SHA256(secret, raw body), hex, "sha256=" prefix.
     expect(signEverdoerBody("{}", "s")).toBe("sha256=143ca8d517ba1b181025d732b1cf275d90104fca57bb02a565542978aa18c4b6");
     expect(headers["x-everdoer-signature"]).toBe(
@@ -148,7 +148,10 @@ describe("forwardToEverdoer is additive + best-effort", () => {
 });
 
 describe("EVERDOER_* env with EMPIREVU_* fallback (rebrand shim)", () => {
+  const realFetch = globalThis.fetch;
+
   afterEach(() => {
+    globalThis.fetch = realFetch;
     for (const prefix of ["EVERDOER", "EMPIREVU"]) {
       delete process.env[`${prefix}_INTAKE_URL`];
       delete process.env[`${prefix}_INTAKE_SECRET`];
@@ -196,6 +199,24 @@ describe("EVERDOER_* env with EMPIREVU_* fallback (rebrand shim)", () => {
     const [url, opts] = spy.mock.calls[0];
     expect(url).toBe("https://hub.example/api/intake");
     expect((opts.headers as Record<string, string>)["x-everdoer-signature"]).toBe(signEverdoerBody(opts.body as string, "s"));
+  });
+
+  it("kill switch: new \"0\" + old \"1\" -> disabled", async () => {
+    process.env.EVERDOER_INTAKE_URL = "https://hub.example/api/intake";
+    process.env.EVERDOER_INTAKE_SECRET = "s";
+    process.env.EVERDOER_INTAKE_DISABLED = "0";
+    process.env.EMPIREVU_INTAKE_DISABLED = "1";
+    const spy = vi.fn();
+    globalThis.fetch = spy as never;
+    await forwardToEverdoer({
+      schemaVersion: 1,
+      source: "a1marinecare-contact",
+      sourceSite: "a1marinecare",
+      formType: "contact",
+      receivedAt: "2026-07-10T12:00:00.000Z",
+      contact: { email: "a@b.com" },
+    });
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it("legacy EMPIREVU_INTAKE_DISABLED=1 still disables", async () => {

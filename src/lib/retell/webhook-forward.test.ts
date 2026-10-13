@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/db/prisma", () => ({ prisma: {} }));
 
@@ -7,6 +7,10 @@ import { DEFAULT_FORWARD_URL, forwardToEverdoer } from "./webhook";
 
 describe("Retell webhook pass-through to Everdoer", () => {
   const realFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    delete process.env.RETELL_FORWARD_WEBHOOK_URL;
+  });
 
   afterEach(() => {
     globalThis.fetch = realFetch;
