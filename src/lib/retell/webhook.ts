@@ -10,14 +10,14 @@ import { sendSms } from "./deposit-link";
 import { callWasMissed, outboundCallMissed } from "./outbound";
 import { WINDOWS, spokenLabel, type Window } from "./slots";
 
-// Retell agent webhook → owner SMS + pass-through to EmpireVu.
+// Retell agent webhook → owner SMS + pass-through to Everdoer.
 //
-// Retell allows one webhook URL per agent, and EmpireVu already needs the
+// Retell allows one webhook URL per agent, and Everdoer already needs the
 // call_analyzed event for its phone-lead intake. So the Care site takes the
 // webhook, texts Marcus, and forwards the exact raw request (body + signature
-// header untouched) to EmpireVu, whose own verifier still passes.
+// header untouched) to Everdoer, whose own verifier still passes.
 
-export const DEFAULT_FORWARD_URL = "https://api.empirevu.com/api/retell/webhook";
+export const DEFAULT_FORWARD_URL = "https://api.everdoer.com/api/retell/webhook";
 const TOLERANCE_MS = 5 * 60_000;
 
 export type RetellWebhookEvent = {
@@ -235,8 +235,8 @@ export async function notifyOwner(evt: RetellWebhookEvent): Promise<void> {
   else console.log("[Retell webhook] owner sms sent", { event: evt.event, callId: evt.call?.call_id, sid: res.sid });
 }
 
-/** Pass the exact request through to EmpireVu so its own Retell signature check still passes. */
-export async function forwardToEmpireVu(rawBody: string, signature: string | null): Promise<void> {
+/** Pass the exact request through to Everdoer so its own Retell signature check still passes. */
+export async function forwardToEverdoer(rawBody: string, signature: string | null): Promise<void> {
   const url = process.env.RETELL_FORWARD_WEBHOOK_URL?.trim() ?? DEFAULT_FORWARD_URL;
   if (!url || url === "off") return;
   try {

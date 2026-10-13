@@ -7,7 +7,7 @@ import { calculateShrinkWrapQuote, formatCents, type EngineType, type HullType }
 import { isPlaceholderEmail, placeholderEmailForPhone } from "./auth";
 
 // Marina's phone quote: the same pipeline as the website's instant quote
-// (lead_events row → quote lead → owner email → CRM/EmpireVu), priced by the
+// (lead_events row → quote lead → owner email → CRM/Everdoer), priced by the
 // same calculator, stamped as a phone lead. The quote id it returns is what
 // the booking + deposit tools take next.
 
