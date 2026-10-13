@@ -8,7 +8,7 @@ const db = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/db/prisma", () => ({ prisma: db }));
 
-import { exportForEmpireVu } from "../../scripts/export-for-empirevu";
+import { exportForEverdoer } from "../../scripts/export-for-everdoer";
 
 const now = new Date("2026-09-28T14:00:00Z");
 const oldQuote = {
@@ -39,9 +39,9 @@ beforeEach(() => {
     where.createdAt?.gte > payment.createdAt ? [] : [payment]);
 });
 
-describe("EmpireVu export", () => {
+describe("Everdoer export", () => {
   it("preserves an old paid deposit for an upcoming booking, with its actual amount", async () => {
-    const result = await exportForEmpireVu(now);
+    const result = await exportForEverdoer(now);
     expect(result.bookings[0].quoteId).toBe(oldQuote.id);
     expect(result.quotes[0]).toMatchObject({
       id: oldQuote.id, estimatedTotalCents: 67200,
@@ -55,7 +55,7 @@ describe("EmpireVu export", () => {
       ...payment, leadId: null,
       metadata: { quoteId: oldQuote.id, stripeSessionId: "cs_old" },
     }]);
-    const result = await exportForEmpireVu(now);
+    const result = await exportForEverdoer(now);
     expect(result.quotes[0].deposit?.amountCents).toBe(25000);
     expect(db.leadEvent.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
@@ -70,19 +70,19 @@ describe("EmpireVu export", () => {
 
   it("retains the first paid record when a payment was delivered twice", async () => {
     db.leadEvent.findMany.mockResolvedValue([payment, { ...payment, createdAt: now }]);
-    const result = await exportForEmpireVu(now);
+    const result = await exportForEverdoer(now);
     expect(result.quotes[0].deposit?.paidAt).toBe(payment.createdAt.toISOString());
     expect(db.leadEvent.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: "asc" } }));
   });
 
   it("exports an unpaid quote without inventing a deposit", async () => {
     db.leadEvent.findMany.mockResolvedValue([]);
-    expect((await exportForEmpireVu(now)).quotes[0].deposit).toBeNull();
+    expect((await exportForEverdoer(now)).quotes[0].deposit).toBeNull();
   });
 
   it("does not query unrelated payments when there are no quotes or bookings", async () => {
     db.bookingRequest.findMany.mockResolvedValue([]);
-    const result = await exportForEmpireVu(now);
+    const result = await exportForEverdoer(now);
     expect(result.quotes).toEqual([]);
     expect(result.bookings).toEqual([]);
     expect(db.leadEvent.findMany).not.toHaveBeenCalled();

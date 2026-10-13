@@ -1,9 +1,9 @@
 /**
- * A1 Marine Care → EmpireVu dual-send.
+ * A1 Marine Care → Everdoer dual-send.
  *
- * Additive: forwards the SAME lead to EmpireVu's canonical /api/intake in parallel
- * with the legacy-hub call in crm-webhook.ts. Best-effort — an EmpireVu outage costs
- * only EmpireVu's copy; the durable log + legacy hub are unaffected. Envelope shape is
+ * Additive: forwards the SAME lead to Everdoer's canonical /api/intake in parallel
+ * with the legacy-hub call in crm-webhook.ts. Best-effort — an Everdoer outage costs
+ * only Everdoer's copy; the durable log + legacy hub are unaffected. Envelope shape is
  * the shared contract (LEAD_SCHEMA.md); the golden fixtures pin this builder's output.
  *
  * This also fixes the historical defect where Care quote/booking leads carried no
@@ -89,39 +89,77 @@ export function buildCareEnvelope(input: CareLeadInput, receivedAt: string): Lea
   };
 }
 
-export function signEmpireVuBody(rawBody: string, secret: string): string {
+export function signEverdoerBody(rawBody: string, secret: string): string {
   return `sha256=${createHmac("sha256", secret).update(rawBody, "utf8").digest("hex")}`;
+}
+
+const warnedLegacyEnv = new Set<string>();
+
+/**
+ * Reads `EVERDOER_<name>`, then the pre-rebrand `EMPIREVU_<name>`. Rebrand shim (remove after one release once EVERDOER_* is set)
+ * The value is returned exactly as set (no trimming) so the HMAC secret is unchanged.
+ * Warns once per process per variable when the legacy name is the one in use.
+ */
+export function everdoerEnv(name: "INTAKE_URL" | "INTAKE_SECRET" | "INTAKE_DISABLED"): string | undefined {
+  const current = process.env[`EVERDOER_${name}`];
+  if (current) return current;
+  // Rebrand shim (remove after one release once EVERDOER_* is set)
+  const legacyName = `EMPIREVU_${name}`;
+  const legacy = process.env[legacyName];
+  if (legacy) {
+    if (!warnedLegacyEnv.has(legacyName)) {
+      warnedLegacyEnv.add(legacyName);
+      console.warn(`[everdoer] using legacy env ${legacyName}; set EVERDOER_${name}`);
+    }
+    return legacy;
+  }
+  return undefined;
+}
+
+/** Test hook: forget which legacy-env warnings were already logged. */
+export function resetLegacyEnvWarningsForTests(): void {
+  warnedLegacyEnv.clear();
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Fan out an envelope to EmpireVu's /api/intake. Never throws. Skips cleanly if
+ * Fan out an envelope to Everdoer's /api/intake. Never throws. Skips cleanly if
  * unconfigured or disabled — the legacy hub + durable log remain the source of truth.
  */
-export async function forwardToEmpireVu(envelope: LeadEnvelope, attempts = 3): Promise<void> {
-  if (process.env.EMPIREVU_INTAKE_DISABLED === "1") return;
-  const url = process.env.EMPIREVU_INTAKE_URL;
-  const secret = process.env.EMPIREVU_INTAKE_SECRET;
+export async function forwardToEverdoer(envelope: LeadEnvelope, attempts = 3): Promise<void> {
+  // Either name disables while the shim exists (same `=== "1"` truthiness as before), so a
+  // stale EVERDOER_INTAKE_DISABLED=0 can never override a deliberate legacy kill switch.
+  // Rebrand shim (remove after one release once EVERDOER_* is set)
+  if (process.env.EVERDOER_INTAKE_DISABLED === "1" || process.env.EMPIREVU_INTAKE_DISABLED === "1") return;
+  const url = everdoerEnv("INTAKE_URL");
+  const secret = everdoerEnv("INTAKE_SECRET");
   if (!url || !secret) {
-    console.log("[empirevu] EMPIREVU_INTAKE_URL/SECRET not set — skipping (legacy hub + durable log unaffected)");
+    console.log("[everdoer] EVERDOER_INTAKE_URL/SECRET not set — skipping (legacy hub + durable log unaffected)");
     return;
   }
   const rawBody = JSON.stringify(envelope);
-  const headers = { "Content-Type": "application/json", "x-empirevu-signature": signEmpireVuBody(rawBody, secret) };
+  const signature = signEverdoerBody(rawBody, secret);
+  const headers = {
+    "Content-Type": "application/json",
+    "x-everdoer-signature": signature,
+    // Rebrand shim (remove after one release once EVERDOER_* is set): also send the old header name
+    // with the identical value so intake never depends on the platform's new-header support.
+    "x-empirevu-signature": signature,
+  };
 
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       const res = await fetch(url, { method: "POST", headers, body: rawBody });
       if (res.ok) {
-        console.log(`[empirevu] forwarded ${envelope.formType} (attempt ${attempt}, ${res.status})`);
+        console.log(`[everdoer] forwarded ${envelope.formType} (attempt ${attempt}, ${res.status})`);
         return;
       }
-      console.error(`[empirevu] responded ${res.status} (attempt ${attempt})`);
+      console.error(`[everdoer] responded ${res.status} (attempt ${attempt})`);
     } catch (err) {
-      console.error(`[empirevu] forward failed (attempt ${attempt}):`, err instanceof Error ? err.message : String(err));
+      console.error(`[everdoer] forward failed (attempt ${attempt}):`, err instanceof Error ? err.message : String(err));
     }
     if (attempt < attempts) await sleep(attempt * 750);
   }
-  console.error(`[empirevu] gave up after ${attempts} attempts — legacy hub + durable log still hold the lead`);
+  console.error(`[everdoer] gave up after ${attempts} attempts — legacy hub + durable log still hold the lead`);
 }

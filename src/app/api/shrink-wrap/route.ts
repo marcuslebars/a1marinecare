@@ -30,7 +30,7 @@ function row(label: string, value: string) {
  *
  * Same pipeline as the detailing quote: durable lead_events row → quote lead
  * (so /booking?quoteId= can pick it up) → notification email → CRM webhook +
- * EmpireVu envelope. The price is recomputed here; the client's number is only
+ * Everdoer envelope. The price is recomputed here; the client's number is only
  * ever shown back to the customer, never trusted.
  */
 export async function POST(request: Request) {

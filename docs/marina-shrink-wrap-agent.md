@@ -6,12 +6,12 @@ Everything she can *do* lives on this site under `/api/retell/functions/*`. Rete
 
 ```
 Caller → 705-996-1010 (Bell, *72 forwarded) → Retell number → Marina
-   quote_shrink_wrap ──▶ POST /api/retell/functions/quote          (lead_events + quote_leads + owner email + EmpireVu)
+   quote_shrink_wrap ──▶ POST /api/retell/functions/quote          (lead_events + quote_leads + owner email + Everdoer)
    check_availability ──▶ POST /api/retell/functions/availability   (2 wraps per half-day, Mon–Sat, 24h notice)
-   book_wrap_date ──────▶ POST /api/retell/functions/book           (booking_requests + Google Calendar event + owner email + EmpireVu)
+   book_wrap_date ──────▶ POST /api/retell/functions/book           (booking_requests + Google Calendar event + owner email + Everdoer)
    send_deposit_link ───▶ POST /api/retell/functions/deposit-link   (Stripe Checkout → SMS via Twilio + email via Resend)
    transfer_call ───────▶ Marcus's cell (warm transfer)
-   post-call ───────────▶ EmpireVu /api/retell/webhook (call_analyzed → phone lead + transcript)
+   post-call ───────────▶ Everdoer /api/retell/webhook (call_analyzed → phone lead + transcript)
 ```
 
 ---
@@ -21,11 +21,11 @@ Caller → 705-996-1010 (Bell, *72 forwarded) → Retell number → Marina
 | Variable | Value | Notes |
 | --- | --- | --- |
 | `RETELL_FUNCTION_SECRET` | 32+ random chars (`openssl rand -hex 24`) | Same value goes in every custom function's `x-a1-retell-secret` header in Retell. Endpoints return 503 until it's set. |
-| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM_NUMBER` | copy from the EmpireVu service | Texts the deposit link. Without them Marina emails the link instead (only if the caller gave an email). |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM_NUMBER` | copy from the Everdoer service | Texts the deposit link. Without them Marina emails the link instead (only if the caller gave an email). |
 | `SHRINK_WRAP_CAPACITY_PER_WINDOW` | `2` (default) | Wraps Marina may book per morning / per afternoon. |
 | `SHRINK_WRAP_LEAD_TIME_HOURS` | `24` (default) | Soonest she'll offer. |
 
-Already set and reused as-is: `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `GOOGLE_*` (calendar), `DATABASE_URL`, `EMPIREVU_INTAKE_*`.
+Already set and reused as-is: `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `GOOGLE_*` (calendar), `DATABASE_URL`, `EVERDOER_INTAKE_*`.
 
 ---
 
@@ -35,7 +35,7 @@ Already set and reused as-is: `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `GOOGLE_*` 
 **Type:** Single prompt · **LLM:** Claude Sonnet (or GPT-4.1) · **Voice:** the same voice as the Storage agent
 **Begin message:** `{{greeting}}` — the site fills this per call (section 8): a returning caller is greeted by name and boat, a new caller hears "Thanks for calling A1 Marine Care, this is Marina. Are you calling about shrink wrapping, or something else?"
 **Interruption sensitivity:** 0.7 · **Responsiveness:** 0.8 · **Backchannel:** on · **Ambient sound:** off
-**Post-call webhook:** `https://api.empirevu.com/api/retell/webhook` (event `call_analyzed`)
+**Post-call webhook:** `https://api.everdoer.com/api/retell/webhook` (event `call_analyzed`)
 **Max call duration:** 15 min · **End call after silence:** 20 s
 **Timezone:** America/Toronto
 
@@ -117,7 +117,7 @@ If quote_shrink_wrap, check_availability, book_wrap_date or send_deposit_link co
 If you reach a voicemail or hear nothing for a while, say: "This is Marina from A1 Marine Care returning your call — reach us any time at seven oh five, nine nine six, ten ten." Then end the call.
 ```
 
-### Post-call analysis (agent → Post-Call Analysis) — exact names, EmpireVu maps these
+### Post-call analysis (agent → Post-Call Analysis) — exact names, Everdoer maps these
 
 | Field | Type | Prompt |
 | --- | --- | --- |
@@ -257,7 +257,7 @@ To take calls yourself for a while: `*73`. Marina keeps working on her direct nu
    ```
 3. Build the agent (section 2–3), buy the number, call it directly from your cell **before** forwarding:
    - "Twenty-four foot bowrider in my driveway in Midland, no winterization" → she reads a $672 + HST total (24 × $28), offers dates, books one, you get the text with the Stripe link.
-   - Check: Google Calendar has the event, the owner email arrived, the lead is in EmpireVu, Stripe shows a session.
+   - Check: Google Calendar has the event, the owner email arrived, the lead is in Everdoer, Stripe shows a session.
    - Say "can I talk to Marcus" → warm transfer rings your cell with her whisper.
 4. Delete the test booking (`booking_requests`) or leave it and cancel — it counts against that half-day's capacity of 2 until its status is `cancelled`.
 5. `*72` the business line. Call it from another phone. Done.
@@ -266,7 +266,7 @@ To take calls yourself for a while: `*73`. Marina keeps working on her direct nu
 
 ## 6. Known limits (fine for this season)
 
-- EmpireVu's post-call webhook still files every Retell call under the Storage brand (`RETELL_SOURCE_SITE`); Care calls land there until the per-agent registry ships. The Care site's own lead pipeline (email, `lead_events`, EmpireVu envelope tagged `a1marinecare-shrink-wrap`) is unaffected.
+- Everdoer's post-call webhook still files every Retell call under the Storage brand (`RETELL_SOURCE_SITE`); Care calls land there until the per-agent registry ships. The Care site's own lead pipeline (email, `lead_events`, Everdoer envelope tagged `a1marinecare-shrink-wrap`) is unaffected.
 - Availability counts bookings in this site's database only; jobs added by hand straight into Google Calendar aren't seen. Add them through `/booking` or bump `SHRINK_WRAP_CAPACITY_PER_WINDOW` down for that day.
 - The deposit link expires 30 min after Marina sends it (Stripe session). The success page and website already handle a fresh link from `/shrink-wrapping`.
 - Marina books requests; the website's booking flow does the same. Nothing here auto-confirms times — Marcus's day-before text is the confirmation.
@@ -275,24 +275,24 @@ To take calls yourself for a while: `*73`. Marina keeps working on her direct nu
 
 ## 7. Text Marcus on every call
 
-`POST /api/retell/webhook` is the Care agent's webhook receiver. It verifies Retell's `x-retell-signature`, ACKs at once, then texts the owner and forwards the untouched event to EmpireVu (so EmpireVu's phone-lead intake keeps working — an agent can only have one webhook URL).
+`POST /api/retell/webhook` is the Care agent's webhook receiver. It verifies Retell's `x-retell-signature`, ACKs at once, then texts the owner and forwards the untouched event to Everdoer (so Everdoer's phone-lead intake keeps working — an agent can only have one webhook URL).
 
 **Texts you get** (from the Twilio number, to `OWNER_SMS_NUMBER`):
 - `call_started` → `📞 Marina answering a call from 705-555-1234 (2:14pm).`
 - `call_analyzed` → who / boat / services, what she actually did (quoted amount and booked window come from this site's database, not the LLM), whether the deposit link went out, whether it was transferred, urgent flag, and Retell's one-paragraph summary.
 
-Outbound calls Marina places from EmpireVu are ignored — only inbound.
+Outbound calls Marina places from Everdoer are ignored — only inbound.
 
 **Railway (Care service):**
 
 | Variable | Value |
 | --- | --- |
-| `RETELL_API_KEY` | Retell dashboard → Settings → API Keys (the same key EmpireVu uses; it's also the webhook signing secret) |
+| `RETELL_API_KEY` | Retell dashboard → Settings → API Keys (the same key Everdoer uses; it's also the webhook signing secret) |
 | `OWNER_SMS_NUMBER` | your personal cell, E.164 |
 | `OWNER_SMS_EVENTS` | `call_started,call_analyzed` (default). Set to `call_analyzed` for one text per call instead of two. |
-| `RETELL_FORWARD_WEBHOOK_URL` | leave unset (defaults to EmpireVu). `off` disables forwarding. |
+| `RETELL_FORWARD_WEBHOOK_URL` | leave unset (defaults to Everdoer). `off` disables forwarding. |
 
-**Retell:** on the Care agent, set the **Webhook URL** to `https://a1marinecare.ca/api/retell/webhook` (replacing the EmpireVu URL — the site forwards to it). Enable events `call_started`, `call_ended`, `call_analyzed`.
+**Retell:** on the Care agent, set the **Webhook URL** to `https://a1marinecare.ca/api/retell/webhook` (replacing the Everdoer URL — the site forwards to it). Enable events `call_started`, `call_ended`, `call_analyzed`.
 
 Verify: call the line, hang up. You should get the "answering" text within seconds and the summary text about a minute after hanging up (Retell runs analysis first). Railway logs show `[Retell webhook] call_analyzed <call_id>` and `owner sms sent`.
 
@@ -401,7 +401,7 @@ Every text Marina sends says "reply here". `POST /api/sms/inbound` is the Twilio
 - Logs a `customer-sms` lead_event (message, quote id, relayed/acked flags, `callQueued` / `callSkipped`).
 - STOP / START / HELP and their variants are left to Twilio's built-in opt-out handling; texts from `OWNER_SMS_NUMBER` are ignored.
 
-**One-time setup (Twilio console):** Phone Numbers → Active numbers → the `TWILIO_FROM_NUMBER` → Messaging Configuration → "A message comes in": **Webhook**, `https://www.a1marinecare.ca/api/sms/inbound`, **HTTP POST**. Save. If that field already has a URL (EmpireVu?), note it before replacing — this number is shared. Test: text the number from your phone; you get the 💬 relay within a few seconds and your phone gets the ack.
+**One-time setup (Twilio console):** Phone Numbers → Active numbers → the `TWILIO_FROM_NUMBER` → Messaging Configuration → "A message comes in": **Webhook**, `https://www.a1marinecare.ca/api/sms/inbound`, **HTTP POST**. Save. If that field already has a URL (Everdoer?), note it before replacing — this number is shared. Test: text the number from your phone; you get the 💬 relay within a few seconds and your phone gets the ack.
 
 ---
 

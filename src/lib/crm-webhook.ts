@@ -7,7 +7,7 @@
  * and a failure here never breaks the user-facing flow.
  */
 
-import { buildCareEnvelope, forwardToEmpireVu } from "./empirevu";
+import { buildCareEnvelope, forwardToEverdoer } from "./everdoer";
 
 const CRM_WEBHOOK_BASE = process.env.CRM_WEBHOOK_URL ?? "https://leads.a1marinecare.ca";
 const CRM_WEBHOOK_SECRET = process.env.CRM_WEBHOOK_SECRET ?? "";
@@ -50,7 +50,7 @@ type QuoteWebhookPayload = {
   notes?: string;
   /** Overrides the derived `a1marinecare-quote` tag (e.g. shrink-wrap leads). */
   leadTag?: string;
-  /** utm_* pairs captured on the landing page, for ad attribution in EmpireVu. */
+  /** utm_* pairs captured on the landing page, for ad attribution in Everdoer. */
   utm?: Record<string, string>;
 };
 
@@ -61,11 +61,11 @@ type CrmWebhookPayload = ContactWebhookPayload | BookingWebhookPayload | QuoteWe
  * This is fire-and-forget — errors are logged but never thrown.
  */
 export function sendToCrm(payload: CrmWebhookPayload): void {
-  // Additive dual-send: the SAME lead to EmpireVu's canonical intake, best-effort
-  // and independent of the legacy webhook below. Env-gated (EMPIREVU_INTAKE_URL /
-  // EMPIREVU_INTAKE_SECRET) — a no-op until configured; an EmpireVu outage never
+  // Additive dual-send: the SAME lead to Everdoer's canonical intake, best-effort
+  // and independent of the legacy webhook below. Env-gated (EVERDOER_INTAKE_URL /
+  // EVERDOER_INTAKE_SECRET) — a no-op until configured; an Everdoer outage never
   // affects the legacy delivery.
-  void forwardToEmpireVu(buildCareEnvelope(payload, new Date().toISOString()));
+  void forwardToEverdoer(buildCareEnvelope(payload, new Date().toISOString()));
 
   const endpoint = `${CRM_WEBHOOK_BASE}/api/webhook/${payload.source}`;
 

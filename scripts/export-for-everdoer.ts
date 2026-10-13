@@ -1,8 +1,8 @@
 /**
- * Export what EmpireVu needs to take over Marina's calendar — READ-ONLY.
+ * Export what Everdoer needs to take over Marina's calendar — READ-ONLY.
  *
- *   DATABASE_URL=… npx tsx scripts/export-for-empirevu.ts > a1-care-export.json
- *   (or on Railway: railway run npx tsx scripts/export-for-empirevu.ts > a1-care-export.json)
+ *   DATABASE_URL=… npx tsx scripts/export-for-everdoer.ts > a1-care-export.json
+ *   (or on Railway: railway run npx tsx scripts/export-for-everdoer.ts > a1-care-export.json)
  *
  * Writes one JSON document to stdout:
  *   • bookings  — every booking_requests row dated today or later that isn't cancelled
@@ -11,7 +11,7 @@
  *                 future booking points at, each with its paid-deposit record if any
  *
  * Nothing is written to this database. The file contains customer names, phones and
- * emails: import it into EmpireVu (`npm run job:import-a1-care -- --file …`), then delete it.
+ * emails: import it into Everdoer (`npm run job:import-a1-care -- --file …`), then delete it.
  *
  * Options: --days 45   how far back to take quotes
  */
@@ -32,7 +32,7 @@ function obj(v: unknown): Record<string, unknown> {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
 }
 
-export async function exportForEmpireVu(now = new Date(), days = 45) {
+export async function exportForEverdoer(now = new Date(), days = 45) {
   const since = new Date(now.getTime() - days * 86_400_000);
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(now);
 
@@ -129,7 +129,7 @@ export async function exportForEmpireVu(now = new Date(), days = 45) {
 
 async function main(): Promise<void> {
   const days = Math.max(1, Number(arg("days", "45")) || 45);
-  const out = await exportForEmpireVu(new Date(), days);
+  const out = await exportForEverdoer(new Date(), days);
   process.stdout.write(`${JSON.stringify(out, null, 2)}\n`);
   console.error(
     `[export] ${out.quotes.length} quotes (${out.quotes.filter((q) => q.deposit).length} with a paid deposit), ` +
