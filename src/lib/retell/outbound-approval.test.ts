@@ -94,6 +94,9 @@ beforeEach(() => {
   vi.stubEnv("RETELL_FROM_NUMBER", "+14314304558");
   vi.stubEnv("OUTBOUND_OWNER_APPROVAL", "");
   vi.stubEnv("OUTBOUND_DEDUPE_HOURS", "0");
+  vi.stubEnv("TWILIO_ACCOUNT_SID", "AC1");
+  vi.stubEnv("TWILIO_AUTH_TOKEN", "tok");
+  vi.stubEnv("TWILIO_FROM_NUMBER", "+17059961010");
   vi.stubGlobal("fetch", async (_url: string, init: { body: string }) => {
     retellCalls.push(JSON.parse(init.body) as Record<string, unknown>);
     return new Response(JSON.stringify({ call_id: `call_${retellCalls.length}` }), { status: 201 });
@@ -174,21 +177,79 @@ describe("owner approval: the flow", () => {
     const { queueOutboundCall } = await import("./outbound");
     const { handleOwnerReply } = await import("./outbound-approval");
     await queueOutboundCall({ to: "705-555-0199", name: "Dana Lee", reason: "contact", detail: "Detailing" }, MORNING);
-    expect(await handleOwnerReply("n", MORNING)).toEqual({ handled: true, reply: "OK - Marina won't call Dana." });
+    expect(await handleOwnerReply(`N ${codeOf(store[0])}`, MORNING)).toEqual({ handled: true, reply: "OK - Marina won't call Dana." });
     expect(store[0].metadata).toMatchObject({ status: "skipped", skipReason: "Marcus said no" });
     expect(retellCalls).toHaveLength(0);
   });
 
-  it("a bare Y with two leads waiting asks which one", async () => {
+  it("a reply without the number never decides a lead, even with only one waiting", async () => {
     const { queueOutboundCall } = await import("./outbound");
     const { handleOwnerReply } = await import("./outbound-approval");
     await queueOutboundCall({ to: "416-555-0101", name: "Chris Smith", reason: "shrink-wrap-quote", quoteId: "q1" }, MORNING);
+    // "ok" / "sure" / "no worries" back in the thread: not ours, nothing changes, no reply.
+    for (const text of ["ok", "Ok.", "sure", "thanks", "call", "skip"]) expect(await handleOwnerReply(text, MORNING)).toEqual({ handled: false });
+    // A yes/no that looks aimed at us gets told how to answer.
+    for (const text of ["Y", "no", "yes call him", "N34 Y35"]) {
+      const res = await handleOwnerReply(text, MORNING);
+      expect(res.reply).toBe(`Waiting for your OK: #${codeOf(store[0])} Chris. Reply Y or N with the number, like Y ${codeOf(store[0])}.`);
+    }
     await queueOutboundCall({ to: "705-555-0199", name: "Dana Lee", reason: "contact" }, MORNING);
     expect(codeOf(store[0])).not.toBe(codeOf(store[1]));
-    const res = await handleOwnerReply("yes", MORNING);
-    expect(res.reply).toContain(`#${codeOf(store[0])} Chris · #${codeOf(store[1])} Dana`);
+    expect((await handleOwnerReply("yes", MORNING)).reply).toContain(`#${codeOf(store[0])} Chris · #${codeOf(store[1])} Dana`);
     expect(store.every((r) => r.metadata.status === "awaiting_approval")).toBe(true);
     expect(retellCalls).toHaveLength(0);
+    // Nothing waiting: a stray "Y" is left alone.
+    store.length = 0;
+    expect(await handleOwnerReply("Y", MORNING)).toEqual({ handled: false });
+  });
+
+  it("an answered or expired code isn't handed out again for 7 days", async () => {
+    const { queueOutboundCall } = await import("./outbound");
+    const { handleOwnerReply, takenApprovalCodes } = await import("./outbound-approval");
+    await queueOutboundCall({ to: "705-555-0199", name: "Dana Lee", reason: "contact" }, MORNING);
+    const code = codeOf(store[0]);
+    await handleOwnerReply(`N ${code}`, MORNING);
+    expect(await takenApprovalCodes(MORNING)).toContain(code);
+    expect(await takenApprovalCodes(new Date(MORNING.getTime() + 8 * 86_400_000))).not.toContain(code);
+  });
+
+  it("a customer who texts asking for a call drops their waiting lead, so a later Y can't call twice", async () => {
+    const { queueOutboundCall } = await import("./outbound");
+    const { handleOwnerReply } = await import("./outbound-approval");
+    vi.stubEnv("OUTBOUND_DEDUPE_HOURS", "24");
+    await queueOutboundCall({ to: "416-555-0101", name: "Chris Smith", reason: "shrink-wrap-quote", quoteId: "q1" }, MORNING);
+    const code = codeOf(store[0]);
+    // Their text isn't blocked by the waiting lead (it was never a call).
+    const res = await queueOutboundCall({ to: "416-555-0101", name: "Chris Smith", reason: "sms-reply", detail: "when can you come?", dedupeHours: 1 }, MORNING);
+    expect(res.queued).toBe(true);
+    expect(store[0].metadata).toMatchObject({ status: "skipped", skipReason: "they texted asking for a call" });
+    expect((await handleOwnerReply(`Y ${code}`, MORNING)).reply).toMatch(/isn't waiting any more/);
+  });
+
+  it("a number called in the last hour isn't called again, and one queued call is only ever placed once", async () => {
+    const { queueOutboundCall, placeQueuedCall } = await import("./outbound");
+    vi.stubEnv("OUTBOUND_OWNER_APPROVAL", "0");
+    await queueOutboundCall({ to: "416-555-0101", name: "Chris Smith", reason: "contact" }, MORNING);
+    const at = new Date(MORNING.getTime() + 3 * 60_000);
+    const both = await Promise.all([placeQueuedCall(store[0].id, at), placeQueuedCall(store[0].id, at)]);
+    expect(both.filter((r) => r.placed)).toHaveLength(1);
+    expect(retellCalls).toHaveLength(1);
+    await queueOutboundCall({ to: "416-555-0101", name: "Chris Smith", reason: "contact" }, at);
+    expect(await placeQueuedCall(store[1].id, new Date(at.getTime() + 10 * 60_000))).toEqual({ placed: false, reason: "called them in the last hour" });
+    expect(store[1].metadata).toMatchObject({ status: "skipped" });
+    expect(retellCalls).toHaveLength(1);
+  });
+
+  it("the follow-ups dry run reports waiting leads without touching them", async () => {
+    const { queueOutboundCall, runOutboundQueue } = await import("./outbound");
+    await queueOutboundCall({ to: "416-555-0101", name: "Chris Smith", reason: "shrink-wrap-quote", quoteId: "q1" }, MORNING);
+    const dry = await runOutboundQueue(new Date(MORNING.getTime() + 25 * 3_600_000), { dryRun: true });
+    expect(dry.skipped.join(" ")).not.toContain("waiting"); // past 24 h it's no longer "waiting"
+    expect((await runOutboundQueue(MORNING, { dryRun: true })).skipped).toContain("outbound: 1 lead(s) waiting for Marcus's OK");
+    expect(store[0].metadata.status).toBe("awaiting_approval");
+    const real = await runOutboundQueue(new Date(MORNING.getTime() + 25 * 3_600_000));
+    expect(real.skipped.join(" ")).toContain("1 lead(s) dropped");
+    expect(store[0].metadata.status).toBe("skipped");
   });
 
   it("approved outside calling hours: Marina calls at 9:00 the next morning", async () => {
@@ -198,6 +259,7 @@ describe("owner approval: the flow", () => {
     const res = await handleOwnerReply(`y ${codeOf(store[0])}`, NIGHT);
     expect(res.reply).toBe("OK - Marina will call Chris at 9:00 am tomorrow (calls go out 9am-8pm).");
     expect(store[0].metadata).toMatchObject({ status: "queued", dueAt: "2026-11-03T14:00:00.000Z" });
+    expect(vi.getTimerCount()).toBe(1); // armed for 9:00
     expect(retellCalls).toHaveLength(0);
   });
 
@@ -229,14 +291,17 @@ describe("owner approval: the flow", () => {
     expect(retellCalls).toHaveLength(1);
   });
 
-  it("OUTBOUND_OWNER_APPROVAL=0 (or no owner number) calls web leads on their own, as before", async () => {
+  it("OUTBOUND_OWNER_APPROVAL=0, no owner number, or no Twilio: web leads are called on their own, as before", async () => {
     const { queueOutboundCall } = await import("./outbound");
     vi.stubEnv("OUTBOUND_OWNER_APPROVAL", "0");
     await queueOutboundCall({ to: "416-555-0101", name: "Chris Smith", reason: "shrink-wrap-quote", quoteId: "q1" }, MORNING);
     vi.stubEnv("OUTBOUND_OWNER_APPROVAL", "");
     vi.stubEnv("OWNER_SMS_NUMBER", "");
     await queueOutboundCall({ to: "705-555-0199", name: "Dana Lee", reason: "contact" }, MORNING);
-    expect(store.map((r) => r.metadata.status)).toEqual(["queued", "queued"]);
+    vi.stubEnv("OWNER_SMS_NUMBER", OWNER);
+    vi.stubEnv("TWILIO_AUTH_TOKEN", "");
+    await queueOutboundCall({ to: "705-555-0123", name: "Sam Roy", reason: "contact" }, MORNING);
+    expect(store.map((r) => r.metadata.status)).toEqual(["queued", "queued", "queued"]);
     expect(sms).toHaveLength(0);
   });
 

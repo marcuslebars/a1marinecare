@@ -416,11 +416,12 @@ Two minutes after someone submits the shrink-wrap quote form or the contact form
 
 - **Y 42** → Marina calls now (you get "Calling Chris now."). Outside 9am–8pm the call waits for 9:00 ("OK - Marina will call Chris at 9:00 am tomorrow").
 - **N 42** → no call ("OK - Marina won't call Chris.").
-- A bare **Y** / **N** works when only one lead is waiting; with several, you're asked which one. Words like "call", "ok", "skip" work too. Anything else you text the line is ignored as before.
+- **Always include the number.** You get other texts from this line too, so a plain "ok" or "no" never decides a lead. A Y/N without a number gets a reminder listing what's waiting. "Yes 42", "call 42", "skip 42" work too. Anything else you text the line is ignored as before.
+- A number isn't reused for 7 days, so answering an old text can't hit a newer lead.
 - No reply within 24 h → the lead is dropped, never called.
 - The texts go out 8am–9pm. A lead that comes in overnight is texted at the first follow-ups run after 8:00.
-- A customer who **texted back asking for a call** is still called right away: they asked for it.
-- `OUTBOUND_OWNER_APPROVAL=0` turns approval off (web leads are called on their own again). Without `OWNER_SMS_NUMBER` there's nobody to ask, so calls go out on their own.
+- A customer who **texted back asking for a call** is still called right away (they asked for it), and their lead waiting for you is dropped so your later Y can't call them twice. A number Marina called in the last hour is never called again.
+- `OUTBOUND_OWNER_APPROVAL=0` turns approval off (web leads are called on their own again). Without `OWNER_SMS_NUMBER` (or Twilio) there's nobody to ask, so calls go out on their own.
 - Code: `src/lib/retell/outbound-approval.ts`. The queue row waits in `metadata.status = "awaiting_approval"` with `approvalCode`; your reply arrives on `/api/sms/inbound`.
 
 **Rules**
@@ -429,7 +430,7 @@ Two minutes after someone submits the shrink-wrap quote form or the contact form
 - At call time it re-checks: skipped if the quote needs your manual review, if they've already booked *and* paid (quote chases only), or if the number isn't dialable. One number is never called twice in 24 h (`OUTBOUND_DEDUPE_HOURS`; set `0` while testing with your own number). Every skipped call is logged as `[outbound] not queued: <reason>`.
 - No answer / voicemail → one text: *"Hi Dana, Marina from A1 Marine Care — just tried to call about your shrink wrap quote — the deposit and booking links are in your email. Reply here or call 705-996-1010 and I'll sort it out."*
 - You get one 📤 text per outbound call (who, boat, quote, booked/deposit, or "no answer" / "voicemail left"). The digest shows "(N Marina placed)" in the calls count.
-- Queue = `lead_events` rows with `leadType = "marina-outbound"` (`metadata.status`: awaiting_approval → queued → placed → done | skipped | failed). Calls are placed by an in-process timer (armed for anything due within 14 h, so an overnight lead is called at 9:00 sharp); the follow-ups workflow (every 20 min) is the safety net if a deploy lost the timer (`GET /api/retell/followups` dry run lists due calls under `called`).
+- Queue = `lead_events` rows with `leadType = "marina-outbound"` (`metadata.status`: awaiting_approval → queued → placing → placed → done | skipped | failed). Calls are placed by an in-process timer (armed for anything due within 14 h, so an overnight lead is called at 9:00 sharp); the follow-ups workflow (every 20 min) is the safety net if a deploy lost the timer (`GET /api/retell/followups` dry run lists due calls under `called`).
 - "Missed" covers no-answer, busy, voicemail, and call-screening services ("record your name and reason for calling…") — Retell reports those as `agent_hangup`, so the transcript/summary is checked too. Missed calls get the one text.
 
 **Railway vars (new):** `RETELL_AGENT_ID` (the Care agent's id, from the agent page URL or Retell → Agents), `RETELL_FROM_NUMBER` (Marina's number in E.164, e.g. `+1705…`). Leave either unset and no outbound calls are placed. Optional `OUTBOUND_CALL_DELAY_MINUTES`.

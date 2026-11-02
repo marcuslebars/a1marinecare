@@ -5,8 +5,9 @@ import { isMissingTableError } from "@/lib/lead-events";
 
 import { prettyPhone } from "./auth";
 import { lookupCallerByPhone } from "./caller-lookup";
-import { sendSms } from "./deposit-link";
+import { isSmsConfigured, sendSms } from "./deposit-link";
 import { inWindow } from "./followups";
+import { addDays } from "./slots";
 import type { OutboundReason } from "./outbound";
 import { ownerSmsNumber } from "./webhook";
 
@@ -19,19 +20,27 @@ import { ownerSmsNumber } from "./webhook";
 //   "N 12" → skipped
 //   no reply within 24 h → skipped
 //
-// A customer who texted back asking for a call (reason "sms-reply") is still
-// called straight away: they asked for it. OUTBOUND_OWNER_APPROVAL=0 turns the
-// approval step off; without OWNER_SMS_NUMBER there is nobody to ask, so calls
-// go out on their own as before.
+// The number is required: the owner gets other texts from this line (customer
+// relays, call notices, "Calling Chris now."), so a bare "ok" or "no" never
+// decides a lead. A code isn't reused for 7 days, so a late reply to an old text
+// can't land on a newer lead.
 //
-// ./outbound is imported lazily inside the functions that need it: it imports
-// this file, and a static import back would be a cycle.
+// A customer who texted back asking for a call (reason "sms-reply") is still
+// called straight away: they asked for it, and any web lead of theirs still
+// waiting is dropped (dropWaitingFor). OUTBOUND_OWNER_APPROVAL=0 turns the
+// approval step off; without OWNER_SMS_NUMBER there is nobody to ask, so calls
+// go out on their own as before (likewise when Twilio sending isn't configured).
+//
+// ./outbound is imported lazily where its values are needed, so this module can
+// load without it (it imports this file).
 
 export const AWAITING_APPROVAL = "awaiting_approval";
 /** Approval texts go out 8:00–21:00 Toronto; one that comes in overnight waits for the 8:00 run. */
 export const APPROVAL_TEXT_HOURS: [number, number] = [8, 21];
 /** A lead Marcus hasn't answered about in this long is dropped (never called). */
 export const APPROVAL_EXPIRY_HOURS = 24;
+/** A code isn't handed out again for this long. */
+export const CODE_REUSE_DAYS = 7;
 
 type QueueRow = { id: string; phone: string; customerName: string; createdAt: Date; metadata: Prisma.JsonValue };
 
@@ -49,7 +58,7 @@ export function needsOwnerApproval(reason: OutboundReason): boolean {
   if (reason === "sms-reply") return false;
   const flag = process.env.OUTBOUND_OWNER_APPROVAL?.trim().toLowerCase();
   if (flag === "0" || flag === "off" || flag === "false" || flag === "no") return false;
-  return Boolean(ownerSmsNumber());
+  return Boolean(ownerSmsNumber()) && isSmsConfigured();
 }
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
@@ -61,8 +70,9 @@ const NO_WORDS = new Set(["n", "no", "nope", "nah", "skip", "pass"]);
 
 /**
  * Marcus's reply → a decision, or null when it isn't one. Only a bare word with an
- * optional code counts ("Y", "yes 12", "N #12", "call 12."), so a sentence that
- * happens to start with "ok" or "no" is never read as an answer.
+ * optional code counts ("Y 12", "yes 12", "N #12", "call 12."), so a sentence that
+ * happens to start with "ok" or "no" is never read as an answer. A decision without
+ * a code doesn't decide anything (handleOwnerReply asks for the number).
  */
 export function parseOwnerDecision(body: string | null | undefined): OwnerDecision | null {
   const m = /^\s*([a-z]+)\s*#?\s*(\d{1,3})?\s*[.!]*\s*$/i.exec(body ?? "");
@@ -110,8 +120,8 @@ export function approvalRequestText(input: {
 export function callTimeLabel(dueAt: Date, now: Date): string {
   const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
   const time = new Intl.DateTimeFormat("en-US", { timeZone: "America/Toronto", hour: "numeric", minute: "2-digit" }).format(dueAt).toLowerCase();
-  const tomorrow = new Date(now.getTime() + 86_400_000);
-  const when = day(dueAt) === day(now) ? "today" : day(dueAt) === day(tomorrow) ? "tomorrow" : `on ${day(dueAt)}`;
+  const today = day(now);
+  const when = day(dueAt) === today ? "today" : day(dueAt) === addDays(today, 1) ? "tomorrow" : `on ${day(dueAt)}`;
   return `at ${time} ${when}`;
 }
 
@@ -136,10 +146,36 @@ async function awaitingRows(now: Date): Promise<QueueRow[]> {
   });
 }
 
-/** Codes in use by leads still waiting (for pickApprovalCode). */
+/** Codes handed out in the last CODE_REUSE_DAYS, answered or not (for pickApprovalCode). */
 export async function takenApprovalCodes(now: Date): Promise<number[]> {
-  const rows = await awaitingRows(now);
+  const rows = await prisma.leadEvent.findMany({
+    where: { leadType: await leadType(), createdAt: { gte: new Date(now.getTime() - CODE_REUSE_DAYS * 86_400_000) } },
+    select: { metadata: true },
+    take: 500,
+  });
   return rows.map((r) => meta(r.metadata).approvalCode).filter((c): c is number => typeof c === "number");
+}
+
+/** How many leads are waiting for Marcus (the follow-ups dry run reports it). */
+export async function waitingCount(now = new Date()): Promise<number> {
+  return (await awaitingRows(now)).filter((r) => !isExpired(r, now)).length;
+}
+
+/**
+ * The customer asked for a call themselves (a text back): drop any web lead of
+ * theirs still waiting for Marcus, so his later Y can't call them a second time.
+ */
+export async function dropWaitingFor(phone: string, now = new Date()): Promise<number> {
+  let dropped = 0;
+  try {
+    for (const row of await awaitingRows(now)) {
+      if (row.phone !== phone) continue;
+      if (await claim(row, { status: "skipped", skipReason: "they texted asking for a call", skippedAt: now.toISOString() })) dropped += 1;
+    }
+  } catch (err) {
+    if (!isMissingTableError(err)) console.error("[outbound approval] drop failed:", err instanceof Error ? err.message : String(err));
+  }
+  return dropped;
 }
 
 /**
@@ -186,9 +222,12 @@ export async function sendApprovalRequest(id: string, now = new Date()): Promise
       console.error("[outbound approval] text to owner failed:", sms.error);
       return false;
     }
-    // Record the send on the row as it is now (it may have been answered meanwhile — keep that).
+    // Record the send only while it's still waiting (never write over a decision made meanwhile).
     const fresh = await prisma.leadEvent.findUnique({ where: { id }, select: { metadata: true } });
-    await prisma.leadEvent.update({ where: { id }, data: { metadata: { ...meta(fresh?.metadata ?? row.metadata), approvalTextAt: now.toISOString() } as Prisma.InputJsonValue } });
+    await prisma.leadEvent.updateMany({
+      where: { id, metadata: { path: ["status"], equals: AWAITING_APPROVAL } },
+      data: { metadata: { ...meta(fresh?.metadata ?? row.metadata), approvalTextAt: now.toISOString() } as Prisma.InputJsonValue },
+    });
     return true;
   } catch (err) {
     if (!isMissingTableError(err)) console.error("[outbound approval] request failed:", err instanceof Error ? err.message : String(err));
@@ -223,37 +262,38 @@ export type OwnerReplyResult = { handled: boolean; reply?: string };
  * A text from Marcus to the Twilio line. If it's a Y/N answer, decide the lead it
  * points at and return what to text back; anything else isn't ours (handled:false).
  */
+/** Starts like a yes/no to us but has no usable number ("Y", "yes call him", "N34 Y35"). */
+const ATTEMPT_RE = /^\s*(y|yes|yep|yeah|n|no|nope)\b|^\s*[yn]\d/i;
+
 export async function handleOwnerReply(body: string, now = new Date()): Promise<OwnerReplyResult> {
+  if (!process.env.DATABASE_URL) return { handled: false };
   const decision = parseOwnerDecision(body);
-  if (!decision || !process.env.DATABASE_URL) return { handled: false };
+  const attempt = ATTEMPT_RE.test(body ?? "");
+  if (!decision?.code && !attempt) return { handled: false };
   try {
     const waiting = (await awaitingRows(now)).filter((r) => !isExpired(r, now));
-    let row: QueueRow | undefined;
-    if (decision.code != null) {
-      row = waiting.find((r) => meta(r.metadata).approvalCode === decision.code);
-      if (!row) return { handled: true, reply: `#${decision.code} isn't waiting any more - it was already answered or it expired.` };
-    } else if (waiting.length === 1) {
-      row = waiting[0];
-    } else if (waiting.length === 0) {
-      return { handled: true, reply: "Nothing is waiting for your OK right now." };
-    } else {
+    if (decision?.code == null) {
+      // No number: never guess which lead. Say how to answer, if anything is waiting.
+      if (waiting.length === 0) return { handled: false };
       const list = waiting.slice(0, 5).map((r) => `#${String(meta(r.metadata).approvalCode ?? "?")} ${whoOf(r)}`).join(" · ");
       const first = meta(waiting[0].metadata).approvalCode;
-      return { handled: true, reply: `Which one? ${list}. Reply Y or N with the number${typeof first === "number" ? `, like Y ${first}` : ""}.` };
+      return { handled: true, reply: `Waiting for your OK: ${list}. Reply Y or N with the number${typeof first === "number" ? `, like Y ${first}` : ""}.` };
     }
+    const row = waiting.find((r) => meta(r.metadata).approvalCode === decision.code);
+    if (!row) return { handled: true, reply: `#${decision.code} isn't waiting any more - it was already answered or it expired.` };
 
     const who = whoOf(row);
     const decided = { decidedAt: now.toISOString() };
     if (!decision.approved) {
       const ok = await claim(row, { ...decided, status: "skipped", skipReason: "Marcus said no" });
-      return { handled: true, reply: ok ? `OK - Marina won't call ${who}.` : `#${decision.code ?? meta(row.metadata).approvalCode} was already answered.` };
+      return { handled: true, reply: ok ? `OK - Marina won't call ${who}.` : `#${decision.code} was already answered.` };
     }
 
     const outbound = await import("./outbound");
     const callNow = inWindow(now, outbound.CALL_HOURS);
     const dueAt = callNow ? now : outbound.scheduleFor(now, 0);
     const ok = await claim(row, { ...decided, status: "queued", approvedAt: now.toISOString(), dueAt: dueAt.toISOString() });
-    if (!ok) return { handled: true, reply: `#${decision.code ?? meta(row.metadata).approvalCode} was already answered.` };
+    if (!ok) return { handled: true, reply: `#${decision.code} was already answered.` };
 
     if (!callNow) {
       outbound.armCallTimer(row.id, dueAt, now);
