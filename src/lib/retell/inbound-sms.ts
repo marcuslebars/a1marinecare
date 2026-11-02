@@ -8,6 +8,7 @@ import { normalizePhone, placeholderEmailForPhone, prettyPhone } from "./auth";
 import { lookupCallerByPhone, type CallerProfile } from "./caller-lookup";
 import { sendSms } from "./deposit-link";
 import { queueOutboundCall } from "./outbound";
+import { handleOwnerReply } from "./outbound-approval";
 import { earliestBookableDate } from "./slots";
 import { ownerSmsNumber } from "./webhook";
 
@@ -122,9 +123,17 @@ export async function handleInboundSms(params: { From?: string; To?: string; Bod
   if (!from || !body) return { relayed: false, acked: false, callQueued: false, reason: "empty" };
   if (isOptOutKeyword(body)) return { relayed: false, acked: false, callQueued: false, reason: "keyword" };
 
-  // Don't relay Marcus's own texts back to himself if he ever texts the line.
+  // Marcus texting the line: a "Y 12" / "N 12" answers a lead waiting for his OK
+  // (outbound-approval.ts). Anything else from him is never relayed back to himself.
   const owner = ownerSmsNumber();
-  if (owner && normalizePhone(owner) === from) return { relayed: false, acked: false, callQueued: false, reason: "owner" };
+  if (owner && normalizePhone(owner) === from) {
+    const decision = await handleOwnerReply(body, now);
+    if (decision.handled && decision.reply) {
+      const res = await sendSms(owner, decision.reply);
+      if (!res.ok) console.error("[inbound sms] owner reply failed:", res.error);
+    }
+    return { relayed: false, acked: false, callQueued: false, reason: decision.handled ? "owner_decision" : "owner" };
+  }
 
   const profile = await lookupCallerByPhone(from, now);
 
