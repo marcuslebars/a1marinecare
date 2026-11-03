@@ -107,6 +107,7 @@ export async function checkQueue(now = new Date()): Promise<HealthCheck[]> {
     const meta = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
     const stuck = rows.filter((r) => {
       const m = meta(r.metadata);
+      if (m.status === "placing") return typeof m.placingAt === "string" && now.getTime() - new Date(m.placingAt).getTime() > 15 * 60_000;
       return m.status === "queued" && typeof m.dueAt === "string" && now.getTime() - new Date(m.dueAt).getTime() > 3 * 3600_000;
     });
     const failed = rows.filter((r) => meta(r.metadata).status === "failed" && now.getTime() - r.createdAt.getTime() < 86_400_000);

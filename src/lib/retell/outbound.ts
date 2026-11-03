@@ -8,6 +8,7 @@ import { normalizePhone, placeholderEmailForPhone, prettyPhone } from "./auth";
 import { lookupCallerByPhone, toDynamicVariables } from "./caller-lookup";
 import { sendSms } from "./deposit-link";
 import { inWindow, torontoHour } from "./followups";
+import { AWAITING_APPROVAL, dropWaitingFor, needsOwnerApproval, pickApprovalCode, sendApprovalRequest, sweepApprovals, takenApprovalCodes, waitingCount } from "./outbound-approval";
 import { addDays, earliestBookableDate, torontoDayRange } from "./slots";
 import type { RetellWebhookEvent } from "./webhook";
 
@@ -19,6 +20,9 @@ import type { RetellWebhookEvent } from "./webhook";
 // queue: queued → placed → done | skipped | failed. Calls are placed either by
 // the in-process timer right after the form, or by the hourly follow-ups run
 // (which also catches anything the timer missed across a deploy).
+//
+// Web-form leads first wait for Marcus's OK by text (awaiting_approval → queued
+// on "Y", skipped on "N" or after 24 h): see ./outbound-approval.
 
 export const OUTBOUND_LEAD_TYPE = "marina-outbound";
 /** Local hours (inclusive start, exclusive end) when Marina may place calls. */
@@ -144,7 +148,24 @@ export function outboundCallMissed(call: { direction?: string; disconnection_rea
 // Timers so the first attempt happens ~2 min after the form without waiting for the hourly cron.
 const timers = new Map<string, NodeJS.Timeout>();
 
-export async function queueOutboundCall(req: OutboundRequest, now = new Date()): Promise<{ queued: boolean; id?: string; dueAt?: string; reason?: string }> {
+/**
+ * Place a queued call at `dueAt` from this process, when that's within 14 h (covers the
+ * overnight queue, so a 9:00 call goes at 9:00). The hourly workflow remains the safety
+ * net if the process restarts and the timer is lost.
+ */
+export function armCallTimer(id: string, dueAt: Date, now = new Date()): void {
+  const waitMs = dueAt.getTime() - now.getTime();
+  if (waitMs > 14 * 3600_000) return;
+  const existing = timers.get(id);
+  if (existing) clearTimeout(existing);
+  const t = setTimeout(() => {
+    timers.delete(id);
+    void placeQueuedCall(id).catch((err) => console.error("[outbound] timer place failed:", err instanceof Error ? err.message : String(err)));
+  }, Math.max(0, waitMs));
+  timers.set(id, t);
+}
+
+export async function queueOutboundCall(req: OutboundRequest, now = new Date()): Promise<{ queued: boolean; id?: string; dueAt?: string; reason?: string; awaitingApproval?: boolean }> {
   const skip = (reason: string) => {
     console.log("[outbound] not queued:", reason, { to: prettyPhone(req.to), reason: req.reason });
     return { queued: false, reason };
@@ -155,16 +176,22 @@ export async function queueOutboundCall(req: OutboundRequest, now = new Date()):
   if (!to) return skip("no dialable number");
 
   try {
+    const askOwner = needsOwnerApproval(req.reason);
     const hours = req.dedupeHours ?? dedupeHours();
-    const dup = hours > 0
-      ? await prisma.leadEvent.findFirst({
+    const recent = hours > 0
+      ? await prisma.leadEvent.findMany({
           where: { leadType: OUTBOUND_LEAD_TYPE, phone: to, createdAt: { gte: new Date(now.getTime() - hours * 3600_000) } },
-          select: { id: true },
+          select: { id: true, metadata: true },
+          take: 20,
         })
-      : null;
+      : [];
+    // A call the customer asked for (sms-reply) isn't blocked by a web lead that's only
+    // waiting for Marcus, or that he said no to: they want the call now.
+    const dup = recent.find((r) => askOwner || ![AWAITING_APPROVAL, "skipped"].includes(String(meta(r.metadata).status)));
     if (dup) return skip(`already called in the last ${hours}h`);
 
     const dueAt = scheduleFor(now);
+    const approval = askOwner ? { status: AWAITING_APPROVAL, approvalCode: pickApprovalCode(await takenApprovalCodes(now)) } : { status: "queued" };
     const row = await createLeadEvent({
       source: req.reason === "shrink-wrap-quote" ? "quote" : "contact",
       customerName: req.name?.trim() || "Unknown",
@@ -175,26 +202,48 @@ export async function queueOutboundCall(req: OutboundRequest, now = new Date()):
       leadId: req.quoteId ?? undefined,
       leadType: OUTBOUND_LEAD_TYPE,
       rawPayload: {},
-      metadata: { status: "queued", reason: req.reason, quoteId: req.quoteId ?? null, detail: req.detail ?? null, dueAt: dueAt.toISOString() },
+      metadata: { ...approval, reason: req.reason, quoteId: req.quoteId ?? null, detail: req.detail ?? null, dueAt: dueAt.toISOString() },
     });
 
-    // Arm an in-process timer for anything due within 14 h (covers the overnight
-    // queue, so a 9:00 call goes at 9:00). The hourly workflow remains the safety
-    // net if the process restarts and the timer is lost.
-    const waitMs = dueAt.getTime() - now.getTime();
-    if (waitMs <= 14 * 3600_000) {
-      const t = setTimeout(() => {
-        timers.delete(row.id);
-        void placeQueuedCall(row.id).catch((err) => console.error("[outbound] timer place failed:", err instanceof Error ? err.message : String(err)));
-      }, Math.max(0, waitMs));
-      timers.set(row.id, t);
+    if (askOwner) {
+      // No timer: nothing is placed until Marcus replies Y (outbound-approval.ts).
+      const texted = await sendApprovalRequest(row.id, now);
+      console.log("[outbound] waiting for owner approval", { id: row.id, to: prettyPhone(to), reason: req.reason, texted });
+      return { queued: true, id: row.id, dueAt: dueAt.toISOString(), awaitingApproval: true };
     }
+    // They asked for a call themselves: a web lead of theirs still waiting for Marcus is moot.
+    await dropWaitingFor(to, now);
+    armCallTimer(row.id, dueAt, now);
     console.log("[outbound] queued", { id: row.id, to: prettyPhone(to), reason: req.reason, dueAt: dueAt.toISOString() });
     return { queued: true, id: row.id, dueAt: dueAt.toISOString() };
   } catch (err) {
     if (!isMissingTableError(err)) console.error("[outbound] queue failed:", err instanceof Error ? err.message : String(err));
     return { queued: false, reason: "error" };
   }
+}
+
+/** A second call to one number within this long is skipped. */
+export const RECENT_CALL_MINUTES = 60;
+
+/** Did Marina already call this number (another queue row) in the last RECENT_CALL_MINUTES? */
+async function recentlyCalled(phone: string, exceptId: string, now: Date): Promise<boolean> {
+  const since = now.getTime() - RECENT_CALL_MINUTES * 60_000;
+  const rows = await prisma.leadEvent.findMany({
+    where: { leadType: OUTBOUND_LEAD_TYPE, phone, createdAt: { gte: new Date(now.getTime() - 3 * 86_400_000) } },
+    select: { id: true, metadata: true },
+    take: 20,
+  });
+  return rows.some((r) => {
+    if (r.id === exceptId) return false;
+    const m = meta(r.metadata);
+    const at = typeof m.placedAt === "string" ? m.placedAt : m.status === "placing" && typeof m.placingAt === "string" ? m.placingAt : null;
+    return at !== null && new Date(at).getTime() >= since;
+  });
+}
+
+/** Skip a row only if it's still queued (another placer may have claimed it meanwhile). */
+async function skipIfQueued(id: string, current: Record<string, unknown>, patch: Record<string, unknown>): Promise<void> {
+  await prisma.leadEvent.updateMany({ where: { id, metadata: { path: ["status"], equals: "queued" } }, data: { metadata: { ...current, ...patch } as Prisma.InputJsonValue } });
 }
 
 async function setStatus(id: string, current: Record<string, unknown>, patch: Record<string, unknown>): Promise<void> {
@@ -219,15 +268,30 @@ export async function placeQueuedCall(id: string, now = new Date()): Promise<{ p
   if (quoteId) {
     const quote = await prisma.quoteLead.findUnique({ where: { id: quoteId }, select: { requiresManualReview: true, estimatedTotal: true, boatLength: true, boatType: true } });
     if (quote?.requiresManualReview) {
-      await setStatus(id, m, { status: "skipped", skipReason: "manual review — Marcus quotes" });
+      await skipIfQueued(id, m, { status: "skipped", skipReason: "manual review — Marcus quotes" });
       return { placed: false, reason: "manual review" };
     }
     // (A texter who is already booked and paid may still have a question — only the quote chase skips.)
     if (reason === "shrink-wrap-quote" && profile.depositPaid && profile.bookedWindow) {
-      await setStatus(id, m, { status: "skipped", skipReason: "already booked and paid" });
+      await skipIfQueued(id, m, { status: "skipped", skipReason: "already booked and paid" });
       return { placed: false, reason: "already booked and paid" };
     }
   }
+
+  // Never two calls to one number close together (a customer's own "call me" text
+  // and Marcus's later Y on their web lead, say).
+  if (await recentlyCalled(row.phone, id, now)) {
+    await skipIfQueued(id, m, { status: "skipped", skipReason: `called in the last ${RECENT_CALL_MINUTES} min` });
+    return { placed: false, reason: "called them in the last hour" };
+  }
+
+  // Claim it: only one placer (the timer, the cron run, Marcus's Y) gets past this.
+  const placing = { ...m, status: "placing", placingAt: now.toISOString() };
+  const { count } = await prisma.leadEvent.updateMany({
+    where: { id, metadata: { path: ["status"], equals: "queued" } },
+    data: { metadata: placing as Prisma.InputJsonValue },
+  });
+  if (count === 0) return { placed: false, reason: "already being placed" };
 
   const first = profile.firstName || firstName(row.customerName);
   const boat = profile.boat || undefined;
@@ -260,16 +324,16 @@ export async function placeQueuedCall(id: string, now = new Date()): Promise<{ p
     if (!res.ok || !json.call_id) {
       const error = json.message ?? json.error ?? `retell ${res.status}`;
       console.error("[outbound] create call failed:", error);
-      await setStatus(id, m, { status: "failed", error, failedAt: now.toISOString() });
+      await setStatus(id, placing, { status: "failed", error, failedAt: now.toISOString() });
       return { placed: false, reason: error };
     }
-    await setStatus(id, m, { status: "placed", callId: json.call_id, placedAt: now.toISOString() });
+    await setStatus(id, placing, { status: "placed", callId: json.call_id, placedAt: now.toISOString() });
     console.log("[outbound] placed", { id, callId: json.call_id, to: prettyPhone(row.phone), reason });
     return { placed: true, callId: json.call_id };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     console.error("[outbound] create call error:", error);
-    await setStatus(id, m, { status: "failed", error, failedAt: now.toISOString() });
+    await setStatus(id, placing, { status: "failed", error, failedAt: now.toISOString() });
     return { placed: false, reason: error };
   }
 }
@@ -279,7 +343,16 @@ export async function runOutboundQueue(now = new Date(), opts: { dryRun?: boolea
   const out: { called: Array<{ id: string; to: string }>; skipped: string[] } = { called: [], skipped: [] };
   if (!isOutboundConfigured()) return { ...out, skipped: ["outbound: not configured"] };
   if (!process.env.DATABASE_URL) return out;
-  if (!inWindow(now, CALL_HOURS)) return { ...out, skipped: ["outbound: outside 9am–8pm"] };
+  // Leads waiting for Marcus: expire the unanswered ones, send texts that didn't go out (any hour).
+  if (opts.dryRun) {
+    const waiting = await waitingCount(now);
+    if (waiting) out.skipped.push(`outbound: ${waiting} lead(s) waiting for Marcus's OK`);
+  } else {
+    const approvals = await sweepApprovals(now);
+    if (approvals.expired) out.skipped.push(`outbound: ${approvals.expired} lead(s) dropped - no reply from Marcus within 24h`);
+    if (approvals.texted) out.skipped.push(`outbound: asked Marcus about ${approvals.texted} waiting lead(s)`);
+  }
+  if (!inWindow(now, CALL_HOURS)) return { ...out, skipped: [...out.skipped, "outbound: outside 9am–8pm"] };
   try {
     const rows = await prisma.leadEvent.findMany({
       where: { leadType: OUTBOUND_LEAD_TYPE, createdAt: { gte: new Date(now.getTime() - 3 * 86_400_000) }, metadata: { path: ["status"], equals: "queued" } },
