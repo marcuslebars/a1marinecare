@@ -7,6 +7,7 @@ import { createLeadEvent, isMissingTableError } from "@/lib/lead-events";
 import { normalizePhone, placeholderEmailForPhone, prettyPhone } from "./auth";
 import { lookupCallerByPhone, type CallerProfile } from "./caller-lookup";
 import { sendSms } from "./deposit-link";
+import { everdoerSmsForwardUrl, forwardTextToEverdoer } from "./everdoer-forward";
 import { queueOutboundCall } from "./outbound";
 import { handleOwnerReply } from "./outbound-approval";
 import { earliestBookableDate } from "./slots";
@@ -115,16 +116,20 @@ export function ackText(p: CallerProfile, call?: { dueAt: Date; now: Date }): st
   return `${hi} — got your message. Marcus will text you back shortly. Anything urgent, call ${company.phone}.`;
 }
 
-export type InboundSmsResult = { relayed: boolean; acked: boolean; callQueued: boolean; reason?: string };
+export type InboundSmsResult = { relayed: boolean; acked: boolean; callQueued: boolean; forwarded?: boolean; reason?: string };
 
-export async function handleInboundSms(params: { From?: string; To?: string; Body?: string; MessageSid?: string }, now = new Date()): Promise<InboundSmsResult> {
+/** Twilio's inbound fields (every one it sent is kept: a forward must carry them all, unchanged). */
+export type InboundSmsParams = Record<string, string | undefined> & { From?: string; To?: string; Body?: string; MessageSid?: string; NumMedia?: string };
+
+export async function handleInboundSms(params: InboundSmsParams, now = new Date()): Promise<InboundSmsResult> {
   const from = normalizePhone(params.From);
   const body = (params.Body ?? "").trim();
-  if (!from || !body) return { relayed: false, acked: false, callQueued: false, reason: "empty" };
-  if (isOptOutKeyword(body)) return { relayed: false, acked: false, callQueued: false, reason: "keyword" };
+  const hasMedia = Number(params.NumMedia ?? "0") > 0;
+  if (!from) return { relayed: false, acked: false, callQueued: false, reason: "empty" };
 
   // Marcus texting the line: a "Y 12" / "N 12" answers a lead waiting for his OK
-  // (outbound-approval.ts). Anything else from him is never relayed back to himself.
+  // (outbound-approval.ts). Anything else from him is never relayed back to himself, and never
+  // forwarded to Everdoer (he runs Everdoer from its own platform number).
   const owner = ownerSmsNumber();
   if (owner && normalizePhone(owner) === from) {
     const decision = await handleOwnerReply(body, now);
@@ -134,6 +139,21 @@ export async function handleInboundSms(params: { From?: string; To?: string; Bod
     }
     return { relayed: false, acked: false, callQueued: false, reason: decision.handled ? "owner_decision" : "owner" };
   }
+
+  // Everdoer's texting agent answers A1's customers (everdoer-forward.ts). Photos and STOP / START
+  // go too, so its consent records stay right. A failed forward falls through to the relay below.
+  if (everdoerSmsForwardUrl() && (body || hasMedia)) {
+    const forwarded = await forwardTextToEverdoer(Object.fromEntries(Object.entries(params).filter((e): e is [string, string] => typeof e[1] === "string")));
+    if (forwarded.ok) {
+      await logInboundText({ from, body: body || "(photo)", profile: await lookupCallerByPhone(from, now), params, metadata: { forwarded: true } });
+      console.log("[inbound sms] forwarded to Everdoer", { from: prettyPhone(from), media: hasMedia });
+      return { relayed: false, acked: false, callQueued: false, forwarded: true };
+    }
+    console.error("[inbound sms] forward to Everdoer failed, relaying instead:", forwarded.error);
+  }
+
+  if (!body) return { relayed: false, acked: false, callQueued: false, reason: "empty" };
+  if (isOptOutKeyword(body)) return { relayed: false, acked: false, callQueued: false, reason: "keyword" };
 
   const profile = await lookupCallerByPhone(from, now);
 
@@ -172,27 +192,32 @@ export async function handleInboundSms(params: { From?: string; To?: string; Bod
     if (!res.ok) console.error("[inbound sms] ack failed:", res.error);
   }
 
-  if (process.env.DATABASE_URL) {
-    try {
-      await createLeadEvent({
-        source: "contact",
-        customerName: profile.fullName || "Unknown texter",
-        email: placeholderEmailForPhone(from),
-        phone: from,
-        serviceInterest: profile.services || "text reply",
-        boatLength: profile.boat ? profile.boat.split(" ")[0] : undefined,
-        boatType: profile.boat ? profile.boat.split(" ").slice(2).join(" ") : undefined,
-        message: body,
-        leadId: profile.quoteId || undefined,
-        leadType: INBOUND_LEAD_TYPE,
-        rawPayload: { messageSid: params.MessageSid ?? null, to: params.To ?? null },
-        metadata: { channel: "sms", relayed, acked, known: profile.known, quoteId: profile.quoteId || null, callQueued: call.queued, callId: call.id ?? null, callSkipped: call.queued ? null : call.reason ?? null },
-      });
-    } catch (err) {
-      if (!isMissingTableError(err)) console.error("[inbound sms] log failed:", err instanceof Error ? err.message : String(err));
-    }
-  }
+  await logInboundText({ from, body, profile, params, metadata: { relayed, acked, callQueued: call.queued, callId: call.id ?? null, callSkipped: call.queued ? null : call.reason ?? null } });
 
   console.log("[inbound sms]", { from: prettyPhone(from), known: profile.known, relayed, acked, callQueued: call.queued, callSkipped: call.queued ? undefined : call.reason });
   return { relayed, acked, callQueued: call.queued };
+}
+
+/** One customer-sms lead_events row per inbound text (relayed here or forwarded to Everdoer). Never throws. */
+async function logInboundText(input: { from: string; body: string; profile: CallerProfile; params: InboundSmsParams; metadata: Record<string, unknown> }): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  const { from, body, profile, params } = input;
+  try {
+    await createLeadEvent({
+      source: "contact",
+      customerName: profile.fullName || "Unknown texter",
+      email: placeholderEmailForPhone(from),
+      phone: from,
+      serviceInterest: profile.services || "text reply",
+      boatLength: profile.boat ? profile.boat.split(" ")[0] : undefined,
+      boatType: profile.boat ? profile.boat.split(" ").slice(2).join(" ") : undefined,
+      message: body,
+      leadId: profile.quoteId || undefined,
+      leadType: INBOUND_LEAD_TYPE,
+      rawPayload: { messageSid: params.MessageSid ?? null, to: params.To ?? null },
+      metadata: { channel: "sms", known: profile.known, quoteId: profile.quoteId || null, ...input.metadata },
+    });
+  } catch (err) {
+    if (!isMissingTableError(err)) console.error("[inbound sms] log failed:", err instanceof Error ? err.message : String(err));
+  }
 }
