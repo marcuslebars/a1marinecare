@@ -481,3 +481,32 @@ Use: Friday, read the week's calls, tune the prompt from where real callers hesi
 - **Outbound queue:** nothing queued 3 h+ past due (hourly workflow not running?), no failed placements in the last 24 h.
 
 The 7am digest runs the same checks and puts any warnings on its first line (`⚠️ Marina check: agent published: v17 has unpublished changes — callers get the previous version`), so the "edited but not published" class of problem is caught the next morning at the latest.
+
+---
+
+## Customer texts answered by the Everdoer agent
+
+With `EVERDOER_SMS_FORWARD_URL=https://api.everdoer.com/api/twilio/sms/inbound` set on Railway, every
+customer text to the A1 line is forwarded to Everdoer's texting agent instead of being relayed to you:
+
+- **What the customer gets:** a reply from the A1 line, written by the Everdoer agent from A1 Marine Care's
+  price list in Everdoer. On "Ask me first" it never states a price or books without your OK.
+- **What you get:** a text from the Everdoer number (not the A1 line) when it needs you: "#3 … Reply Y 3 /
+  N 3". Reply to that number. Hand-offs (complaints, "talk to a person") also come there. Every
+  conversation is in Everdoer's Inbox.
+- **Your texts to the A1 line** are still handled here and never forwarded: the "Y 42" approvals for Marina's
+  outbound calls keep working.
+- **Photos and STOP / START** are forwarded too, so Everdoer's consent records stay right (Twilio still
+  enforces STOP itself).
+- **If Everdoer can't be reached** (or rejects the request), the old behaviour runs for that text: relay to
+  you plus the ack, so nothing is lost. Logged as `[inbound sms] forward to Everdoer failed`.
+- **How it's signed:** the text is POSTed with Twilio's exact fields and an `X-Twilio-Signature` computed
+  with the same account's `TWILIO_AUTH_TOKEN` for Everdoer's URL, so Everdoer verifies it like any Twilio
+  webhook (and ignores a repeat of the same MessageSid).
+- **Turn it off:** unset `EVERDOER_SMS_FORWARD_URL`. Texts go back to the relay at once.
+- **Not forwarded:** a customer's "call me" no longer queues Marina's call-back from here; the Everdoer agent
+  handles the conversation (and can ask you before arranging a call).
+
+Code: `src/lib/retell/everdoer-forward.ts`, called from `handleInboundSms` (`inbound-sms.ts`). Tests:
+`everdoer-forward.test.ts`.
+
