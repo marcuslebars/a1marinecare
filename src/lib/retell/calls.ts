@@ -7,7 +7,14 @@ import { lookupCallOutcome } from "./webhook";
 // database says happened on each (quote / booking / deposit), so a weekly
 // transcript review is one GET instead of clicking through the Retell UI.
 
-const RETELL_LIST_CALLS = "https://api.retellai.com/v2/list-calls";
+// Retell removed the legacy list endpoints (incl. POST /v2/list-calls). The
+// replacement, POST /v3/list-calls, pages its results ({ items, has_more,
+// pagination_key }) and leaves transcripts out, so each call's transcript comes
+// from GET /v2/get-call/{call_id}.
+const RETELL = "https://api.retellai.com";
+const RETELL_LIST_CALLS = `${RETELL}/v3/list-calls`;
+const PAGE_SIZE = 100;
+const TRANSCRIPT_CONCURRENCY = 6;
 
 export type RetellCall = {
   call_id: string;
@@ -76,24 +83,73 @@ function duration(ms: number | undefined): string {
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m${String(s % 60).padStart(2, "0")}s`;
 }
 
+type ListCallsPage = { items?: RetellCall[]; has_more?: boolean; pagination_key?: string };
+
+/** The v3 list-calls request body for one page. Exported for tests. */
+export function listCallsBody(opts: { agentId?: string; sinceMs: number; limit: number; paginationKey?: string }) {
+  return {
+    filter_criteria: {
+      ...(opts.agentId ? { agent: [{ agent_id: opts.agentId }] } : {}),
+      start_timestamp: { type: "number", op: "ge", value: opts.sinceMs },
+    },
+    sort_order: "descending",
+    limit: opts.limit,
+    ...(opts.paginationKey ? { pagination_key: opts.paginationKey } : {}),
+  };
+}
+
+async function listCalls(apiKey: string, agentId: string | undefined, sinceMs: number, limit: number): Promise<RetellCall[]> {
+  const calls: RetellCall[] = [];
+  let paginationKey: string | undefined;
+  while (calls.length < limit) {
+    const res = await fetch(RETELL_LIST_CALLS, {
+      method: "POST",
+      headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
+      body: JSON.stringify(listCallsBody({ agentId, sinceMs, limit: Math.min(PAGE_SIZE, limit - calls.length), paginationKey })),
+      signal: AbortSignal.timeout(15_000),
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`retell list-calls ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`);
+    const page = (await res.json()) as ListCallsPage;
+    calls.push(...(page.items ?? []));
+    if (!page.has_more || !page.pagination_key || !(page.items ?? []).length) break;
+    paginationKey = page.pagination_key;
+  }
+  return calls.slice(0, limit);
+}
+
+/** The list leaves transcripts out; fetch each one. A failed fetch keeps the call, without its transcript. */
+async function withTranscripts(apiKey: string, calls: RetellCall[]): Promise<RetellCall[]> {
+  const out = [...calls];
+  let next = 0;
+  const worker = async () => {
+    while (next < out.length) {
+      const i = next++;
+      const c = out[i];
+      try {
+        const res = await fetch(`${RETELL}/v2/get-call/${encodeURIComponent(c.call_id)}`, {
+          headers: { authorization: `Bearer ${apiKey}` },
+          signal: AbortSignal.timeout(10_000),
+          cache: "no-store",
+        });
+        if (!res.ok) continue;
+        const full = (await res.json()) as Partial<RetellCall>;
+        if (typeof full.transcript === "string") out[i] = { ...c, transcript: full.transcript };
+      } catch {
+        /* keep the call without its transcript */
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(TRANSCRIPT_CONCURRENCY, out.length) }, worker));
+  return out;
+}
+
 export async function fetchRecentCalls(days: number, limit: number): Promise<RetellCall[]> {
   const apiKey = process.env.RETELL_API_KEY?.trim();
   if (!apiKey) throw new Error("RETELL_API_KEY not set");
-  const agentId = process.env.RETELL_AGENT_ID?.trim();
-  const res = await fetch(RETELL_LIST_CALLS, {
-    method: "POST",
-    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      filter_criteria: { ...(agentId ? { agent_id: [agentId] } : {}), start_timestamp: { lower_threshold: Date.now() - days * 86_400_000 } },
-      sort_order: "descending",
-      limit,
-    }),
-    signal: AbortSignal.timeout(15_000),
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`retell list-calls ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`);
-  const json = (await res.json()) as RetellCall[] | { calls?: RetellCall[] };
-  return Array.isArray(json) ? json : (json.calls ?? []);
+  const agentId = process.env.RETELL_AGENT_ID?.trim() || undefined;
+  const calls = await listCalls(apiKey, agentId, Date.now() - days * 86_400_000, limit);
+  return withTranscripts(apiKey, calls);
 }
 
 export async function reviewCall(c: RetellCall, opts: { full: boolean }): Promise<CallReview> {
